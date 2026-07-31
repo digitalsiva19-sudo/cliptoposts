@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
 
@@ -12,17 +13,22 @@ export default function HomePage() {
     if (!url) return;
     setLoading(true);
     
-    // Demo Response Simulation
     setTimeout(() => {
-      setGeneratedContent(`🚀 Key Insights from Video:\n\n1. AI Content repurposing saves 80% of creation time.\n2. Turn 1 long YouTube video into 5 LinkedIn posts & 10 Tweets.\n3. Consistency drives 3x organic reach.\n\n#ContentCreation #SaaS #DigitalMarketing`);
+      setGeneratedContent(
+        "🚀 Key Insights from Video:\n\n" +
+        "1. AI Content repurposing saves 80% of creation time.\n" +
+        "2. Turn 1 long YouTube video into 5 LinkedIn posts & 10 Tweets.\n" +
+        "3. Consistency drives 3x organic reach.\n\n" +
+        "#ContentCreation #SaaS #DigitalMarketing"
+      );
       setLoading(false);
-    }, 2000);
+    }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
-      {/* 🧭 Navigation Bar */}
-      <nav className="border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto rounded-b-2xl">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
+      {/* Navbar */}
+      <nav className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto">
         <div className="flex items-center space-x-2">
           <span className="text-2xl font-black bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             ClipToPosts
@@ -41,9 +47,9 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* 🚀 Hero Section */}
+      {/* Hero Section */}
       <main className="max-w-5xl mx-auto px-6 pt-16 pb-20 text-center space-y-8">
-        <div className="inline-flex items-center space-x-2 bg-slate-900 border border-slate-800 px-4 py-2 rounded-full text-xs font-medium text-amber-300 shadow-inner">
+        <div className="inline-flex items-center space-x-2 bg-slate-900 border border-slate-800 px-4 py-2 rounded-full text-xs font-medium text-amber-300">
           <span>✨ 3 Free AI Credits Available</span>
         </div>
 
@@ -58,8 +64,8 @@ export default function HomePage() {
           Paste any YouTube link. Our AI extracts transcripts, key takeaways, and generates LinkedIn articles, Twitter threads, and Instagram captions instantly.
         </p>
 
-        {/* 🔗 YouTube Link Input Box */}
-        <div className="max-w-2xl mx-auto bg-slate-900/90 border border-slate-800 p-2 sm:p-3 rounded-2xl shadow-2xl backdrop-blur-xl">
+        {/* YouTube Input Box */}
+        <div className="max-w-2xl mx-auto bg-slate-900 border border-slate-800 p-3 rounded-2xl shadow-2xl">
           <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-3">
             <input
               type="url"
@@ -79,9 +85,9 @@ export default function HomePage() {
           </form>
         </div>
 
-        {/* 📝 Output Preview Box */}
+        {/* Output Box */}
         {generatedContent && (
-          <div className="max-w-2xl mx-auto text-left bg-slate-900 border border-indigo-500/40 p-6 rounded-2xl shadow-2xl space-y-4 animate-in fade-in duration-300">
+          <div className="max-w-2xl mx-auto text-left bg-slate-900 border border-indigo-500/40 p-6 rounded-2xl shadow-2xl space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">AI Generated Output</span>
               <button
@@ -97,7 +103,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* 💰 Pricing Section */}
+        {/* Pricing Section */}
         <div className="pt-16 border-t border-slate-900 space-y-10">
           <div className="space-y-2">
             <h2 className="text-2xl sm:text-3xl font-black">Simple, Transparent Pricing</h2>
@@ -120,7 +126,7 @@ export default function HomePage() {
             </div>
 
             {/* Pro Tier */}
-            <div className="bg-gradient-to-b from-indigo-950/40 to-slate-900 border border-indigo-500/50 p-6 rounded-3xl space-y-4 relative shadow-xl shadow-indigo-950/50">
+            <div className="bg-gradient-to-b from-indigo-950/40 to-slate-900 border border-indigo-500/50 p-6 rounded-3xl space-y-4 relative shadow-xl">
               <span className="absolute -top-3 right-6 bg-gradient-to-r from-indigo-500 to-pink-500 text-[10px] font-black px-3 py-1 rounded-full text-white uppercase tracking-wider">
                 POPULAR
               </span>
@@ -128,7 +134,7 @@ export default function HomePage() {
               <div className="text-3xl font-black">₹399 <span className="text-xs text-slate-400 font-normal">/ month</span></div>
               <ul className="text-xs text-slate-300 space-y-2.5">
                 <li>✅ Unlimited Video Conversions</li>
-                <li>✅ Long YouTube Video Support (&gt;60 Mins)</li>
+                <li>✅ Long YouTube Video Support</li>
                 <li>✅ High-Converting Hook Generators</li>
                 <li>✅ Priority Fast Server Speed</li>
               </ul>
@@ -140,7 +146,6 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* <footer> */}
       <footer className="border-t border-slate-900 text-center py-6 text-xs text-slate-600">
         © 2026 ClipToPosts. Built for Content Creators & Digital Marketers.
       </footer>
