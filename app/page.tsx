@@ -26,7 +26,7 @@ export default function HomePage() {
       if (data.result) {
         setGeneratedContent(data.result);
       } else {
-        setGeneratedContent("❌ Failed to generate posts: " + (data.error || "Unknown error"));
+        setGeneratedContent("❌ Failed: " + (data.error || "Something went wrong"));
       }
     } catch (err) {
       setGeneratedContent("❌ Error connecting to server.");
@@ -96,12 +96,6 @@ export default function HomePage() {
           <div className="max-w-2xl mx-auto text-left bg-slate-900 border border-indigo-500/40 p-6 rounded-2xl shadow-2xl space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">AI Generated Output</span>
-              <button
-                onClick={() => navigator.clipboard.writeText(generatedContent)}
-                className="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-slate-200 transition"
-              >
-                📋 Copy All
-              </button>
             </div>
             <pre className="text-sm text-slate-300 font-sans whitespace-pre-wrap leading-relaxed">
               {generatedContent}
