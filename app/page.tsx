@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -8,9 +8,27 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const [credits, setCredits] = useState<number>(3);
+  const [showPaywall, setShowPaywall] = useState<boolean>(false);
+  const [payLoading, setPayLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const savedCredits = localStorage.getItem("clip_credits");
+    if (savedCredits !== null) {
+      setCredits(parseInt(savedCredits, 10));
+    } else {
+      localStorage.setItem("clip_credits", "3");
+    }
+  }, []);
 
   const handleGenerate = async () => {
     if (!url) return alert("Please enter YouTube URL!");
+
+    if (credits <= 0) {
+      setShowPaywall(true);
+      return;
+    }
+
     setLoading(true);
     setResults(null);
 
@@ -23,6 +41,9 @@ export default function Home() {
       const data = await res.json();
       if (data.success) {
         setResults(data.data);
+        const newCredits = credits - 1;
+        setCredits(newCredits);
+        localStorage.setItem("clip_credits", newCredits.toString());
       } else {
         alert(data.error || "Something went wrong!");
       }
@@ -33,6 +54,50 @@ export default function Home() {
     }
   };
 
+  const handlePayUCheckout = async () => {
+    setPayLoading(true);
+    try {
+      const res = await fetch("/api/payu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: "399.00",
+          firstname: "Customer",
+          email: "customer@cliptoposts.in",
+          phone: "9999999999",
+          productinfo: "ClipToPosts Pro Subscription",
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.payuData) {
+        const { action, ...fields } = data.payuData;
+
+        // Auto-submit hidden form to redirect to PayU
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = action;
+
+        Object.keys(fields).forEach((key) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = fields[key];
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      } else {
+        alert("Payment initialization failed: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      alert("Error initiating payment.");
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedIndex(id);
@@ -40,17 +105,20 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans">
+    <div className="min-h-screen bg-slate-900 text-white font-sans relative">
       {/* Top Navigation Bar */}
-      <nav className="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+      <nav className="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <span className="text-2xl font-black bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">
               ClipToPosts
             </span>
+            <span className="text-xs bg-slate-800 text-indigo-300 font-bold px-2.5 py-1 rounded-full border border-slate-700">
+              ⚡ {credits} Free Credits Left
+            </span>
           </div>
           <button 
-            onClick={() => alert("Payment Gateway setup next step lo edustham!")}
+            onClick={() => setShowPaywall(true)}
             className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-sm hover:opacity-90 transition shadow-lg shadow-orange-500/20"
           >
             ⭐ Upgrade to Pro (₹399/mo)
@@ -117,7 +185,7 @@ export default function Home() {
             {loading ? (
               <span>⚡ Generating Viral Content...</span>
             ) : (
-              <span>🚀 Repurpose Content Now</span>
+              <span>🚀 Repurpose Content ({credits} Free Left)</span>
             )}
           </button>
         </div>
@@ -138,7 +206,7 @@ export default function Home() {
                 {results.linkedin.map((post: string, i: number) => {
                   const id = `linkedin-${i}`;
                   return (
-                    <div key={i} className="bg-slate-950 p-5 rounded-2xl border border-slate-800 relative group space-y-3">
+                    <div key={i} className="bg-slate-950 p-5 rounded-2xl border border-slate-800 relative space-y-3">
                       <div className="flex justify-between items-start">
                         <span className="text-xs font-semibold text-slate-500 uppercase">Post #{i + 1}</span>
                         <button
@@ -204,6 +272,45 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* PAYWALL MODAL WITH PAYU */}
+      {showPaywall && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl relative">
+            <button
+              onClick={() => setShowPaywall(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+            >
+              ✕
+            </button>
+            <div className="inline-block p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20">
+              <span className="text-4xl">🚀</span>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-white">Upgrade to Pro</h3>
+              <p className="text-slate-400 text-sm">
+                Unlock unlimited YouTube video repurposing with Pro tier.
+              </p>
+            </div>
+            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-left space-y-2">
+              <div className="text-amber-400 font-bold text-xl">₹399 / month</div>
+              <ul className="text-xs text-slate-300 space-y-1.5">
+                <li>✅ Unlimited YouTube Video Repurposing</li>
+                <li>✅ Natural Telugu & Tanglish Output</li>
+                <li>✅ High-converting LinkedIn & Twitter Posts</li>
+                <li>✅ Instant Copy to Clipboard</li>
+              </ul>
+            </div>
+            <button
+              onClick={handlePayUCheckout}
+              disabled={payLoading}
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold py-3.5 rounded-xl hover:opacity-90 transition shadow-lg shadow-orange-500/20 flex items-center justify-center"
+            >
+              {payLoading ? "Redirecting to PayU..." : "Get Instant Access Now (₹399)"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
