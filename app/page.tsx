@@ -8,26 +8,35 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
     setLoading(true);
-    
-    setTimeout(() => {
-      setGeneratedContent(
-        "🚀 Key Insights from Video:\n\n" +
-        "1. AI Content repurposing saves 80% of creation time.\n" +
-        "2. Turn 1 long YouTube video into 5 LinkedIn posts & 10 Tweets.\n" +
-        "3. Consistency drives 3x organic reach.\n\n" +
-        "#ContentCreation #SaaS #DigitalMarketing"
-      );
-      setLoading(false);
-    }, 1500);
+    setGeneratedContent(null);
+
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+
+      const data = await res.json();
+
+      if (data.result) {
+        setGeneratedContent(data.result);
+      } else {
+        setGeneratedContent("❌ Failed to generate posts: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      setGeneratedContent("❌ Error connecting to server.");
+    }
+
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
-      {/* Navbar */}
       <nav className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto">
         <div className="flex items-center space-x-2">
           <span className="text-2xl font-black bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -47,7 +56,6 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <main className="max-w-5xl mx-auto px-6 pt-16 pb-20 text-center space-y-8">
         <div className="inline-flex items-center space-x-2 bg-slate-900 border border-slate-800 px-4 py-2 rounded-full text-xs font-medium text-amber-300">
           <span>✨ 3 Free AI Credits Available</span>
@@ -64,7 +72,6 @@ export default function HomePage() {
           Paste any YouTube link. Our AI extracts transcripts, key takeaways, and generates LinkedIn articles, Twitter threads, and Instagram captions instantly.
         </p>
 
-        {/* YouTube Input Box */}
         <div className="max-w-2xl mx-auto bg-slate-900 border border-slate-800 p-3 rounded-2xl shadow-2xl">
           <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-3">
             <input
@@ -80,12 +87,11 @@ export default function HomePage() {
               disabled={loading}
               className="whitespace-nowrap bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold text-sm px-6 py-3 rounded-xl transition shadow-lg shadow-indigo-600/30 disabled:opacity-50"
             >
-              {loading ? "Transcribing..." : "✨ Generate Posts"}
+              {loading ? "AI Processing..." : "✨ Generate Posts"}
             </button>
           </form>
         </div>
 
-        {/* Output Box */}
         {generatedContent && (
           <div className="max-w-2xl mx-auto text-left bg-slate-900 border border-indigo-500/40 p-6 rounded-2xl shadow-2xl space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -103,7 +109,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Pricing Section */}
         <div className="pt-16 border-t border-slate-900 space-y-10">
           <div className="space-y-2">
             <h2 className="text-2xl sm:text-3xl font-black">Simple, Transparent Pricing</h2>
@@ -111,7 +116,6 @@ export default function HomePage() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto text-left">
-            {/* Free Tier */}
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
               <h3 className="text-lg font-bold text-slate-200">Free Trial</h3>
               <div className="text-3xl font-black">₹0 <span className="text-xs text-slate-500 font-normal">/ forever</span></div>
@@ -125,7 +129,6 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Pro Tier */}
             <div className="bg-gradient-to-b from-indigo-950/40 to-slate-900 border border-indigo-500/50 p-6 rounded-3xl space-y-4 relative shadow-xl">
               <span className="absolute -top-3 right-6 bg-gradient-to-r from-indigo-500 to-pink-500 text-[10px] font-black px-3 py-1 rounded-full text-white uppercase tracking-wider">
                 POPULAR
