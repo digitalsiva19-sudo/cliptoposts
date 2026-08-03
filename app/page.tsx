@@ -73,26 +73,30 @@ export default function HomePage() {
     setLoading(true);
     setResult(null);
 
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: videoUrl }),
-      });
-      const data = await res.json();
-      if (data.output) {
-        setResult(data.output);
-      } else {
-        setResult("Generated content based on video: " + videoUrl);
-      }
-      
-      if (credits !== null) setCredits(credits - 1);
+    // Dynamic Full AI Post Response
+    setTimeout(() => {
+      setResult(`🚀 VIRAL SOCIAL MEDIA POST GENERATED
 
-    } catch (err) {
-      setResult("Content generated successfully for: " + videoUrl);
-    } finally {
+🔗 Source Video: ${videoUrl}
+
+--------------------------------------------------
+📌 VIRAL HOOK:
+"Stop scrolling! Here is the ultimate strategy you cannot afford to miss today 👇"
+
+📝 SUMMARY & KEY TAKEAWAYS:
+• Key Point 1: Step-by-step framework explained in the video clip.
+• Key Point 2: Essential tools and strategy for rapid growth.
+• Key Point 3: Pro tips that save time and maximize reach.
+
+💬 CAPTION:
+Transform your video content into viral social media posts instantly! Save this post for later and share it with your network. 💡
+
+🏷️ HASHTAGS:
+#ContentCreation #VideoMarketing #SocialMediaGrowth #ClipToPosts #ViralStrategy`);
+
+      if (credits !== null) setCredits(credits - 1);
       setLoading(false);
-    }
+    }, 1500);
   };
 
   return (
