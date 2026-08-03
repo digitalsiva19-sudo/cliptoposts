@@ -12,29 +12,50 @@ export default function HomePage() {
   const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
-    async function checkUserSession() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
-        // Fetch User Credits
+    async function getSessionAndData() {
+      // 1. Get Current Session / Auth User
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        setUser(session.user);
+
+        // 2. Fetch Subscription Credits from Database
         const { data: sub } = await supabase
           .from("subscriptions")
           .select("generations_limit, generations_used")
-          .eq("user_id", user.id)
-          .single();
+          .eq("user_id", session.user.id)
+          .maybeSingle();
 
         if (sub) {
           setCredits(Math.max(0, sub.generations_limit - sub.generations_used));
+        } else {
+          setCredits(5); // Default Free Fallback
         }
       }
     }
-    checkUserSession();
+
+    getSessionAndData();
+
+    // Listen for Auth changes (Login/Logout dynamically)
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+        setCredits(null);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setCredits(null);
+    window.location.reload();
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -43,11 +64,12 @@ export default function HomePage() {
 
     if (!user) {
       alert("Please login first to generate content!");
+      window.location.href = "/login";
       return;
     }
 
     if (credits !== null && credits <= 0) {
-      alert("You have exhausted your free credits! Please upgrade to Pro Plan in Dashboard.");
+      alert("You have exhausted your credits! Upgrade to Pro in Dashboard.");
       return;
     }
 
@@ -64,10 +86,10 @@ export default function HomePage() {
       if (data.output) {
         setResult(data.output);
       } else {
-        setResult("Generated content based on video: " + videoUrl);
+        setResult("Generated content for: " + videoUrl);
       }
-      
-      // Update local credits display after generation
+
+      // Local credit deduction
       if (credits !== null) setCredits(credits - 1);
 
     } catch (err) {
@@ -93,7 +115,7 @@ export default function HomePage() {
               </span>
               <Link
                 href="/dashboard"
-                className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition"
               >
                 Dashboard
               </Link>
