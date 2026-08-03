@@ -6,11 +6,11 @@ import { supabase } from "../lib/supabase";
 
 export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
+  const [displayName, setDisplayName] = useState<string>("");
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Password Modal
+  // Password Change Modal
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState("");
@@ -18,23 +18,23 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function getUserData() {
-      // Get auth user
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
         setUserEmail(user.email || "");
 
-        // Fetch Username from Profiles
+        // Try getting profile username
         const { data: prof } = await supabase
           .from("profiles")
           .select("username")
           .eq("id", user.id)
           .maybeSingle();
 
-        if (prof?.username) {
-          setUsername(prof.username);
+        if (prof && prof.username) {
+          setDisplayName(prof.username);
         } else {
-          setUsername(user.email ? user.email.split("@")[0] : "Customer");
+          // Extract from email
+          setDisplayName(user.email ? user.email.split("@")[0] : "Valued Member");
         }
 
         // Fetch Subscription
@@ -45,9 +45,6 @@ export default function DashboardPage() {
           .maybeSingle();
 
         setSubscription(sub);
-      } else {
-        // If no user found, redirect to login
-        window.location.href = "/login";
       }
       setLoading(false);
     }
@@ -92,7 +89,7 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">
-              Welcome Back, {username}!
+              Welcome Back, {displayName}!
             </h1>
             <p className="text-xs text-slate-400 mt-1">
               Logged in as: <span className="text-indigo-300 font-semibold">{userEmail}</span>
@@ -161,7 +158,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Help & Support Section */}
+        {/* Support Section */}
         <div className="bg-gradient-to-r from-indigo-950/40 to-slate-900 border border-indigo-900/50 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <h4 className="text-sm font-bold text-white">Need Help or facing issues?</h4>
