@@ -1,8 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-
+import React from "react";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -13,7 +11,7 @@ export default function LoginPage() {
           ClipToPosts
         </Link>
         <h2 className="text-xl font-bold text-slate-200">Welcome Back</h2>
-        <p className="text-xs text-slate-400">Login feature is coming soon! You can use the free generator on the homepage.</p>
+        <p className="text-xs text-slate-400">Login feature is updating. You can use the free generator on the homepage.</p>
         <Link href="/" className="inline-block bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm px-6 py-3 rounded-xl transition">
           Go to Home Generator
         </Link>
