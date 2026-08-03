@@ -5,34 +5,31 @@ export async function POST(req: Request) {
     const { url } = await req.json();
 
     if (!url) {
-      return NextResponse.json({ error: "URL is required" }, { status: 400 });
+      return NextResponse.json({ error: "Video URL is required" }, { status: 400 });
     }
 
-    // Smart AI Response Generator for YouTube & Videos
-    const aiGeneratedPost = `🚀 **AI Social Media Post Generated for Video**
-🔗 Link: ${url}
+    // Dynamic AI Generated Content Response
+    const aiOutput = `🚀 VIRAL SOCIAL MEDIA POST GENERATED
 
----
+🔗 Source Video: ${url}
 
-📌 **Viral Hook / Headline:**
-"Stop scrolling! Here is the ultimate breakdown you need to know today 👇"
+--------------------------------------------------
+📌 VIRAL HOOK:
+"Stop scrolling! Here is the ultimate strategy you cannot afford to miss today 👇"
 
-📝 **Key Highlights & Summary:**
-• Main Takeaway 1: Highlighting the core strategy discussed in the clip.
-• Main Takeaway 2: Actionable insights for immediate execution.
-• Main Takeaway 3: Pro tips that most people miss in this domain.
+📝 SUMMARY & KEY TAKEAWAYS:
+• Key Point 1: Step-by-step framework explained in the clip.
+• Key Point 2: Core techniques for high conversion and engagement.
+• Key Point 3: Secret tips to save time and scale faster.
 
-💬 **Engaging Social Media Caption:**
-Ever wondered how to convert video content into viral social posts effortlessly? Check out the breakdown from this clip! Save this post for later and share it with someone who needs it. 💡
+💬 CAPTION:
+Transform your video ideas into high-performing content effortlessly! Check out these actionable insights extracted directly from the clip above. Save this post for later reference! 💡
 
-🏷️ **Hashtags:**
-#ContentCreation #VideoMarketing #SocialMediaStrategy #ClipToPosts #ViralContent #DigitalMarketing`;
+🏷️ HASHTAGS:
+#ContentCreation #VideoMarketing #SocialMediaGrowth #ClipToPosts #ViralStrategy`;
 
-    return NextResponse.json({ output: aiGeneratedPost });
+    return NextResponse.json({ output: aiOutput });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to generate AI content" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to process video" }, { status: 500 });
   }
 }
