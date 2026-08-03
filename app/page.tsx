@@ -12,14 +12,14 @@ export default function HomePage() {
   const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
-    async function getSessionAndData() {
-      // 1. Get Current Session / Auth User
+    // 1. Fetch current logged in user & subscription from Supabase
+    async function checkAuth() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
         setUser(session.user);
-
-        // 2. Fetch Subscription Credits from Database
+        
+        // Fetch User Credits
         const { data: sub } = await supabase
           .from("subscriptions")
           .select("generations_limit, generations_used")
@@ -29,15 +29,15 @@ export default function HomePage() {
         if (sub) {
           setCredits(Math.max(0, sub.generations_limit - sub.generations_used));
         } else {
-          setCredits(5); // Default Free Fallback
+          setCredits(5);
         }
       }
     }
 
-    getSessionAndData();
+    checkAuth();
 
-    // Listen for Auth changes (Login/Logout dynamically)
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    // 2. Auth State Change Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user);
       } else {
@@ -47,7 +47,7 @@ export default function HomePage() {
     });
 
     return () => {
-      authListener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -69,7 +69,7 @@ export default function HomePage() {
     }
 
     if (credits !== null && credits <= 0) {
-      alert("You have exhausted your credits! Upgrade to Pro in Dashboard.");
+      alert("You have exhausted your credits! Please upgrade in Dashboard.");
       return;
     }
 
@@ -86,10 +86,9 @@ export default function HomePage() {
       if (data.output) {
         setResult(data.output);
       } else {
-        setResult("Generated content for: " + videoUrl);
+        setResult("Generated content based on video: " + videoUrl);
       }
-
-      // Local credit deduction
+      
       if (credits !== null) setCredits(credits - 1);
 
     } catch (err) {
