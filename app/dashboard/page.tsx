@@ -10,7 +10,7 @@ export default function DashboardPage() {
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Password Change Modal
+  // Password Change States
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState("");
@@ -23,21 +23,20 @@ export default function DashboardPage() {
       if (user) {
         setUserEmail(user.email || "");
 
-        // Try getting profile username
+        // Profile Details
         const { data: prof } = await supabase
           .from("profiles")
           .select("username")
           .eq("id", user.id)
           .maybeSingle();
 
-        if (prof && prof.username) {
+        if (prof?.username) {
           setDisplayName(prof.username);
         } else {
-          // Extract from email
-          setDisplayName(user.email ? user.email.split("@")[0] : "Valued Member");
+          setDisplayName(user.email ? user.email.split("@")[0] : "Customer");
         }
 
-        // Fetch Subscription
+        // Subscription Details
         const { data: sub } = await supabase
           .from("subscriptions")
           .select("*")
@@ -45,6 +44,8 @@ export default function DashboardPage() {
           .maybeSingle();
 
         setSubscription(sub);
+      } else {
+        window.location.href = "/login";
       }
       setLoading(false);
     }
@@ -85,7 +86,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-4 sm:p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         
-        {/* Top Header */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">
@@ -158,7 +159,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Support Section */}
+        {/* Support */}
         <div className="bg-gradient-to-r from-indigo-950/40 to-slate-900 border border-indigo-900/50 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <h4 className="text-sm font-bold text-white">Need Help or facing issues?</h4>
@@ -176,7 +177,7 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* Change Password Modal */}
+      {/* Password Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full space-y-4 shadow-2xl">
