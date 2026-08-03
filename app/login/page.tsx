@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        // 1. Sign Up User
+        // Sign Up User
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
@@ -31,8 +31,8 @@ export default function LoginPage() {
         if (authError) throw authError;
 
         if (authData.user) {
-          // 2. Create Profile
-          const { error: profileError } = await supabase.from("profiles").insert([
+          // Create Profile
+          await supabase.from("profiles").insert([
             {
               id: authData.user.id,
               username: username || email.split("@")[0],
@@ -41,9 +41,7 @@ export default function LoginPage() {
             },
           ]);
 
-          if (profileError) console.error("Profile insert error:", profileError);
-
-          // 3. Create Default Free Subscription
+          // Create Default Free Subscription
           await supabase.from("subscriptions").insert([
             {
               user_id: authData.user.id,
@@ -55,7 +53,7 @@ export default function LoginPage() {
             },
           ]);
 
-          alert("Registration Successful! Redirecting to dashboard...");
+          alert("Registration Successful! Redirecting...");
           router.push("/dashboard");
         }
       } else {
@@ -70,7 +68,7 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "Something went wrong. Please try again.");
+      setErrorMsg(err.message || "Something went wrong. Try again.");
     } finally {
       setLoading(false);
     }
@@ -80,24 +78,21 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6 font-sans">
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-2xl space-y-6 shadow-2xl">
         
-        {/* Title */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-black bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">
             {isSignUp ? "Create Account" : "Welcome Back"}
           </h1>
           <p className="text-xs text-slate-400">
-            {isSignUp ? "Sign up to start converting clips to posts" : "Login to access your dashboard & credits"}
+            {isSignUp ? "Sign up to start converting clips to posts" : "Login to access your dashboard"}
           </p>
         </div>
 
-        {/* Error Alert */}
         {errorMsg && (
           <div className="bg-red-950/80 border border-red-800 text-red-300 text-xs p-3 rounded-xl">
             {errorMsg}
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleAuth} className="space-y-4 text-xs">
           {isSignUp && (
             <div>
@@ -105,7 +100,7 @@ export default function LoginPage() {
               <input
                 type="text"
                 required={isSignUp}
-                placeholder="Choose a unique username"
+                placeholder="Choose username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 text-white p-3 rounded-xl focus:outline-none focus:border-indigo-500"
@@ -146,7 +141,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Toggle Sign Up / Login */}
         <div className="text-center text-xs text-slate-400">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
