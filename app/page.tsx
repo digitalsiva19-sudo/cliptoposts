@@ -1,21 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { supabase } from "./lib/supabase";
 
 export default function HomePage() {
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function checkUserSession() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        // Fetch User Credits
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("generations_limit, generations_used")
+          .eq("user_id", user.id)
+          .single();
+
+        if (sub) {
+          setCredits(Math.max(0, sub.generations_limit - sub.generations_used));
+        }
+      }
+    }
+    checkUserSession();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setCredits(null);
+  };
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!videoUrl) return;
 
+    if (!user) {
+      alert("Please login first to generate content!");
+      return;
+    }
+
+    if (credits !== null && credits <= 0) {
+      alert("You have exhausted your free credits! Please upgrade to Pro Plan in Dashboard.");
+      return;
+    }
+
     setLoading(true);
     setResult(null);
 
-    // AI Generation Logic Trigger
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -28,6 +66,10 @@ export default function HomePage() {
       } else {
         setResult("Generated content based on video: " + videoUrl);
       }
+      
+      // Update local credits display after generation
+      if (credits !== null) setCredits(credits - 1);
+
     } catch (err) {
       setResult("Content generated successfully for: " + videoUrl);
     } finally {
@@ -42,12 +84,35 @@ export default function HomePage() {
         <h1 className="text-2xl font-black bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">
           ClipToPosts
         </h1>
-        <Link
-          href="/login"
-          className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-5 py-2 rounded-xl transition"
-        >
-          Login
-        </Link>
+
+        <div className="flex items-center gap-4">
+          {user ? (
+            <>
+              <span className="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-3 py-1.5 rounded-xl font-bold">
+                ⚡ Credits Left: {credits !== null ? credits : "..."}
+              </span>
+              <Link
+                href="/dashboard"
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition"
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="text-xs text-red-400 hover:underline font-semibold"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5 py-2 rounded-xl transition"
+            >
+              Login / Register
+            </Link>
+          )}
+        </div>
       </header>
 
       {/* Main Content */}
