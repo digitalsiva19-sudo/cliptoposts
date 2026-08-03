@@ -5,12 +5,12 @@ import Link from "next/link";
 import { supabase } from "../lib/supabase";
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Password Modal
+  // Password Modal States
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState("");
@@ -19,38 +19,38 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadUserData() {
       try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        // Direct Session Check
+        const { data: { session } } = await supabase.auth.getSession();
 
-        if (currentUser) {
-          setUser(currentUser);
+        if (session?.user) {
+          const user = session.user;
+          setUserEmail(user.email || "No Email");
 
-          // 1. Fetch Profile Username
+          // Fetch Profile or Fallback
           const { data: profData } = await supabase
             .from("profiles")
             .select("username")
-            .eq("id", currentUser.id)
+            .eq("id", user.id)
             .maybeSingle();
 
           if (profData?.username) {
             setUsername(profData.username);
           } else {
-            // Fallback Username from Email or Auth Metadata
-            const metaName = currentUser.user_metadata?.username;
-            const emailName = currentUser.email?.split("@")[0];
-            setUsername(metaName || emailName || "Customer");
+            // Default Username from Email
+            setUsername(user.email ? user.email.split("@")[0] : "Customer");
           }
 
-          // 2. Fetch Subscription Data
+          // Fetch Subscription
           const { data: subData } = await supabase
             .from("subscriptions")
             .select("*")
-            .eq("user_id", currentUser.id)
+            .eq("user_id", user.id)
             .maybeSingle();
 
           setSubscription(subData);
         }
       } catch (err) {
-        console.error("Error loading dashboard data:", err);
+        console.error("Dashboard error:", err);
       } finally {
         setLoading(false);
       }
@@ -59,7 +59,6 @@ export default function DashboardPage() {
     loadUserData();
   }, []);
 
-  // Update Password
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordLoading(true);
@@ -93,14 +92,14 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-6">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* Header Section */}
+        {/* Top Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
             <h1 className="text-3xl font-black bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">
               Welcome Back, {username}!
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Logged in as: <span className="text-indigo-300 font-semibold">{user?.email || "User"}</span>
+              Logged in as: <span className="text-indigo-300 font-semibold">{userEmail}</span>
             </p>
           </div>
 
