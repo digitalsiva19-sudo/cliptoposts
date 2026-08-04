@@ -12,11 +12,14 @@ export default function HomePage() {
   const [platform, setPlatform] = useState("instagram");
   const [language, setLanguage] = useState("english");
   const [flyerStyle, setFlyerStyle] = useState("3d-agency");
+  
   const [loading, setLoading] = useState(false);
   const [kwLoading, setKwLoading] = useState(false);
+  const [gmbLoading, setGmbLoading] = useState(false);
   
   const [result, setResult] = useState<string | null>(null);
   const [keywordReport, setKeywordReport] = useState<string | null>(null);
+  const [gmbReport, setGmbReport] = useState<string | null>(null);
   
   const [domainName, setDomainName] = useState<string>("");
   const [autoPhone, setAutoPhone] = useState<string>("");
@@ -71,19 +74,16 @@ export default function HomePage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Convert Markdown Table to Clean HTML Table for PDF
   const renderFormattedHTML = (text: string) => {
     if (!text) return "";
     
     let formatted = text;
-
-    // Convert Markdown Tables to HTML Tables
     const tableRegex = /\|(.+)\|[\r\n]\|[-| ]+\|[\r\n]((?:\|.+\|[\r\n]?)+)/g;
     formatted = formatted.replace(tableRegex, (match, headerRow, bodyRows) => {
       const headers = headerRow.split("|").map((h: string) => h.trim()).filter(Boolean);
       const rows = bodyRows.trim().split("\n").map((r: string) => r.split("|").map((c: string) => c.trim()).filter(Boolean));
 
-      let tableHtml = `<table style="width:100%; border-collapse:collapse; margin:15px 0; font-size:12px; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.05); border-radius:8px; overflow:hidden;">`;
+      let tableHtml = `<table style="width:100%; border-collapse:collapse; margin:15px 0; font-size:12px; background:#fff; border-radius:8px; overflow:hidden;">`;
       tableHtml += `<thead style="background:#4f46e5; color:#fff;"><tr>`;
       headers.forEach((h: string) => {
         tableHtml += `<th style="padding:10px; border:1px solid #c7d2fe; text-align:left;">${h}</th>`;
@@ -105,31 +105,28 @@ export default function HomePage() {
     return formatted;
   };
 
-  // High-Resolution Professional PDF Print Handler
-  const handleDownloadPDF = () => {
-    if (!keywordReport && !result) {
+  const handleDownloadPDF = (contentToPrint: string) => {
+    if (!contentToPrint) {
       alert("No report generated yet to export PDF!");
       return;
     }
 
-    const reportContent = renderFormattedHTML(keywordReport || result || "");
+    const reportContent = renderFormattedHTML(contentToPrint);
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>${domainName.toUpperCase()} - Executive Client Audit Report</title>
+          <title>${domainName.toUpperCase()} - Executive Client Report</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
             body { font-family: 'Inter', sans-serif; padding: 40px; color: #0f172a; background: #ffffff; }
             .header { border-bottom: 3px solid #4f46e5; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
-            .brand-title { font-size: 26px; font-weight: 800; color: #4f46e5; text-transform: uppercase; letter-spacing: 1px; }
-            .badge { background: #4f46e5; color: #ffffff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px; text-transform: uppercase; }
-            .section-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-            h1, h2, h3 { color: #1e1b4b; margin-top: 0; }
+            .brand-title { font-size: 26px; font-weight: 800; color: #4f46e5; text-transform: uppercase; }
+            .badge { background: #4f46e5; color: #ffffff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px; }
             table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 11px; }
-            th { background: #312e81; color: #ffffff; padding: 10px; border: 1px solid #4338ca; text-align: left; font-weight: 700; }
+            th { background: #312e81; color: #ffffff; padding: 10px; border: 1px solid #4338ca; text-align: left; }
             td { padding: 9px 10px; border: 1px solid #cbd5e1; color: #1e293b; }
             tr:nth-child(even) { background-color: #f1f5f9; }
             .footer { margin-top: 50px; border-top: 1px solid #cbd5e1; padding-top: 15px; font-size: 10px; color: #64748b; text-align: center; }
@@ -139,14 +136,12 @@ export default function HomePage() {
           <div class="header">
             <div>
               <div class="brand-title">${domainName.toUpperCase()}</div>
-              <div style="font-size: 12px; color: #475569; margin-top: 4px;">Executive Client Audit & Growth Report | Date: ${new Date().toLocaleDateString()}</div>
+              <div style="font-size: 12px; color: #475569; margin-top: 4px;">Executive Client Audit Report | Date: ${new Date().toLocaleDateString()}</div>
             </div>
             <div class="badge">PRO WHITELABEL REPORT</div>
           </div>
           <div>${reportContent}</div>
-          <div class="footer">
-            Generated by ClipToPosts Enterprise AI Growth Suite. Confidential Client Document.
-          </div>
+          <div class="footer">Generated by ClipToPosts Enterprise AI Growth Suite. Confidential.</div>
         </body>
       </html>
     `);
@@ -156,22 +151,6 @@ export default function HomePage() {
     setTimeout(() => {
       printWindow.print();
     }, 500);
-  };
-
-  const handleExportCSV = () => {
-    if (!keywordReport) {
-      alert("Please generate Keyword Research Report first!");
-      return;
-    }
-
-    const blob = new Blob([keywordReport], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `${domainName}_SEO_Audit.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -238,6 +217,7 @@ export default function HomePage() {
     }
   };
 
+  // Dedicated Button Handler 1: National SEO Keywords & Audit
   const handleKeywordResearch = async () => {
     if (!inputText) {
       alert("Please enter a Business Name, Keyword, or Website URL first!");
@@ -271,6 +251,43 @@ export default function HomePage() {
       alert("API Error: " + err.message);
     } finally {
       setKwLoading(false);
+    }
+  };
+
+  // Dedicated Button Handler 2: Local SEO & GMB Map Checklist
+  const handleGmbChecklist = async () => {
+    if (!inputText) {
+      alert("Please enter a Business Name, Keyword, or Website URL first!");
+      return;
+    }
+
+    setGmbLoading(true);
+    setGmbReport(null);
+
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          inputUrl: inputText, 
+          mode: "gmb"
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.gmbData) {
+        setGmbReport(data.gmbData);
+        setDomainName(data.domainName || inputText);
+      } else {
+        alert("GMB Checklist Error: " + (data.error || "Failed to fetch GMB data."));
+      }
+
+    } catch (err: any) {
+      console.error(err);
+      alert("API Error: " + err.message);
+    } finally {
+      setGmbLoading(false);
     }
   };
 
@@ -327,7 +344,7 @@ export default function HomePage() {
           All-In-One Enterprise Business AI Suite
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Whitelabel PDF Client Audits, Real SEO Keywords, GMB Optimization & 3D Pro Flyer Banners!
+          3 Dedicated AI Tools: Social 3D Flyers, SEO Keyword Audits & Local GMB Map Pack Checklists!
         </p>
 
         {/* Language & Platform Controls */}
@@ -380,7 +397,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Form */}
+        {/* Form Input */}
         <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4 text-left shadow-xl">
           <div>
             <label className="text-[11px] font-bold text-slate-300 mb-1 block">Enter Business Name, Keyword, or Website URL *</label>
@@ -394,27 +411,76 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          {/* 3 DISTINCT ACTION BUTTONS GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+            
+            {/* BUTTON 1: SOCIAL FLYER & CONTENT */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-xl"
+              className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl"
             >
-              {loading ? `Generating ${platform.toUpperCase()} Kit...` : `🚀 Generate 3D Flyer & ${platform.toUpperCase()} Kit`}
+              {loading ? `Generating Flyer Kit...` : `🚀 Generate 3D Flyer & ${platform.toUpperCase()} Kit`}
             </button>
 
+            {/* BUTTON 2: NATIONAL SEO KEYWORDS & AUDIT */}
             <button
               type="button"
               onClick={handleKeywordResearch}
               disabled={kwLoading}
-              className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-xl border border-emerald-400/30 flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl border border-emerald-400/30 flex items-center justify-center gap-1.5"
             >
-              {kwLoading ? `Auditing Live SEO Data...` : `🔍 Generate Top 10 Real SEO Keywords & Client Audit`}
+              {kwLoading ? `Auditing SEO...` : `🔍 Top 10 SEO Keywords & Audit`}
             </button>
+
+            {/* BUTTON 3: DEDICATED LOCAL SEO & GMB MAP CHECKLIST */}
+            <button
+              type="button"
+              onClick={handleGmbChecklist}
+              disabled={gmbLoading}
+              className="w-full bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl border border-amber-400/30 flex items-center justify-center gap-1.5"
+            >
+              {gmbLoading ? `Analyzing GMB Data...` : `📍 Local SEO & GMB Map Checklist`}
+            </button>
+
           </div>
         </form>
 
-        {/* KEYWORD REPORT ANALYTICS BOX WITH WHITELABEL PDF */}
+        {/* SECTION A: DEDICATED LOCAL SEO & GMB REPORT BOX */}
+        {gmbReport && (
+          <div className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl text-left space-y-4 shadow-2xl animate-fade-in">
+            <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+              <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                <span>📍 Local SEO & Google My Business (GMB) Map Optimization Report</span>
+                <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded-md font-mono">
+                  GMB MAP PACK
+                </span>
+              </h3>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleDownloadPDF(gmbReport)}
+                  className="bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-amber-400"
+                >
+                  📄 Download GMB PDF Report
+                </button>
+
+                <button
+                  onClick={() => handleCopy(gmbReport)}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition"
+                >
+                  {copied ? "Copied! ✅" : "📋 Copy Text"}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-slate-200 text-xs leading-relaxed bg-slate-950 p-5 rounded-xl border border-slate-800 whitespace-pre-line font-sans">
+              {gmbReport}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION B: NATIONAL SEO KEYWORDS & AUDIT REPORT BOX */}
         {keywordReport && (
           <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl text-left space-y-4 shadow-2xl animate-fade-in">
             <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
@@ -427,17 +493,10 @@ export default function HomePage() {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={handleDownloadPDF}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow border border-indigo-400"
+                  onClick={() => handleDownloadPDF(keywordReport)}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-indigo-400"
                 >
                   📄 Download Professional Client PDF
-                </button>
-
-                <button
-                  onClick={handleExportCSV}
-                  className="bg-teal-700 hover:bg-teal-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition"
-                >
-                  📊 Export CSV
                 </button>
 
                 <button
@@ -456,7 +515,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Social Results Display */}
+        {/* SECTION C: SOCIAL MEDIA FLYER & REEL SUITE DISPLAY */}
         {result && (
           <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
             
@@ -558,7 +617,7 @@ export default function HomePage() {
                   
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={handleDownloadPDF}
+                      onClick={() => handleDownloadPDF(result)}
                       className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition shadow"
                     >
                       📄 Export PDF
