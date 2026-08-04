@@ -81,9 +81,15 @@ export default function HomePage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
+  // Convert Markdown Headings (###) & Tables (|) to Beautiful HTML
   const renderFormattedHTML = (text: string) => {
     if (!text) return "";
     let formatted = text;
+
+    // Convert ### Headings to Styled Titles
+    formatted = formatted.replace(/^###?\s*(.+)$/gm, '<h3 style="color:#a855f7; font-size:14px; font-weight:800; margin-top:20px; margin-bottom:8px; border-bottom:1px solid #3b0764; padding-bottom:4px;">$1</h3>');
+
+    // Convert Markdown Tables to HTML Tables
     const tableRegex = /\|(.+)\|[\r\n]\|[-| ]+\|[\r\n]((?:\|.+\|[\r\n]?)+)/g;
     formatted = formatted.replace(tableRegex, (match, headerRow, bodyRows) => {
       const headers = headerRow.split("|").map((h: string) => h.trim()).filter(Boolean);
@@ -139,7 +145,7 @@ export default function HomePage() {
           <div class="header">
             <div>
               <div class="brand-title">${domainName.toUpperCase()}</div>
-              <div style="font-size: 12px; color: #475569; margin-top: 4px;">Executive Client Report | Date: ${new Date().toLocaleDateString()}</div>
+              <div style="font-size: 12px; color: #475569; margin-top: 4px;">Executive Whitelabel Client Report | Date: ${new Date().toLocaleDateString()}</div>
             </div>
             <div class="badge">${planType.toUpperCase()} SUITE</div>
           </div>
