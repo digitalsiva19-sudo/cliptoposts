@@ -9,7 +9,8 @@ export default function HomePage() {
   const [platform, setPlatform] = useState("instagram");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  const [postHtml1, setPostHtml1] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const [user, setUser] = useState<any>(null);
   const [credits, setCredits] = useState<number | null>(null);
@@ -52,38 +53,11 @@ export default function HomePage() {
     window.location.reload();
   };
 
-  const cleanBusinessName = (input: string) => {
-    let name = input.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0].split(".")[0];
-    return name.charAt(0).toUpperCase() + name.slice(1);
-  };
-
-  const generateBannerHtml = (name: string, url: string, selectedPlatform: string) => {
-    return `
-      <div style="
-        width: 100%; aspect-ratio: 16/9; 
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); 
-        border: 2px solid #3730a3; color: white; font-family: sans-serif; 
-        border-radius: 16px; padding: 20px; box-sizing: border-box; 
-        display: flex; flex-direction: column; justify-content: space-between;
-      ">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 13px; font-weight: bold; color: #818cf8; text-transform: uppercase;">${name}</span>
-          <span style="background: #fbbf24; color: black; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 4px;">${selectedPlatform.toUpperCase()} EXCLUSIVE</span>
-        </div>
-        <div>
-          <div style="font-size: 20px; font-weight: 900; line-height: 1.2; color: #ffffff;">
-            Custom Social Media Content Visual
-          </div>
-          <p style="font-size: 11px; color: #cbd5e1; margin-top: 4px;">
-            AI Curated for maximum engagement and brand reach.
-          </p>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 10px; font-size: 11px;">
-          <span style="color: #94a3b8;">${url}</span>
-          <span style="background: #4f46e5; color: white; padding: 5px 10px; border-radius: 6px; font-weight: bold;">VIEW DETAILS</span>
-        </div>
-      </div>
-    `;
+  const handleCopy = () => {
+    if (!result) return;
+    navigator.clipboard.writeText(result);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -103,13 +77,9 @@ export default function HomePage() {
 
     setLoading(true);
     setResult(null);
-    setPostHtml1(null);
-
-    const brandName = cleanBusinessName(inputText);
-    const cleanUrl = inputText.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0];
+    setImageUrl(null);
 
     try {
-      // 1. First, call the Gemini API Backend
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,12 +88,13 @@ export default function HomePage() {
 
       const data = await response.json();
 
-      // If successful, update credits in Supabase and update local state
       if (data.success && data.text) {
         setResult(data.text);
-        setPostHtml1(generateBannerHtml(brandName, cleanUrl, platform));
+        if (data.imageUrl) {
+          setImageUrl(data.imageUrl);
+        }
 
-        // Update Credits in Supabase and local state
+        // Deduct credit only on success
         const newUsed = usedCount + 1;
         if (subId) {
           await supabase
@@ -135,14 +106,7 @@ export default function HomePage() {
         setCredits(Math.max(0, limitCount - newUsed));
 
       } else {
-        // If error has noCreditReduction, do not update Supabase
-        if (data.noCreditReduction) {
-          console.log("No credit reduction due to error.");
-          alert("Error: " + (data.error || "Something went wrong. Credits were not deducted."));
-        } else {
-          // Standard error where credits might be deducted
-          alert("Generation Error: " + (data.error || "Something went wrong"));
-        }
+        alert("Error: " + (data.error || "Something went wrong. Credits were not deducted."));
       }
 
     } catch (err: any) {
@@ -195,10 +159,10 @@ export default function HomePage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto w-full text-center my-6 space-y-6">
         <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
-          Human-Grade AI Social Media Generator
+          Universal Business AI Social Generator
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Powered by Gemini 1.5 Flash. Analyze any website URL to generate custom-tailored social media content instantly!
+          Type ANY Website URL or Business Name. Get deep business analysis, social posts, video scripts, keywords & AI images!
         </p>
 
         {/* Platform Selection Buttons */}
@@ -230,7 +194,7 @@ export default function HomePage() {
           <input
             type="text"
             required
-            placeholder="Business Name or Website URL (e.g. vedaswaram.com)"
+            placeholder="Type ANY Business Name or Website URL (e.g. vedaswaram.com or Kids Education Hub)"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             className="w-full bg-slate-900 border border-slate-800 text-white px-5 py-3.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
@@ -241,31 +205,72 @@ export default function HomePage() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-lg"
           >
-            {loading ? `Analyzing ${inputText} with Gemini AI...` : `Generate Custom ${platform.toUpperCase()} Content`}
+            {loading ? `Deeply Analyzing ${inputText} with Gemini AI...` : `Analyze & Generate ${platform.toUpperCase()} Asset Suite`}
           </button>
         </form>
 
         {/* Results Display */}
-        {(result || postHtml1) && (
-          <div className="mt-8 space-y-6 text-left">
+        {(result || imageUrl) && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             
-            {/* Custom Graphic */}
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xl">
-              <h3 className="text-sm font-bold text-pink-400">
-                🎨 {platform.toUpperCase()} Custom Graphic Visual
-              </h3>
-              <div dangerouslySetInnerHTML={{ __html: postHtml1 || "" }} />
+            {/* AI Image Visual Box */}
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-xl">
+              <div>
+                <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
+                  <span>🎨 {platform.toUpperCase()} Visual Post Image</span>
+                  <span className="text-[10px] bg-pink-950 text-pink-300 border border-pink-800 px-2 py-0.5 rounded-md font-normal">
+                    AI HD Image
+                  </span>
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-1">Domain-matched aesthetic social post image</p>
+              </div>
+
+              {imageUrl ? (
+                <div className="relative group rounded-xl overflow-hidden border border-slate-800 my-2">
+                  <img
+                    src={imageUrl}
+                    alt="AI Generated Social Media Image"
+                    className="w-full h-auto object-cover rounded-xl shadow-lg"
+                  />
+                  <a
+                    href={imageUrl}
+                    target="_blank"
+                    download="social_post_image.jpg"
+                    className="mt-3 block text-center bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 rounded-lg transition border border-indigo-500"
+                  >
+                    ⬇️ Download High Resolution Image
+                  </a>
+                </div>
+              ) : (
+                <div className="h-64 bg-slate-950 rounded-xl flex items-center justify-center text-xs text-slate-600">
+                  Generating Aesthetic Visual Image...
+                </div>
+              )}
             </div>
 
-            {/* Real Gemini Generated Content */}
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xl">
-              <h3 className="text-sm font-bold text-indigo-400 flex items-center justify-between">
-                <span>🤖 Gemini 1.5 Flash Real AI Output</span>
-                <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded-md font-normal">
-                  Custom & Relevant
-                </span>
-              </h3>
-              <p className="text-slate-200 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+            {/* AI Text Output Box with COPY BUTTON */}
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-indigo-400">
+                    📝 Post Content & Reel Script Package
+                  </h3>
+                  
+                  {/* COPY BUTTON */}
+                  <button
+                    onClick={handleCopy}
+                    className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1"
+                  >
+                    {copied ? "Copied! ✅" : "📋 Copy Content"}
+                  </button>
+                </div>
+                
+                <p className="text-slate-[400] text-[11px] mt-1 text-slate-400">
+                  Platform: <span className="text-pink-400 font-bold uppercase">{platform}</span>
+                </p>
+              </div>
+
+              <p className="text-slate-200 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800/80 max-h-[460px] overflow-y-auto mt-2">
                 {result}
               </p>
             </div>
@@ -277,7 +282,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="text-center text-xs text-slate-600 py-4 border-t border-slate-900">
-        © ClipToPosts. All-In-One Social Media AI Suite.
+        © ClipToPosts. All-In-One Universal Business AI Suite.
       </footer>
     </div>
   );
