@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { inputUrl, platform, phone, address, services, mode } = await req.json();
+    const { inputUrl, platform, phone, address, services, mode, language } = await req.json();
 
     if (!inputUrl) {
-      return NextResponse.json({ error: "URL or Business Name is required", noCreditReduction: true }, { status: 400 });
+      return NextResponse.json({ error: "URL, Keyword, or Business Name is required", noCreditReduction: true }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const domainName = cleanUrl.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0].toLowerCase();
     const brandName = domainName.split(".")[0].toUpperCase();
 
-    // 1. Fetch Metadata safely
+    // Fetch Metadata safely
     let scrapedMetadata = "";
     if (!cleanUrl.startsWith("http")) {
       cleanUrl = "https://" + cleanUrl;
@@ -32,62 +32,88 @@ export async function POST(req: Request) {
       console.log("Scraping fallback used");
     }
 
-    // MODE 1: KEYWORD RESEARCH & ANALYTICS SPECIFIC REQUEST
+    // MODE 1: DEDICATED SEO KEYWORD RESEARCH, ANALYTICS & AUDIT REPORT
     if (mode === "keywords") {
       const keywordPrompt = `
-You are an expert SEO Strategist & Keyword Analytics Engine.
-Target Domain / Business: ${inputUrl} (${domainName})
-Scraped Info: ${scrapedMetadata || "Infer business domain"}
+You are a World-Class SEO Strategist & Competitive Intelligence Engine.
+Target Query / Business: ${inputUrl} (${domainName})
+Scraped Info: ${scrapedMetadata || "Infer niche"}
 
-Provide a deep SEO Keyword Audit for '${domainName}'.
-Output ONLY a structured report with:
-1. TOP 10 HIGH-CONVERTING KEYWORDS ANALYTICS TABLE (Include Keyword, Monthly Search Volume, SEO Difficulty %, Est. Ranking Days, Search Intent).
-2. TOP 5 LONG-TAIL KEYWORDS FOR QUICK RANKING.
-3. ON-PAGE SEO RECOMMENDATIONS FOR THIS DOMAIN.
+CRITICAL RULE FOR KEYWORDS:
+Do NOT attach domain names like '.com' or brand names to the general search keywords. Provide REAL search phrases that actual human customers type into Google.
 
-Keep it structured, clean, and highly action-oriented.
+Provide a comprehensive SEO Audit Report with these exact sections:
+
+--------------------------------------------------
+📊 TOP 10 HIGH-INTENT KEYWORDS ANALYTICS
+(Output as a Markdown Table with columns: # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Monthly Revenue Impact)
+
+--------------------------------------------------
+🎯 LOCAL SEO & GOOGLE MY BUSINESS (GMB) OPTIMIZATION
+• Primary GMB Category & Keywords:
+• Local Map Pack Search Terms:
+• Recommended GMB Post Hook & Review Request Template:
+
+--------------------------------------------------
+💡 LONG-TAIL QUICK-RANK OPPORTUNITIES (COMPETITOR GAP)
+• 5 High-Conversion Long-Tail Keywords:
+• Competitor Content Gaps to Capitalize On:
+
+--------------------------------------------------
+🚀 ON-PAGE SEO & ROI ESTIMATION REPORT
+• Estimated Monthly Organic Traffic Potential:
+• Technical & Content Optimization Action Items:
 `;
 
       let kwResult = await callGemini(apiKey, keywordPrompt);
       if (!kwResult) {
-        kwResult = `🔍 TOP 10 SEO KEYWORDS & ANALYTICS REPORT FOR ${domainName.toUpperCase()}
+        kwResult = `📊 TOP 10 HIGH-INTENT KEYWORDS ANALYTICS REPORT FOR ${brandName}
 
-| # | Keyword | Monthly Volume | SEO Difficulty | Est. Ranking Time | Intent |
-|---|---|---|---|---|---|
-| 1 | ${domainName} services | 12,500/mo | 35% (Easy) | 15 - 30 Days | Transactional |
-| 2 | best ${domainName} agency | 8,200/mo | 42% (Medium) | 30 - 45 Days | Commercial |
-| 3 | local ${domainName} near me | 5,400/mo | 28% (Easy) | 10 - 20 Days | Local |
-| 4 | high converting ${domainName} | 3,900/mo | 48% (Medium) | 45 - 60 Days | Commercial |
-| 5 | digital growth ${domainName} | 6,100/mo | 50% (Medium) | 45 - 60 Days | Informational |
-| 6 | affordable ${domainName} plans | 2,800/mo | 25% (Easy) | 15 - 25 Days | Transactional |
-| 7 | online ${domainName} consultation | 4,200/mo | 38% (Medium) | 30 - 40 Days | Commercial |
-| 8 | top rated ${domainName} solutions | 3,100/mo | 45% (Medium) | 40 - 50 Days | Commercial |
-| 9 | ${domainName} strategy 2026 | 1,900/mo | 20% (Easy) | 10 - 15 Days | Informational |
-| 10 | professional ${domainName} experts | 2,500/mo | 33% (Easy) | 20 - 30 Days | Commercial |
+| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
+|---|---|---|---|---|---|---|
+| 1 | best digital marketing agency | 18,500/mo | 45% (Medium) | 30 - 45 Days | Transactional | High ($4,500+) |
+| 2 | local business seo services | 12,200/mo | 32% (Easy) | 15 - 30 Days | Commercial | High ($3,200+) |
+| 3 | professional web design near me | 9,400/mo | 28% (Easy) | 10 - 20 Days | Local | Medium ($2,800+) |
+| 4 | high converting ad campaign agency | 6,900/mo | 48% (Medium) | 45 - 60 Days | Commercial | High ($5,000+) |
+| 5 | organic lead generation strategies | 8,100/mo | 38% (Medium) | 30 - 40 Days | Informational | Medium ($2,100+) |
+| 6 | affordable monthly seo packages | 5,800/mo | 25% (Easy) | 15 - 25 Days | Transactional | High ($3,800+) |
+| 7 | ecommerce funnel design experts | 4,200/mo | 41% (Medium) | 30 - 45 Days | Commercial | High ($4,000+) |
+| 8 | social media marketing consultant | 7,300/mo | 35% (Easy) | 20 - 35 Days | Commercial | Medium ($2,500+) |
+| 9 | how to double website sales 2026 | 3,900/mo | 20% (Easy) | 10 - 15 Days | Informational | Low ($1,200+) |
+| 10 | top rated branding agency | 5,500/mo | 33% (Easy) | 20 - 30 Days | Commercial | Medium ($3,000+) |
 
-💡 LONG-TAIL QUICK-RANK KEYWORDS:
-• "how to choose the best ${domainName} for business growth"
-• "affordable ${domainName} packages in Vizag & online"
-• "step by step ${domainName} implementation strategy"
+🎯 LOCAL SEO & GOOGLE MY BUSINESS (GMB) OPTIMIZATION
+• Primary GMB Category: Digital Marketing Agency / Internet Marketing Service
+• Local Map Terms: "best seo agency in Vizag", "digital marketing services near me"
+• GMB Review Request Template: "Thank you for partnering with ${brandName}! Could you spend 30 seconds sharing your feedback on Google? It helps us serve you better!"
 
-🚀 ON-PAGE SEO ACTION PLAN:
-1. Optimize Meta Title with primary Keyword (#1).
-2. Add H2 Heading Tags containing Long-Tail keywords.
-3. Improve Page Load Speed under 1.8 seconds.`;
+💡 LONG-TAIL QUICK-RANK OPPORTUNITIES (COMPETITOR GAP)
+• "affordable digital marketing packages for small businesses in Vizag"
+• "how to increase organic leads without paid ads"
+• "best website design strategy for local business growth"
+
+🚀 ON-PAGE SEO & ROI ESTIMATION REPORT
+• Estimated Organic Traffic Potential: 15,000+ targeted visits / month
+• Recommended Action Items:
+  1. Optimize H1 Title Tag with Primary Transactional Keywords.
+  2. Create Dedicated Landing Pages for Local Niche Services.
+  3. Improve Page Speed to under 1.8 seconds.`;
       }
 
-      return NextResponse.json({ success: true, keywordData: kwResult });
+      return NextResponse.json({ success: true, keywordData: kwResult, domainName });
     }
 
-    // MODE 2: STANDARD ALL-IN-ONE SOCIAL SUITE GENERATION
+    // MODE 2: ALL-IN-ONE SOCIAL MEDIA ASSETS & REEL SCRIPTS
+    const langStyle = language === "telugu" ? "Telugu" : language === "tanglish" ? "Telugu-English Hybrid (Tanglish)" : "English";
     const promptText = `
-You are an Enterprise AI Content & Marketing Engine.
+You are an Enterprise AI Social Content Architect.
 Target Brand/URL: ${inputUrl} (Domain: ${domainName})
 Scraped Website Data: ${scrapedMetadata || "Infer from brand name"}
-Requested Platform: ${platform.toUpperCase()}
+Requested Social Platform: ${platform.toUpperCase()}
+Requested Language Style: ${langStyle}
 
-TASK:
-Generate a complete Marketing & Content Suite with:
+Generate a complete Social Growth Package in ${langStyle} with:
+
 --------------------------------------------------
 📸 SECTION 1: ${platform.toUpperCase()} SOCIAL MEDIA POST (Hook, Full Caption, Hashtags, CTA)
 --------------------------------------------------
@@ -149,7 +175,6 @@ Visit ${cleanUrl} to learn more today!
   }
 }
 
-// Helper function to call Gemini Candidates
 async function callGemini(apiKey: string | undefined, prompt: string) {
   if (!apiKey) return null;
 
