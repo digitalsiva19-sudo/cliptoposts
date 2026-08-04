@@ -6,9 +6,11 @@ import { supabase } from "./lib/supabase";
 
 export default function HomePage() {
   const [inputText, setInputText] = useState("");
+  const [platform, setPlatform] = useState("instagram");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [postHtml, setPostHtml] = useState<string | null>(null);
+  const [postHtml1, setPostHtml1] = useState<string | null>(null);
+  const [postHtml2, setPostHtml2] = useState<string | null>(null);
 
   const [user, setUser] = useState<any>(null);
   const [credits, setCredits] = useState<number | null>(null);
@@ -50,53 +52,69 @@ export default function HomePage() {
     window.location.reload();
   };
 
-  // Clean URL into Clean Business Name
   const cleanBusinessName = (input: string) => {
     let name = input.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0].split(".")[0];
     return name.charAt(0).toUpperCase() + name.slice(1);
   };
 
-  const generatePostHtml = (name: string, hook: string, tip: string, cta: string) => {
-    const cleanUrl = name.toLowerCase() + ".com";
+  // Design Template 1 (Agency Professional Style)
+  const generateTemplate1 = (name: string, url: string) => {
     return `
       <div style="
-        width: 100%; 
-        aspect-ratio: 4/5; 
-        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); 
-        border: 2px solid #3730a3;
-        color: white; 
-        font-family: sans-serif; 
-        border-radius: 20px; 
-        padding: 30px; 
-        box-sizing: border-box; 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: space-between;
-        position: relative;
-        overflow: hidden;
+        width: 100%; aspect-ratio: 1/1; 
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); 
+        border: 2px solid #3730a3; color: white; font-family: sans-serif; 
+        border-radius: 16px; padding: 24px; box-sizing: border-box; 
+        display: flex; flex-direction: column; justify-content: space-between;
       ">
-        <!-- Logo Text -->
-        <div style="font-size: 14px; font-weight: bold; color: #818cf8; text-transform: uppercase;">
-          ${name}
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 12px; font-weight: bold; color: #818cf8; text-transform: uppercase;">${name} Agency</span>
+          <span style="background: #fbbf24; color: black; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 6px;">PROMO</span>
         </div>
-
-        <!-- Main Hook -->
-        <div style="font-size: 32px; font-weight: 900; line-height: 1.1; color: white; margin-top: -20px; text-shadow: 1px 1px 10px rgba(0,0,0,0.5);">
-          ${hook}
+        <div>
+          <div style="font-size: 11px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">We're Creative</div>
+          <div style="font-size: 26px; font-weight: 900; line-height: 1.1; color: #fbbf24; margin: 5px 0;">BUSINESS GROWTH EXPERTS.</div>
+          <p style="font-size: 11px; color: #94a3b8; margin: 5px 0;">Scale your brand with high-impact digital strategies and guaranteed lead generation.</p>
         </div>
-
-        <!-- Key Tip/Content -->
-        <div style="background: rgba(0,0,0,0.3); border: 1px solid #4338ca; border-radius: 12px; padding: 15px; font-size: 14px; line-height: 1.5; color: #e0e7ff;">
-          <div style="font-weight: bold; color: #f472b6;">⚡ Key Strategy:</div>
-          <p style="margin: 5px 0 0 0;">${tip}</p>
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid #4338ca; border-radius: 10px; padding: 10px; font-size: 10px; color: #e2e8f0;">
+          <div style="font-weight: bold; color: #38bdf8; margin-bottom: 4px;">OUR SERVICES:</div>
+          <div>• Digital Marketing & SEO</div>
+          <div>• Web Design & Development</div>
+          <div>• Social Media Growth</div>
         </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 10px; font-size: 10px;">
+          <span style="color: #94a3b8;">${url}</span>
+          <span style="background: #4f46e5; color: white; padding: 5px 10px; border-radius: 6px; font-weight: bold;">REGISTER NOW</span>
+        </div>
+      </div>
+    `;
+  };
 
-        <!-- Bottom URL & CTA -->
-        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #4338ca; pt-15; margin-top: 20px;">
-          <div style="font-size: 11px; color: #a5b4fc; font-weight: normal;">${cleanUrl}</div>
-          <div style="font-size: 12px; color: white; background: #6366f1; padding: 6px 12px; border-radius: 8px; font-weight: bold;">
-            ${cta}
+  // Design Template 2 (Modern Minimalist Style)
+  const generateTemplate2 = (name: string, url: string) => {
+    return `
+      <div style="
+        width: 100%; aspect-ratio: 1/1; 
+        background: linear-gradient(135deg, #311042 0%, #4c1d95 100%); 
+        border: 2px solid #7c3aed; color: white; font-family: sans-serif; 
+        border-radius: 16px; padding: 24px; box-sizing: border-box; 
+        display: flex; flex-direction: column; justify-content: space-between;
+      ">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 12px; font-weight: bold; color: #f472b6;">⚡ ${name}</span>
+          <span style="font-size: 10px; color: #ddd;">Verified Partner</span>
+        </div>
+        <div style="text-align: center; margin: auto 0;">
+          <div style="font-size: 24px; font-weight: 900; line-height: 1.2; color: #ffffff;">
+            Transform Your Brand Online.
           </div>
+          <p style="font-size: 11px; color: #f3e8ff; margin-top: 8px;">
+            Stop losing customers to competitors. Get custom solutions designed for high conversion.
+          </p>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
+          <span style="font-size: 10px; color: #cbd5e1;">🌐 ${url}</span>
+          <span style="background: #db2777; color: white; font-size: 10px; padding: 5px 10px; border-radius: 6px; font-weight: bold;">GET STARTED</span>
         </div>
       </div>
     `;
@@ -119,12 +137,13 @@ export default function HomePage() {
 
     setLoading(true);
     setResult(null);
-    setPostHtml(null);
+    setPostHtml1(null);
+    setPostHtml2(null);
 
     const brandName = cleanBusinessName(inputText);
+    const cleanUrl = inputText.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0];
 
     try {
-      // 1. Update Credits in Supabase
       const newUsed = usedCount + 1;
       if (subId) {
         await supabase
@@ -135,101 +154,33 @@ export default function HomePage() {
       setUsedCount(newUsed);
       setCredits(Math.max(0, limitCount - newUsed));
 
-      // 2. Generate Human Style Content & Time
       setTimeout(() => {
-        let contentData = "";
-        let postH = "";
+        const t1 = generateTemplate1(brandName, cleanUrl);
+        const t2 = generateTemplate2(brandName, cleanUrl);
 
-        if (inputText.toLowerCase().includes("seomynds")) {
-          postH = generatePostHtml(
-            brandName,
-            "Are You Still Paying for Ad Leads?",
-            "Organic SEO Traffic generates 3X more conversions at half the cost. It's time to build authority with ${brandName}.",
-            "Get Free Consultation"
-          );
-          contentData = `📸 INSTAGRAM POST & REEL (HUMAN CURATED)
+        let contentData = `📢 GENERATED FOR ${platform.toUpperCase()} (${brandName})
 
 🎯 VIRAL HOOK:
-"STOP Paying for Ad Leads! Built authority for Free Organic Traffic with ${brandName} instead. 👇"
+"Scale your business faster with ${brandName}. Here is how we do it 👇"
 
-📝 DESCRIPTION (CAPTION):
-In 2026, relying solely on paid ads is a recipe for burn out. Your customers are searching on Google, not just clicking ads. Here is how ${brandName} builds genuine authority that converts visitors into long-term clients:
+📝 CAPTION & DESCRIPTION:
+Are you struggling to get consistent leads? ${brandName} offers complete digital solutions to boost your brand visibility.
 
-1️⃣ Search Engine Optimization (SEO) for sustainable organic traffic.
-2️⃣ High-Value Content Strategy that positions you as an expert.
-3️⃣ Proven Conversion Rate Optimization (CRO).
+1️⃣ Professional Web Design & Development
+2️⃣ Strategic SEO & Organic Growth
+3️⃣ High-Converting Ad Campaigns
 
-Save this post right now! Send us a DM or visit ${inputText} to get started today! 🚀
-
-🏷️ HASHTAGS:
-#${brandName} #SEOTraffic #LeadGeneration #OrganicGrowth #DigitalVisibility #VizagMarketing #MarketingTips2026
-
---------------------------------------------------
-🎬 INSTAGRAM REEL SCRIPT (15s):
-
-Reel Title:
-SEO Strategy over Paid Ads (2026)
-
-Reel Description:
-SEO generates more qualified leads at half the cost of paid ads. Watch to learn why!
-
-Script (0-15s):
-• [0-3s Hook]: [Text on Screen] Paid Ads getting too expensive?
-• [3-8s Value]: [Text on Screen] Stop paying for single clicks! Start building a sustainable asset with Organic SEO...
-• [8-12s Benefit]: [Text on Screen] ${brandName} helps you get consistent leads without the ad spend.
-• [12-15s CTA]: [Point down to Link] Link in Bio to schedule Free SEO Audit!
-
---------------------------------------------------
-⏰ BEST TIME TO POST ON INSTAGRAM:
-• Best Slot: 6:00 PM – 8:30 PM (Peak Engagement)
-• Alternative: 11:30 AM – 1:00 PM (Lunch Break)`;
-        } else {
-          postH = generatePostHtml(
-            brandName,
-            "Is Your Website Costing You Clients?",
-            "A fast, clear, and high-converting website design is crucial for growth in 2026. ${brandName} builds websites that sell.",
-            "Schedule Free Demo"
-          );
-          contentData = `📸 INSTAGRAM POST & REEL (HUMAN CURATED)
-
-🎯 VIRAL HOOK:
-"Is your website helping you scale, or is it costing you clients? Built websites that sell with ${brandName} 👇"
-
-📝 DESCRIPTION (CAPTION):
-Your website is your best salesperson in 2026. If it's slow, complex, or not designed to convert, you are losing money daily. Here are 3 essentials ${brandName} implements for every high-converting website:
-
-1️⃣ Ultra-fast loading speed and complete mobile-first design.
-2️⃣ Clear and compelling Copywriting.
-3️⃣ Simple, targeted Call To Actions (CTAs) that guide visitors.
-
-Save this post right now! Send us a DM or visit ${inputText} to book a website consultation today! 🚀
+Save this post and visit ${inputText} today! 🚀
 
 🏷️ HASHTAGS:
-#${brandName} #WebsiteDesign #UXStrategy #LeadGeneration #BusinessGrowth #ConversionTips
+#${brandName} #DigitalMarketing #BusinessGrowth #SEOStrategy #MarketingAgency2026
 
---------------------------------------------------
-🎬 INSTAGRAM REEL SCRIPT (15s):
-
-Reel Title:
-3 Fixes to Turn Website Visitors into Clients
-
-Reel Description:
-Fast Loading, Compelling Copy, Targeted CTA. These 3 changes make a website that sells.
-
-Script (0-15s):
-• [0-3s Hook]: [Text on Screen] Website not getting consistent clients?
-• [3-8s Value]: [Text on Screen] It's likely one of these: slow load time, complex layout, or confusing message.
-• [8-12s Benefit]: [Text on Screen] Fix these three for instant conversions. We help you with all of them at ${brandName}.
-• [12-15s CTA]: [Point to DM] DM us 'AUDIT' to get a free website conversion review!
-
---------------------------------------------------
-⏰ BEST TIME TO POST ON INSTAGRAM:
-• Best Slot: 6:00 PM – 8:30 PM (Peak Engagement)
-• Alternative: 11:30 AM – 1:00 PM (Lunch Break)`;
-        }
+⏰ BEST TIME TO POST:
+• Peak Hours: 6:00 PM – 9:00 PM`;
 
         setResult(contentData);
-        setPostHtml(postH);
+        setPostHtml1(t1);
+        setPostHtml2(t2);
         setLoading(false);
       }, 1500);
 
@@ -281,65 +232,84 @@ Script (0-15s):
       {/* Main Content */}
       <main className="max-w-4xl mx-auto w-full text-center my-6 space-y-6">
         <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
-          Human-Grade AI Social Media Post Generator
+          Multi-Platform Social Media Suite
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Type your Business Name or Website URL. Get professional social media posts and Reel scripts in seconds!
+          Choose your platform, enter your business, and get 2 professional graphics + human captions instantly!
         </p>
+
+        {/* Platform Selection Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+          {[
+            { id: "instagram", label: "📸 Instagram" },
+            { id: "linkedin", label: "💼 LinkedIn" },
+            { id: "facebook", label: "📘 Facebook" },
+            { id: "twitter", label: "🐦 Twitter (X)" },
+            { id: "youtube", label: "🎥 YouTube" },
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setPlatform(item.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${
+                platform === item.id
+                  ? "bg-indigo-600 text-white border-indigo-500 shadow-lg"
+                  : "bg-slate-900 text-slate-400 border-slate-800 hover:border-indigo-500"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
 
         {/* Generator Form */}
         <form onSubmit={handleGenerate} className="space-y-3 mt-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              required
-              placeholder="Business Name or Website URL (e.g. seomynds.com)"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              className="flex-1 bg-slate-900 border border-slate-800 text-white px-5 py-3.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
-            />
-          </div>
+          <input
+            type="text"
+            required
+            placeholder="Business Name or Website URL (e.g. seomynds.com)"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-800 text-white px-5 py-3.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
+          />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm whitespace-nowrap shadow-lg"
+            className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-lg"
           >
-            {loading ? "Crafting Social Media Post & Reel..." : "Generate Instagram Post & Reel"}
+            {loading ? "Generating 2 Professional Designs & Content..." : `Generate For ${platform.toUpperCase()} (2 Options + Content)`}
           </button>
         </form>
 
         {/* Results Display */}
-        {(result || postHtml) && (
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+        {(postHtml1 || result) && (
+          <div className="mt-8 space-y-6 text-left">
             
-            {/* AI Generated Post Box */}
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-xl">
-              <div>
-                <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
-                  <span>🎨 All-In-One Social Media Post</span>
-                </h3>
-                <p className="text-[11px] text-slate-500 mt-1">High-engagement professional post visual</p>
-              </div>
-
-              {postHtml ? (
-                <div 
-                  className="w-full h-auto rounded-xl shadow-lg border border-indigo-900 mt-3"
-                  dangerouslySetInnerHTML={{ __html: postHtml }}
-                />
-              ) : (
-                <div className="aspect-[4/5] bg-slate-950 rounded-xl flex items-center justify-center text-xs text-slate-600">
-                  Designing Professional Post...
+            {/* 2 Banner Graphic Options */}
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
+              <h3 className="text-sm font-bold text-pink-400">
+                🎨 Choose Your Favorite Banner Design (Option 1 vs Option 2)
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[11px] text-slate-400 mb-2 font-semibold">Option 1: Pro Agency Style</p>
+                  <div dangerouslySetInnerHTML={{ __html: postHtml1 || "" }} />
                 </div>
-              )}
+                <div>
+                  <p className="text-[11px] text-slate-400 mb-2 font-semibold">Option 2: Modern Minimalist Style</p>
+                  <div dangerouslySetInnerHTML={{ __html: postHtml2 || "" }} />
+                </div>
+              </div>
             </div>
 
             {/* AI Text Content Box */}
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xl">
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3">
               <h3 className="text-sm font-bold text-indigo-400">
-                📝 Human-Style Title, Caption & Reel Script
+                📝 Human-Style Caption, Hashtags & Best Posting Time
               </h3>
-              <p className="text-slate-300 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800/80 max-h-[380px] overflow-y-auto">
+              <p className="text-slate-300 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800/80">
                 {result}
               </p>
             </div>
