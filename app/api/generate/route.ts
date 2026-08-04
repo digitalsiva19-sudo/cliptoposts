@@ -10,12 +10,11 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // 1. Clean Domain & Brand Name Extraction
     let cleanUrl = inputUrl.trim();
     const domainName = cleanUrl.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0].toLowerCase();
     const brandName = domainName.split(".")[0].toUpperCase();
 
-    // 2. Fetch Metadata safely
+    // Fetch Metadata safely
     let scrapedMetadata = "";
     if (!cleanUrl.startsWith("http")) {
       cleanUrl = "https://" + cleanUrl;
@@ -33,20 +32,7 @@ export async function POST(req: Request) {
       console.log("Scraping fallback used");
     }
 
-    // 3. Dynamic Image Topic Generation based on Business Name / URL Analysis
-    let imageTopic = `${domainName} professional social media modern design 4k`;
-    if (domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja") || domainName.includes("astro") || domainName.includes("bhakti")) {
-      imageTopic = "sacred indian vedic pooja divine spiritual glow golden aura aesthetic 4k";
-    } else if (domainName.includes("kids") || domainName.includes("education")) {
-      imageTopic = "vibrant modern education study learning students workspace 4k";
-    } else if (domainName.includes("realestate") || domainName.includes("property")) {
-      imageTopic = "luxury modern architectural building real estate exterior 4k";
-    }
-
-    const encodedPrompt = encodeURIComponent(`${imageTopic}, high resolution, social media post visual banner`);
-    const generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1080&nologo=true`;
-
-    // 4. Universal & Deep Analysis Prompt for Gemini
+    // Universal & Deep Analysis Prompt for Gemini
     const promptText = `
 You are an elite Social Media Growth Strategist and Content Creator.
 Target Business Name or URL: ${inputUrl} (Extracted Domain: ${domainName})
@@ -54,10 +40,11 @@ Scraped Website Data: ${scrapedMetadata || "Direct Domain Inference"}
 Requested Platform: ${platform.toUpperCase()}
 
 TASK:
-1. Deeply analyze the input '${inputUrl}'. Determine the exact industry category (e.g., Spiritual/Devotional, Digital Marketing, Education, E-Commerce, Real Estate, Health, Finance, Food/Restaurant, etc.).
-2. Adapt the language tone and content 100% specifically to what this business actually does. Use a mix of English and regional context (like Telugu/English blend if Indian/Devotional context) to make it highly engaging and human-curated.
-
-3. Format the final output cleanly for ${platform.toUpperCase()} into TWO DISTINCT SECTIONS:
+1. Deeply analyze the input '${inputUrl}'. Determine the exact industry category.
+2. If spiritual/devotional (e.g. 'vedaswaram'): Use respectful, spiritual, devotional Telugu-English blend tone focused on mantras, rituals, and peace.
+3. If education (e.g. 'kidseducationhub'): Focus on exams, learning tips, and student guidance.
+4. If marketing (e.g. 'seomynds'): Focus on SEO, organic traffic, leads, and growth.
+5. Output MUST be formatted into TWO DISTINCT SECTIONS for ${platform.toUpperCase()}:
 
 --------------------------------------------------
 📸 PART 1: SOCIAL MEDIA POST (STATIC / CAROUSEL POST)
@@ -75,9 +62,6 @@ TASK:
 • VIDEO HASHTAGS:
 • BEST TIME TO POST ON ${platform.toUpperCase()}:
 --------------------------------------------------
-
-CRITICAL REQUIREMENT:
-Analyze the business accurately. DO NOT output generic marketing templates unless the business is an actual digital marketing agency.
 `;
 
     let generatedText = null;
@@ -114,7 +98,7 @@ Analyze the business accurately. DO NOT output generic marketing templates unles
       }
     }
 
-    // 5. Intelligent Fallback Generator if Gemini API is unreachable
+    // Fallback engine if API is unreachable
     if (!generatedText) {
       if (domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja") || domainName.includes("astro")) {
         generatedText = `📸 PART 1: SOCIAL MEDIA POST (${platform.toUpperCase()})
@@ -207,8 +191,8 @@ Growth Tips, Brand Strategy, ${brandName} Short
 
     return NextResponse.json({ 
       success: true, 
-      text: generatedText, 
-      imageUrl: generatedImageUrl 
+      text: generatedText,
+      domainName: domainName
     });
 
   } catch (error: any) {
