@@ -32,43 +32,136 @@ export async function POST(req: Request) {
       console.log("Scraping fallback used");
     }
 
-    // MODE 1: KEYWORD RESEARCH & AUDIT REPORT
+    // MODE 1: DEDICATED LOCAL SEO & GMB MAP CHECKLIST REQUEST
+    if (mode === "gmb") {
+      const gmbPrompt = `
+You are a Local SEO & Google Business Profile (GMB) Specialist.
+Analyze the local business/keyword: '${inputUrl}' (Location Focus: Vizag / Local City).
+
+Provide a dedicated Local SEO & GMB Map Pack Optimization Checklist:
+
+--------------------------------------------------
+📍 GOOGLE MY BUSINESS (GMB) PROFILE OPTIMIZATION
+• Primary GMB Category & Secondary Categories:
+• Optimized Business Title & Description:
+• Top 10 Google Map Pack Keywords for Vizag & Surrounding Local Areas:
+
+--------------------------------------------------
+📢 HIGH-CONVERTING GMB LOCAL POST TEMPLATE
+• Catchy Local Post Title / Offer:
+• Engaging GMB Post Content with Call-to-Action:
+• Local Search Hashtags:
+
+--------------------------------------------------
+⭐ CLIENT 5-STAR GOOGLE REVIEW REQUEST TEMPLATES
+• SMS / WhatsApp Review Request Template (Polite & High Conversion):
+• Email Review Request Follow-up Template:
+
+--------------------------------------------------
+📌 LOCAL CITATIONS & MAP RANKING ACTION PLAN
+• Top Local Citations Directories to List Business:
+• Step-by-Step Action Items to Rank in Top 3 Local Map Pack:
+`;
+
+      let gmbResult = await callGemini(apiKey, gmbPrompt);
+
+      if (!gmbResult) {
+        if (cleanUrl.includes("realestate") || cleanUrl.includes("property")) {
+          gmbResult = `📍 GOOGLE MY BUSINESS (GMB) PROFILE OPTIMIZATION
+• Primary GMB Category: Real Estate Agency / Property Developer
+• Secondary Categories: Commercial Real Estate Agency, Real Estate Consultant
+• Optimized Title: ${inputUrl.toUpperCase()} - VUDA Approved Plots & Luxury Flats in Vizag
+• Top 10 Google Map Pack Keywords for Vizag:
+  1. real estate agency near me Vizag
+  2. best property developers in Vizag
+  3. VUDA approved plots for sale in Vizag
+  4. luxury 3BHK flats near Beach Road Vizag
+  5. open plots near Bhogapuram airport
+  6. gated community villas in Madhurawada
+  7. commercial property for sale Vizag
+  8. trusted real estate builders in Vizag
+  9. land for sale in Vizag Gajuwaka
+  10. affordable residential flats in Vizag
+
+--------------------------------------------------
+📢 HIGH-CONVERTING GMB LOCAL POST TEMPLATE
+• Offer Title: "🏡 Dream Property Festival in Vizag - VUDA Approved Plots & Flats!"
+• GMB Post Content:
+  వైజాగ్ ప్రైమ్ లొకేషన్లలో (VUDA Approved) ఓపెన్ ప్లాట్స్ & మోడరన్ ఫ్లాట్స్ విక్రయానికి సిద్ధంగా ఉన్నాయి! 
+  100% క్లియర్ టైటిల్, స్పాట్ రిజిస్ట్రేషన్ & బ్యాంక్ లోన్ ఫెసిలిటీ.
+  లిమిటెడ్ ప్లాట్స్ మాత్రమే అందుబాటులో ఉన్నాయి. ఉచిత సైట్ విజిట్ కోసం వెంటనే కాల్ చేయండి!
+• Local Hashtags: #VizagRealEstate #PlotsInVizag #FlatsInVizag #VUDAApproved
+
+--------------------------------------------------
+⭐ CLIENT 5-STAR GOOGLE REVIEW REQUEST TEMPLATES
+• WhatsApp Template:
+  "నమస్తే! ${inputUrl} ద్వారా మీ డ్రీమ్ ప్రాపర్టీ ఎంపిక చేసుకున్నందుకు ధన్యవాదాలు. 
+  మీ విలువైన రివ్యూను Google Maps లో 30 సెకన్లలో పంచుకోవడానికి ఈ లింక్ క్లిక్ చేయండి: [GMB Review Link]. 
+  మీ ఫీడ్‌బ్యాక్ ఇతర ఇల్లు కొనుగోలుదారులకు ఎంతో సహాయపడుతుంది!"
+
+--------------------------------------------------
+📌 LOCAL CITATIONS & MAP RANKING ACTION PLAN
+• Local Directories: Justdial Vizag, Sulekha Vizag, IndiaMART, TradeIndia, Facebook Local Page
+• Top 3 Map Pack Action Steps:
+  1. Maintain 100% NAP (Name, Address, Phone) consistency across all local sites.
+  2. Post weekly GMB updates with local geo-tagged project photos.
+  3. Collect at least 5 positive reviews monthly containing keywords like "best plots in Vizag".`;
+        } else {
+          gmbResult = `📍 GOOGLE MY BUSINESS (GMB) PROFILE OPTIMIZATION
+• Primary GMB Category: Local Business Services
+• Top 10 Google Map Pack Keywords:
+  1. ${domainName} near me Vizag
+  2. best ${domainName} in Vizag
+  3. affordable ${domainName} services Vizag
+  4. top rated ${domainName} agency Vizag
+  5. local ${domainName} experts Vizag
+  6. professional ${domainName} services near me
+  7. ${domainName} consultation Vizag
+  8. certified ${domainName} providers Vizag
+  9. quick ${domainName} assistance Vizag
+  10. best ${domainName} company in Vizag
+
+--------------------------------------------------
+📢 HIGH-CONVERTING GMB LOCAL POST TEMPLATE
+• Offer Title: "🚀 Grow Your Local Presence with ${brandName}!"
+• GMB Post Content:
+  Looking for reliable services in Vizag? ${brandName} offers top-rated solutions tailored for your needs.
+  Visit our local office or call us today to get a free consultation!
+• Local Hashtags: #${brandName} #VizagLocal #LocalBusinessVizag
+
+--------------------------------------------------
+⭐ CLIENT 5-STAR GOOGLE REVIEW REQUEST TEMPLATES
+• WhatsApp Template:
+  "Hello! Thank you for choosing ${brandName}. Could you please spend 30 seconds to share your experience on Google Maps? Click here: [GMB Link]. Your feedback means a lot to us!"
+
+--------------------------------------------------
+📌 LOCAL CITATIONS & MAP RANKING ACTION PLAN
+• Action Steps:
+  1. Complete 100% GMB profile info.
+  2. Upload geo-tagged workspace photos.
+  3. Respond to all reviews within 24 hours.`;
+        }
+      }
+
+      return NextResponse.json({ success: true, gmbData: gmbResult, domainName: inputUrl });
+    }
+
+    // MODE 2: NATIONAL SEO KEYWORDS & AUDIT REPORT
     if (mode === "keywords") {
       const keywordPrompt = `
 You are an Elite SEO Strategist. Analyze '${inputUrl}'.
 Provide a comprehensive SEO Audit Report for this exact category/niche.
 
-CRITICAL INSTRUCTION:
-Do NOT output fallback digital marketing text if the query is about real estate, education, medical, or another domain. Match the EXACT industry of '${inputUrl}'.
-
-Format the response clearly into structured sections:
-
---------------------------------------------------
-📊 TOP 10 HIGH-INTENT KEYWORDS ANALYTICS
-(Provide 10 real search terms specific to '${inputUrl}'. Columns: # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Monthly Revenue Impact)
-
---------------------------------------------------
-🎯 LOCAL SEO & GOOGLE MY BUSINESS (GMB) OPTIMIZATION
-• Primary GMB Category & Keywords:
-• Local Map Pack Search Terms:
-• Recommended GMB Post Hook & Review Template:
-
---------------------------------------------------
-💡 LONG-TAIL QUICK-RANK OPPORTUNITIES
-• 5 High-Conversion Long-Tail Keywords:
-• Competitor Content Gaps to Capitalize On:
-
---------------------------------------------------
-🚀 ON-PAGE SEO & ACTION PLAN
-• Estimated Monthly Organic Traffic Potential:
-• Technical & Content Optimization Action Items:
+Format response clearly into:
+1. TOP 10 HIGH-INTENT KEYWORDS ANALYTICS TABLE (# | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Monthly Revenue Impact)
+2. LONG-TAIL QUICK-RANK OPPORTUNITIES
+3. ON-PAGE SEO & ACTION PLAN
 `;
 
       let kwResult = await callGemini(apiKey, keywordPrompt);
       
-      // Smart Dynamic Fallback based on Query if API fails
       if (!kwResult) {
-        if (cleanUrl.includes("realestate") || cleanUrl.includes("property") || cleanUrl.includes("flat") || cleanUrl.includes("plot")) {
+        if (cleanUrl.includes("realestate") || cleanUrl.includes("property")) {
           kwResult = `📊 TOP 10 HIGH-INTENT KEYWORDS ANALYTICS REPORT FOR ${inputUrl.toUpperCase()}
 
 | # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
@@ -84,22 +177,12 @@ Format the response clearly into structured sections:
 | 9 | land rates in vizag outer ring road | 5,300/mo | 22% (Easy) | 10 - 20 Days | Informational | Medium (₹8L+) |
 | 10 | property management services vizag | 3,800/mo | 27% (Easy) | 15 - 25 Days | Commercial | Medium (₹5L+) |
 
-🎯 LOCAL SEO & GOOGLE MY BUSINESS (GMB) OPTIMIZATION
-• Primary GMB Category: Real Estate Agency / Property Developer
-• Local Map Terms: "real estate office near me", "best builders in Vizag"
-• GMB Review Template: "Thank you for choosing ${inputUrl} for your dream property! Please share your feedback on Google to help home buyers!"
-
 💡 LONG-TAIL QUICK-RANK OPPORTUNITIES
 • "vuda approved plots for sale near vizag airport"
 • "affordable 3bhk luxury flats in vizag under 60 lakhs"
-• "top gated community ventures in vizag 2026"
 
 🚀 ON-PAGE SEO & ACTION PLAN
-• Estimated Organic Traffic Potential: 25,000+ monthly property seekers
-• Action Items:
-  1. Add Project Location Virtual Tour Pages.
-  2. Optimize H1 with "VUDA Approved Plots & Flats in Vizag".
-  3. Include WhatsApp Quick Inquiry Chatbot.`;
+• Action Items: Add Location Landing Pages, Optimize H1 tags, Add WhatsApp Chatbot.`;
         } else {
           kwResult = `📊 TOP 10 HIGH-INTENT KEYWORDS ANALYTICS REPORT FOR ${brandName}
 
@@ -114,27 +197,14 @@ Format the response clearly into structured sections:
 | 7 | online ${domainName} consultation | 4,200/mo | 38% (Medium) | 30 - 40 Days | Commercial | High |
 | 8 | top rated ${domainName} solutions | 3,100/mo | 45% (Medium) | 40 - 50 Days | Commercial | High |
 | 9 | ${domainName} strategy 2026 | 1,900/mo | 20% (Easy) | 10 - 15 Days | Informational | Low |
-| 10 | professional ${domainName} experts | 2,500/mo | 33% (Easy) | 20 - 30 Days | Commercial | Medium |
-
-🎯 LOCAL SEO & GOOGLE MY BUSINESS (GMB) OPTIMIZATION
-• Primary GMB Category: Professional Services
-• Local Map Terms: "${domainName} near me"
-• GMB Review Template: "Thank you for partnering with ${brandName}! Please share your feedback on Google!"
-
-💡 LONG-TAIL QUICK-RANK OPPORTUNITIES
-• "how to choose the best ${domainName} for business growth"
-• "affordable ${domainName} packages online"
-
-🚀 ON-PAGE SEO & ACTION PLAN
-• Estimated Organic Traffic Potential: 10,000+ visits / month
-• Action Items: Optimize titles and speed up landing pages.`;
+| 10 | professional ${domainName} experts | 2,500/mo | 33% (Easy) | 20 - 30 Days | Commercial | Medium |`;
         }
       }
 
       return NextResponse.json({ success: true, keywordData: kwResult, domainName: inputUrl });
     }
 
-    // MODE 2: SOCIAL MEDIA SUITE
+    // MODE 3: SOCIAL MEDIA SUITE
     const langStyle = language === "telugu" ? "Telugu" : language === "tanglish" ? "Telugu-English Hybrid (Tanglish)" : "English";
     const promptText = `
 You are an Enterprise AI Content Creator.
@@ -190,20 +260,7 @@ Looking for consistent business growth? At ${brandName}, we deliver tailored str
 
 • HASHTAGS & CTA:
 #${brandName} #BusinessGrowth #Innovation2026
-Visit ${cleanUrl} to learn more!
-
---------------------------------------------------
-🎬 SECTION 2: 30-SEC REEL / SHORT VIDEO SCRIPT
-
-• SCENE BREAKDOWN:
-  - [0-3s Visual]: Creative workspace with growth charts.
-  - [3-15s Visual]: Team working on brand strategy.
-  - [15-30s Visual]: Logo of ${brandName} with link.
-
---------------------------------------------------
-📊 SECTION 3: BUSINESS SUMMARY & AUDIENCE INSIGHTS
-• Industry Category: General Business
-• Target Audience: Business Owners & Customers`;
+Visit ${cleanUrl} to learn more!`;
       }
     }
 
