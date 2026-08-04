@@ -671,3 +671,13 @@ export default function HomePage() {
     </div>
   );
 }
+/* (గతంలో పంపిన app/page.tsx లో బటన్ టెక్స్ట్ ను క్రింది విధంగా అప్‌డేట్ చేయండి) */
+
+<button
+  type="button"
+  onClick={handleKeywordResearch}
+  disabled={kwLoading}
+  className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl border border-emerald-400/30 flex items-center justify-center gap-1.5"
+>
+  {kwLoading ? `Mining 100+ Keywords...` : `🔍 Mine 100-150 SEO Keywords & Audit Report`}
+</button>
