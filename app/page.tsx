@@ -81,15 +81,15 @@ export default function HomePage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Convert Markdown Headings (###) & Tables (|) to Beautiful HTML
+  // Convert Markdown Headings (###) & Tables (|) to Clean HTML
   const renderFormattedHTML = (text: string) => {
     if (!text) return "";
     let formatted = text;
 
-    // Convert ### Headings to Styled Titles
-    formatted = formatted.replace(/^###?\s*(.+)$/gm, '<h3 style="color:#a855f7; font-size:14px; font-weight:800; margin-top:20px; margin-bottom:8px; border-bottom:1px solid #3b0764; padding-bottom:4px;">$1</h3>');
+    // Clean ### Headings into Indigo/Purple Titles
+    formatted = formatted.replace(/^###?\s*(.+)$/gm, '<h3 style="color:#c084fc; font-size:14px; font-weight:800; margin-top:24px; margin-bottom:10px; border-bottom:1px solid #581c87; padding-bottom:6px;">$1</h3>');
 
-    // Convert Markdown Tables to HTML Tables
+    // Convert Markdown Tables to Beautiful HTML Tables
     const tableRegex = /\|(.+)\|[\r\n]\|[-| ]+\|[\r\n]((?:\|.+\|[\r\n]?)+)/g;
     formatted = formatted.replace(tableRegex, (match, headerRow, bodyRows) => {
       const headers = headerRow.split("|").map((h: string) => h.trim()).filter(Boolean);
@@ -382,7 +382,7 @@ export default function HomePage() {
             <input
               type="text"
               required
-              placeholder="e.g. realestate in vizag or dental clinic in kakinada or seomynds.com"
+              placeholder="e.g. realestate in vizag or dental clinic in vizag or seomynds.com"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
@@ -616,7 +616,7 @@ export default function HomePage() {
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">OUR SERVICES:</span>
                   </div>
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-slate-200">
-                    {(autoServices.length > 0 ? autoServices : ["Digital Marketing", "SEO Strategy", "Funnel Design", "Brand Growth"]).map((s, idx) => (
+                    {(autoServices.length > 0 ? autoServices : ["Teeth Cleaning", "Root Canal", "Braces & Aligners", "Dental Implants"]).map((s, idx) => (
                       <div key={idx} className="flex items-center gap-1 font-semibold truncate"><span className="text-amber-400">●</span> {s.trim()}</div>
                     ))}
                   </div>
