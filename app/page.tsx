@@ -10,7 +10,6 @@ export default function HomePage() {
   const [address, setAddress] = useState("");
   const [services, setServices] = useState("");
   
-  // Dropdowns
   const [platform, setPlatform] = useState("instagram");
   const [language, setLanguage] = useState("english");
   const [flyerStyle, setFlyerStyle] = useState("3d-agency");
@@ -29,13 +28,11 @@ export default function HomePage() {
   const [autoServices, setAutoServices] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
 
-  // User & Subscription Credits State
   const [user, setUser] = useState<any>(null);
   const [planType, setPlanType] = useState<string>("free");
   const [credits, setCredits] = useState<number | null>(3);
   const [subId, setSubId] = useState<string | null>(null);
   const [usedCount, setUsedCount] = useState<number>(0);
-  const [limitCount, setLimitCount] = useState<number>(3);
 
   const refreshUserCredits = async (userId: string) => {
     const { data: sub } = await supabase
@@ -48,9 +45,6 @@ export default function HomePage() {
       setSubId(sub.id);
       setPlanType(sub.plan_type || "free");
       setUsedCount(sub.generations_used || 0);
-      
-      const maxLimit = sub.plan_type === "free" ? 3 : 999999;
-      setLimitCount(maxLimit);
       setCredits(sub.plan_type === "free" ? Math.max(0, 3 - (sub.generations_used || 0)) : 999999);
     }
   };
@@ -58,13 +52,11 @@ export default function HomePage() {
   useEffect(() => {
     async function checkAuth() {
       const { data: { session } } = await supabase.auth.getSession();
-      
       if (session?.user) {
         setUser(session.user);
         await refreshUserCredits(session.user.id);
       }
     }
-
     checkAuth();
   }, []);
 
@@ -77,7 +69,7 @@ export default function HomePage() {
 
   const checkCreditLimit = () => {
     if (planType === "free" && credits !== null && credits <= 0) {
-      alert("⚠️ You have exhausted your 3 Free Credits! Please upgrade to a Pro Plan below to continue unlimited AI generations.");
+      alert("⚠️ You have exhausted your 3 Free Credits! Please upgrade to a Pro Plan below.");
       return false;
     }
     return true;
@@ -147,7 +139,7 @@ export default function HomePage() {
           <div class="header">
             <div>
               <div class="brand-title">${domainName.toUpperCase()}</div>
-              <div style="font-size: 12px; color: #475569; margin-top: 4px;">Executive Whitelabel Client Report | Date: ${new Date().toLocaleDateString()}</div>
+              <div style="font-size: 12px; color: #475569; margin-top: 4px;">Executive Client Report | Date: ${new Date().toLocaleDateString()}</div>
             </div>
             <div class="badge">${planType.toUpperCase()} SUITE</div>
           </div>
@@ -218,7 +210,6 @@ export default function HomePage() {
         setAutoServices(data.autoServices || []);
 
         await deductCreditOnSuccess();
-
       } else {
         alert("Error: " + (data.error || "Something went wrong."));
       }
@@ -395,7 +386,6 @@ export default function HomePage() {
           {/* DROPDOWN SELECTORS GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            {/* LANGUAGE DROPDOWN */}
             <div>
               <label className="text-[11px] font-bold text-slate-400 mb-1.5 block">🌐 Select Content Language:</label>
               <select
@@ -409,7 +399,6 @@ export default function HomePage() {
               </select>
             </div>
 
-            {/* PLATFORM DROPDOWN */}
             <div>
               <label className="text-[11px] font-bold text-slate-400 mb-1.5 block">📱 Select Social Platform:</label>
               <select
@@ -430,7 +419,6 @@ export default function HomePage() {
           {/* 3 ACTION BUTTONS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
             
-            {/* BUTTON 1: SOCIAL FLYER & CONTENT */}
             <button
               type="submit"
               disabled={loading}
@@ -439,7 +427,6 @@ export default function HomePage() {
               {loading ? `Generating Flyer Kit...` : `🚀 Generate 3D Flyer & Social Kit`}
             </button>
 
-            {/* BUTTON 2: NATIONAL SEO KEYWORDS & AUDIT (100 - 150 KEYWORDS) */}
             <button
               type="button"
               onClick={handleKeywordResearch}
@@ -449,7 +436,6 @@ export default function HomePage() {
               {kwLoading ? `Mining 100+ Keywords...` : `🔍 Mine 100-150 SEO Keywords & Audit Report`}
             </button>
 
-            {/* BUTTON 3: LOCAL SEO & GMB MAP CHECKLIST */}
             <button
               type="button"
               onClick={handleGmbChecklist}
@@ -462,7 +448,7 @@ export default function HomePage() {
           </div>
         </form>
 
-        {/* PRICING & SUBSCRIPTION PACKAGES SECTION */}
+        {/* PRICING SECTION */}
         <section className="mt-12 bg-slate-900 border border-slate-800 p-6 rounded-2xl text-left space-y-6 shadow-xl">
           <div className="text-center space-y-1">
             <h3 className="text-xl font-extrabold text-white">💎 Choose Your ClipToPosts Growth Plan</h3>
@@ -471,7 +457,6 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             
-            {/* FREE TRIAL PLAN */}
             <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl space-y-3 flex flex-col justify-between">
               <div>
                 <span className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded-md uppercase">Free Trial</span>
@@ -488,7 +473,6 @@ export default function HomePage() {
               </button>
             </div>
 
-            {/* MONTHLY PRO PLAN */}
             <div className="bg-slate-950 border border-indigo-600 p-5 rounded-xl space-y-3 flex flex-col justify-between relative shadow-lg">
               <div>
                 <span className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-700 font-bold px-2 py-0.5 rounded-md uppercase">Popular</span>
@@ -502,14 +486,13 @@ export default function HomePage() {
                 </ul>
               </div>
               <button 
-                onClick={() => alert("Redirecting to Razorpay / PhonePe Gateway for ₹499 Monthly Pro Subscription...")}
+                onClick={() => alert("Redirecting to Secure Gateway for ₹499 Subscription...")}
                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-lg transition"
               >
                 Upgrade Monthly
               </button>
             </div>
 
-            {/* 6 MONTHS PLAN */}
             <div className="bg-slate-950 border border-purple-600 p-5 rounded-xl space-y-3 flex flex-col justify-between relative shadow-lg">
               <div>
                 <span className="text-[10px] bg-purple-950 text-purple-300 border border-purple-700 font-bold px-2 py-0.5 rounded-md uppercase">Save 16%</span>
@@ -523,14 +506,13 @@ export default function HomePage() {
                 </ul>
               </div>
               <button 
-                onClick={() => alert("Redirecting to Razorpay / PhonePe Gateway for ₹2,499 6-Month Pro Subscription...")}
+                onClick={() => alert("Redirecting to Secure Gateway for ₹2,499 Subscription...")}
                 className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 rounded-lg transition"
               >
                 Upgrade 6-Months
               </button>
             </div>
 
-            {/* YEARLY PLAN */}
             <div className="bg-slate-950 border border-amber-500 p-5 rounded-xl space-y-3 flex flex-col justify-between relative shadow-lg">
               <div>
                 <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-700 font-bold px-2 py-0.5 rounded-md uppercase">Best Value (Save 25%)</span>
@@ -544,7 +526,7 @@ export default function HomePage() {
                 </ul>
               </div>
               <button 
-                onClick={() => alert("Redirecting to Razorpay / PhonePe Gateway for ₹4,499 Annual Enterprise Subscription...")}
+                onClick={() => alert("Redirecting to Secure Gateway for ₹4,499 Subscription...")}
                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs py-2 rounded-lg transition shadow-lg"
               >
                 Upgrade Yearly
