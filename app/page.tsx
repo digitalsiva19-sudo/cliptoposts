@@ -81,15 +81,15 @@ export default function HomePage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Clean HTML Formatter for Markdown
+  // Convert Markdown Headings & Tables into Clean HTML
   const renderFormattedHTML = (text: string) => {
     if (!text) return "";
     let formatted = text;
 
-    // Convert ### Headings to Purple Styled Box Headlines
+    // Clean Headings into Purple Styled Headlines
     formatted = formatted.replace(/^###?\s*(.+)$/gm, '<h3 style="color:#c084fc; font-size:14px; font-weight:800; margin-top:24px; margin-bottom:10px; border-bottom:1px solid #581c87; padding-bottom:6px;">$1</h3>');
 
-    // Convert Markdown Tables to Beautiful HTML Tables
+    // Convert Markdown Tables to HTML Tables
     const tableRegex = /\|(.+)\|[\r\n]\|[-| ]+\|[\r\n]((?:\|.+\|[\r\n]?)+)/g;
     formatted = formatted.replace(tableRegex, (match, headerRow, bodyRows) => {
       const headers = headerRow.split("|").map((h: string) => h.trim()).filter(Boolean);
@@ -374,7 +374,7 @@ export default function HomePage() {
           3 Dedicated AI Tools: Social 3D Flyers, High-Intent SEO Keyword Audits & Local GMB Map Pack Checklists!
         </p>
 
-        {/* Form */}
+        {/* Input Form */}
         <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-left shadow-xl">
           
           <div>
@@ -608,7 +608,7 @@ export default function HomePage() {
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">OUR SERVICES:</span>
                   </div>
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-slate-200">
-                    {(autoServices.length > 0 ? autoServices : ["SEO Audit", "Local GMB Growth", "Web Design", "Paid Ads"]).map((s, idx) => (
+                    {(autoServices.length > 0 ? autoServices : ["Open Plots", "Luxury Flats", "Villas", "Commercial Property"]).map((s, idx) => (
                       <div key={idx} className="flex items-center gap-1 font-semibold truncate"><span className="text-amber-400">●</span> {s.trim()}</div>
                     ))}
                   </div>
