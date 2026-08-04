@@ -68,8 +68,9 @@ Do NOT generate generic templates. Tailor the content directly to this specific 
       ]
     };
 
+    // Updated Model Name to gemini-2.0-flash / gemini-1.5-flash-latest
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {
