@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Gemini API Key is not configured in Vercel" }, { status: 500 });
     }
 
-    // 1. Safe Fetch Website Metadata as Fallback
+    // 1. Try Fetching Website Metadata
     let scrapedMetadata = "";
     let cleanUrl = inputUrl.trim();
     if (!cleanUrl.startsWith("http")) {
@@ -29,25 +29,35 @@ export async function POST(req: Request) {
         scrapedMetadata = `Title: ${metaData.data.title || ""}\nDescription: ${metaData.data.description || ""}`;
       }
     } catch (e) {
-      console.log("Scraping fallback");
+      console.log("Scraping fallback triggered");
     }
 
-    // 2. Intelligent Prompt based on limited context
+    // Extract Domain Name for Gemini context when scraping fails
+    const domainName = inputUrl.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0];
+
+    // 2. Ultra-Resilient Prompt for Gemini
     const prompt = `
 You are an expert Social Media & Digital Marketing Strategist.
-Target Business / Website: ${inputUrl}
-Website Metadata (Scraped): ${scrapedMetadata || "Directly infer business from name."}
+Target Business / Website Domain: ${domainName} (Raw Input: ${inputUrl})
+Scraped Website Data:
+${scrapedMetadata || "None (Scraping was blocked by target server)."}
 
-Task: Generate extremely specific, human-curated, highly engaging social media content for "${platform.toUpperCase()}".
+CRITICAL INSTRUCTION FOR DOMAIN INFERENCE:
+Analyze the Domain Name '${domainName}' very carefully.
+- If it sounds like devotional/astrology/vedas/pooja (e.g., 'vedaswaram'): Focus entirely on Vedic astrology, Hindu rituals, mantras, pooja services, spiritual wellness, and devotion.
+- If it sounds like digital marketing/SEO (e.g., 'seomynds'): Focus on SEO, organic traffic, leads, and digital growth.
+- If it sounds like education/kids (e.g., 'kidseducationhub'): Focus on nursery to 10th school exams, IIT/JEE, and EAMCET prep.
 
-Platform Specific Requirements:
-- If INSTAGRAM: Provide Viral Hook, engaging human-style Caption, 15-Sec Reel Script (0-15s breakdown), Niche Hashtags, and Best Post Time.
-- If LINKEDIN: Provide professional Headline, B2B Thought Leadership Post Body, Engagement Question, Hashtags, and Best Post Time.
-- If FACEBOOK: Provide catchy Community Hook, Lead Generation Copy with Offer & Call To Action, Hashtags, and Best Post Time.
-- If TWITTER: Provide a 5-Tweet Viral Thread (1/5 to 5/5 format), Hashtags, and Best Post Time.
-- If YOUTUBE: Provide 5 Viral Short Video Ideas, 60-Second Video Script (Hook, Body, CTA), SEO Title, Description, Tags, and Best Time to Upload.
+Task: Generate 100% relevant, highly engaging social media content for "${platform.toUpperCase()}".
 
-CRITICAL: Since the scraped content is very limited, you MUST analyze the nature of the business based on the URL name and metadata. Create an extremely detailed, high-converting post specifically tailored to what this type of business does. Do NOT use generic templates. Focus on delivering maximum value and engagement.
+Platform Specific Output Format:
+- If INSTAGRAM: Provide a Viral Hook, Human-style Telugu/English blended Caption, 15-Sec Reel Script (0-15s breakdown), Niche Hashtags, and Best Time to Post.
+- If LINKEDIN: Provide a B2B Professional Headline, Thought Leadership Post Body, Engagement Question, Hashtags, and Best Time to Post.
+- If FACEBOOK: Provide a Catchy Community Hook, Lead Generation Copy with Offer & Call To Action, Hashtags, and Best Time to Post.
+- If TWITTER: Provide a 5-Tweet Viral Thread (1/5 to 5/5 format), Hashtags, and Best Time to Post.
+- If YOUTUBE: Provide 5 Viral Short Video Ideas, 60-Second Short Video Script (Hook, Body, CTA), SEO Title, Description, Tags, and Best Time to Upload.
+
+Do NOT output generic marketing templates. Custom-tailor all text specifically to their exact business domain inferred from the domain name or scraped metadata.
 `;
 
     // 3. Call Real Gemini 1.5 Flash API
@@ -65,17 +75,20 @@ CRITICAL: Since the scraped content is very limited, you MUST analyze the nature
     const geminiData = await geminiRes.json();
     const generatedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    // Check if Gemini returned text
     if (!generatedText) {
-      // Return a special error that front-end understands so it does not reduce credits
-      return NextResponse.json({ error: "Gemini failed to generate content due to limited website data.", noCreditReduction: true }, { status: 500 });
+      return NextResponse.json({ 
+        error: "Gemini API failed to parse prompt. Please try again.", 
+        noCreditReduction: true 
+      }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, text: generatedText });
 
   } catch (error: any) {
     console.error(error);
-    // Generic error: default behavior should not reduce credits either
-    return NextResponse.json({ error: error.message || "Server Error", noCreditReduction: true }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || "Server Error", 
+      noCreditReduction: true 
+    }, { status: 500 });
   }
 }
