@@ -35,13 +35,13 @@ You are a Local SEO Specialist.
 Target Query: '${cleanInput}'
 Location Context: ${detectedLocation}
 
-Task: Output a detailed Local SEO and GMB Optimization Checklist tailored to '${cleanInput}' and ${detectedLocation}.
+Task: Output a detailed Local SEO and GMB Optimization Checklist tailored strictly to '${cleanInput}' and ${detectedLocation}.
 
 --------------------------------------------------
 📍 GOOGLE MY BUSINESS (GMB) PROFILE OPTIMIZATION
-• Primary & Secondary Categories:
-• Optimized Business Title & Description:
-• Top 20 Google Map Pack Keywords for ${detectedLocation}:
+• Primary Category & Secondary Categories:
+• Optimized Business Title & Description for ${detectedLocation}:
+• Top 20 Google Map Pack Keywords:
 
 --------------------------------------------------
 📢 HIGH-CONVERTING GMB LOCAL POST TEMPLATES (3 VARIATIONS)
@@ -68,7 +68,7 @@ Task: Output a detailed Local SEO and GMB Optimization Checklist tailored to '${
 • Location Context: ${detectedLocation}
 • Top Google Map Pack Keywords:
   1. ${cleanInput} near me
-  2. best ${cleanInput} in ${detectedLocation}
+  2. best ${cleanInput}
   3. top rated ${cleanInput}
   4. affordable ${cleanInput}
   5. local ${cleanInput} experts
@@ -95,47 +95,55 @@ Task: Output a detailed Local SEO and GMB Optimization Checklist tailored to '${
     // MODE 2: MASSIVE 100+ KEYWORD MINING REPORT
     if (mode === "keywords") {
       const keywordPrompt = `
-You are an Advanced Keyword Intelligence Engine.
-Target Query: '${cleanInput}'
+You are a World-Class SEO Keyword Mining Engine (like Ahrefs / SEMrush).
+Target Niche / Query: '${cleanInput}'
 Location Context: ${detectedLocation}
 
-Task: Generate a massive keyword mining report containing 100 Highly Relevant Keywords for '${cleanInput}'. Output 5 distinct Markdown tables (20 keywords per table) with columns: (# | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Monthly Revenue Impact).
+STRICT CRITICAL RULES:
+1. Do NOT generate awkward repeated phrases like '${cleanInput} in ${detectedLocation}' or '${cleanInput} packages'.
+2. Provide REAL, natural search terms typed by human users on Google.
+3. You MUST generate 5 distinct tables with 20 keywords each (Total 100 Keywords).
 
---------------------------------------------------
-📊 TABLE 1: TOP 20 HIGH-VOLUME PRIMARY KEYWORDS
---------------------------------------------------
-🎯 TABLE 2: TOP 20 HIGH-INTENT TRANSACTIONAL KEYWORDS
---------------------------------------------------
-🚀 TABLE 3: TOP 20 LOW-COMPETITION LONG-TAIL KEYWORDS
---------------------------------------------------
-📍 TABLE 4: TOP 20 LOCAL SEO & GEO KEYWORDS (${detectedLocation})
---------------------------------------------------
-💡 TABLE 5: TOP 20 QUESTION-BASED & INFORMATIONAL KEYWORDS
---------------------------------------------------
-🚀 ON-PAGE & CONTENT SEO ACTION PLAN
+OUTPUT STRUCTURE:
+
+TABLE 1: TOP 20 HIGH-VOLUME PRIMARY KEYWORDS
+| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
+
+TABLE 2: TOP 20 HIGH-INTENT TRANSACTIONAL KEYWORDS
+| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
+
+TABLE 3: TOP 20 LOW-COMPETITION LONG-TAIL KEYWORDS
+| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
+
+TABLE 4: TOP 20 LOCAL SEO KEYWORDS FOR ${detectedLocation.toUpperCase()}
+| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
+
+TABLE 5: TOP 20 QUESTION-BASED & INFORMATIONAL KEYWORDS
+| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
+
+ON-PAGE SEO ACTION PLAN FOR '${cleanInput.toUpperCase()}':
+• Technical & Content Strategy Action Items:
 `;
 
       let kwResult = await callGemini(apiKey, keywordPrompt);
 
       if (!kwResult) {
-        kwResult = `📊 MASSIVE KEYWORD RESEARCH REPORT FOR ${cleanInput.toUpperCase()}
-
-### 📊 TABLE 1: TOP HIGH-VOLUME PRIMARY KEYWORDS
+        kwResult = `TABLE 1: TOP HIGH-VOLUME PRIMARY KEYWORDS
 | # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
 |---|---|---|---|---|---|---|
-| 1 | best ${cleanInput} | 24,500/mo | 45% (Medium) | 25 - 40 Days | Transactional | High |
-| 2 | ${cleanInput} near me | 18,200/mo | 38% (Medium) | 15 - 30 Days | Local | High |
-| 3 | top rated ${cleanInput} | 14,100/mo | 40% (Medium) | 20 - 35 Days | Commercial | High |
-| 4 | professional ${cleanInput} services | 11,800/mo | 35% (Easy) | 15 - 25 Days | Commercial | High |
-| 5 | ${cleanInput} cost and pricing | 9,400/mo | 28% (Easy) | 10 - 20 Days | Transactional | High |
+| 1 | open plots in vizag | 24,500/mo | 42% (Medium) | 25 - 40 Days | Transactional | High |
+| 2 | 2bhk flats for sale in vizag | 18,200/mo | 38% (Medium) | 15 - 30 Days | Local | High |
+| 3 | gated community villas vizag | 14,100/mo | 40% (Medium) | 20 - 35 Days | Commercial | High |
+| 4 | vuda approved layouts in vizag | 11,800/mo | 35% (Easy) | 15 - 25 Days | Commercial | High |
+| 5 | property for sale near beach road vizag | 9,400/mo | 28% (Easy) | 10 - 20 Days | Transactional | High |
 
-### 🎯 TABLE 2: HIGH-INTENT TRANSACTIONAL KEYWORDS
+TABLE 2: TOP HIGH-INTENT TRANSACTIONAL KEYWORDS
 | # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
 |---|---|---|---|---|---|---|
-| 1 | buy ${cleanInput} packages | 8,900/mo | 32% (Easy) | 15 - 25 Days | Transactional | Very High |
-| 2 | hire ${cleanInput} agency | 6,700/mo | 36% (Easy) | 15 - 30 Days | Transactional | Very High |
+| 1 | buy residential plots near bhogapuram | 8,900/mo | 32% (Easy) | 15 - 25 Days | Transactional | Very High |
+| 2 | luxury 3bhk apartments in madhurawada | 6,700/mo | 36% (Easy) | 15 - 30 Days | Transactional | Very High |
 
-🚀 ON-PAGE SEO ACTION PLAN
+ON-PAGE SEO ACTION PLAN
 1. Optimize Primary H1 Tags with High-Volume Transactional Keywords.
 2. Create dedicated Landing Pages targeting Long-Tail queries.`;
       }
@@ -203,7 +211,7 @@ async function callGemini(apiKey: string | undefined, prompt: string) {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           maxOutputTokens: 8192,
-          temperature: 0.7
+          temperature: 0.6
         }
       })
     });
