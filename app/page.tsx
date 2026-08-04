@@ -122,6 +122,17 @@ export default function HomePage() {
 
   const isDevotional = domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja") || domainName.includes("astro");
 
+  // Dynamic High-Quality Background Patterns based on Niche
+  const getBgImage = () => {
+    if (isDevotional) {
+      return "https://images.unsplash.com/photo-1609348085359-7104dd2d431c?q=80&w=1000&auto=format&fit=crop"; // Rich Indian Temple / Golden Lights Background
+    } else if (domainName.includes("kids") || domainName.includes("education")) {
+      return "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1000&auto=format&fit=crop"; // Education / Learning Graphic
+    } else {
+      return "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1000&auto=format&fit=crop"; // Modern High-Tech Business Dark Gradient
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between p-4 sm:p-6">
       
@@ -167,7 +178,7 @@ export default function HomePage() {
           Universal Business AI Social Generator
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Type ANY Website URL or Business Name. Get clean, brand-safe Social Post Posters, Video Scripts & Keywords!
+          Type ANY Website URL or Business Name. Get high-converting visual banners, video scripts & keywords!
         </p>
 
         {/* Platform Selection Buttons */}
@@ -199,7 +210,7 @@ export default function HomePage() {
           <input
             type="text"
             required
-            placeholder="Type Business Name or Website URL (e.g. vedaswaram.com)"
+            placeholder="Type Business Name or Website URL (e.g. vedaswaram.com or seomynds.com)"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             className="w-full bg-slate-900 border border-slate-800 text-white px-5 py-3.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
@@ -210,7 +221,7 @@ export default function HomePage() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-lg"
           >
-            {loading ? `Analyzing ${inputText} with Gemini AI...` : `Generate ${platform.toUpperCase()} Post Poster & Script`}
+            {loading ? `Analyzing ${inputText} with Gemini AI...` : `Generate ${platform.toUpperCase()} Banner & Scripts`}
           </button>
         </form>
 
@@ -218,51 +229,55 @@ export default function HomePage() {
         {result && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             
-            {/* Clean, Brand-Safe Visual Poster Box */}
+            {/* Rich Graphic Banner Visual */}
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-xl">
               <div>
                 <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
-                  <span>🎨 {platform.toUpperCase()} Ready Poster Card</span>
+                  <span>🎨 {platform.toUpperCase()} Rich Social Graphic</span>
                   <span className="text-[10px] bg-pink-950 text-pink-300 border border-pink-800 px-2 py-0.5 rounded-md font-normal">
-                    Brand Safe Visual
+                    Pro Design
                   </span>
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-1">High conversion text overlay post card</p>
+                <p className="text-[11px] text-slate-500 mt-1">HD Background + Typography Banner</p>
               </div>
 
-              {/* Dynamic Poster Card */}
+              {/* Rich Graphic Visual Overlay */}
               <div 
-                className={`w-full aspect-square rounded-2xl p-6 flex flex-col justify-between border shadow-2xl transition ${
-                  isDevotional 
-                    ? "bg-gradient-to-br from-amber-950 via-orange-950 to-slate-950 border-amber-600/50 text-amber-100" 
-                    : "bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 border-indigo-600/50 text-white"
-                }`}
+                className="w-full aspect-square rounded-2xl p-6 flex flex-col justify-between border border-white/20 shadow-2xl relative overflow-hidden bg-cover bg-center"
+                style={{ backgroundImage: `url(${getBgImage()})` }}
               >
-                <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                  <span className="text-xs font-black tracking-widest uppercase text-amber-400">
+                {/* Dark Overlay for readability */}
+                <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-[2px] z-0"></div>
+
+                {/* Content over background */}
+                <div className="relative z-10 flex justify-between items-center border-b border-white/20 pb-3">
+                  <span className="text-xs font-black tracking-widest uppercase text-amber-400 bg-black/40 px-3 py-1 rounded-lg backdrop-blur-sm border border-white/10">
                     {isDevotional ? "🕉️ " + domainName : domainName}
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white font-medium">
-                    {platform.toUpperCase()}
+                  <span className="text-[10px] px-2.5 py-1 rounded-md bg-indigo-600 text-white font-bold uppercase tracking-wider shadow">
+                    {platform}
                   </span>
                 </div>
 
-                <div className="my-auto space-y-3 text-center">
-                  <span className="text-2xl sm:text-3xl font-extrabold block leading-snug drop-shadow-md">
+                <div className="relative z-10 my-auto text-center px-2">
+                  <span className="text-xs uppercase font-bold tracking-widest text-indigo-300 mb-1 block">
+                    {isDevotional ? "✨ ఆధ్యాత్మిక విశేషాలు ✨" : "⚡ BRAND GROWTH INSIGHT"}
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-lg block">
                     {getPostHookTitle()}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center border-t border-white/10 pt-3 text-[11px] text-slate-300 font-medium">
-                  <span>🌐 {domainName}</span>
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${isDevotional ? "bg-amber-500 text-slate-950" : "bg-indigo-500 text-white"}`}>
-                    SWIPE & READ
+                <div className="relative z-10 flex justify-between items-center border-t border-white/20 pt-3 text-[11px] text-slate-200 font-medium">
+                  <span className="bg-black/50 px-2.5 py-1 rounded text-slate-300 border border-white/10">🌐 {domainName}</span>
+                  <span className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-lg ${isDevotional ? "bg-amber-500 text-slate-950" : "bg-gradient-to-r from-indigo-500 to-pink-500 text-white"}`}>
+                    SWIPE TO LEARN ➔
                   </span>
                 </div>
               </div>
 
               <p className="text-[11px] text-center text-slate-500">
-                100% Clean & Safe Visual Template
+                100% Professional & Safe Social Visual
               </p>
             </div>
 
@@ -276,7 +291,7 @@ export default function HomePage() {
                   
                   <button
                     onClick={handleCopy}
-                    className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1"
+                    className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shadow"
                   >
                     {copied ? "Copied! ✅" : "📋 Copy Content"}
                   </button>
