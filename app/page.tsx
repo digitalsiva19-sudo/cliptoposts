@@ -9,6 +9,8 @@ export default function HomePage() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [services, setServices] = useState("");
+  
+  // Dropdown Select States
   const [platform, setPlatform] = useState("instagram");
   const [language, setLanguage] = useState("english");
   const [flyerStyle, setFlyerStyle] = useState("3d-agency");
@@ -28,10 +30,10 @@ export default function HomePage() {
   const [copied, setCopied] = useState(false);
 
   const [user, setUser] = useState<any>(null);
-  const [credits, setCredits] = useState<number | null>(null);
+  const [credits, setCredits] = useState<number | null>(3);
   const [subId, setSubId] = useState<string | null>(null);
   const [usedCount, setUsedCount] = useState<number>(0);
-  const [limitCount, setLimitCount] = useState<number>(5);
+  const [limitCount, setLimitCount] = useState<number>(3);
 
   const refreshUserCredits = async (userId: string) => {
     const { data: sub } = await supabase
@@ -43,8 +45,8 @@ export default function HomePage() {
     if (sub) {
       setSubId(sub.id);
       setUsedCount(sub.generations_used || 0);
-      setLimitCount(sub.generations_limit || 5);
-      setCredits(Math.max(0, sub.generations_limit - sub.generations_used));
+      setLimitCount(sub.generations_limit || 3);
+      setCredits(Math.max(0, (sub.generations_limit || 3) - (sub.generations_used || 0)));
     }
   };
 
@@ -76,7 +78,6 @@ export default function HomePage() {
 
   const renderFormattedHTML = (text: string) => {
     if (!text) return "";
-    
     let formatted = text;
     const tableRegex = /\|(.+)\|[\r\n]\|[-| ]+\|[\r\n]((?:\|.+\|[\r\n]?)+)/g;
     formatted = formatted.replace(tableRegex, (match, headerRow, bodyRows) => {
@@ -164,7 +165,7 @@ export default function HomePage() {
     }
 
     if (credits !== null && credits <= 0) {
-      alert("You have exhausted your credits! Please upgrade in Dashboard.");
+      alert("You have exhausted your free credits! Please upgrade to a Pro Plan below.");
       return;
     }
 
@@ -217,7 +218,6 @@ export default function HomePage() {
     }
   };
 
-  // Dedicated Button Handler 1: National SEO Keywords & Audit
   const handleKeywordResearch = async () => {
     if (!inputText) {
       alert("Please enter a Business Name, Keyword, or Website URL first!");
@@ -254,7 +254,6 @@ export default function HomePage() {
     }
   };
 
-  // Dedicated Button Handler 2: Local SEO & GMB Map Checklist
   const handleGmbChecklist = async () => {
     if (!inputText) {
       alert("Please enter a Business Name, Keyword, or Website URL first!");
@@ -312,7 +311,7 @@ export default function HomePage() {
           {user ? (
             <>
               <span className="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-3 py-1.5 rounded-xl font-bold">
-                ⚡ Credits Left: {credits !== null ? credits : "..."}
+                ⚡ Credits Left: {credits !== null ? credits : 3}
               </span>
               <Link
                 href="/dashboard"
@@ -330,7 +329,7 @@ export default function HomePage() {
           ) : (
             <Link
               href="/login"
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5 py-2 rounded-xl transition"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5 py-2 rounded-xl transition shadow-lg"
             >
               Login / Register
             </Link>
@@ -347,60 +346,11 @@ export default function HomePage() {
           3 Dedicated AI Tools: Social 3D Flyers, SEO Keyword Audits & Local GMB Map Pack Checklists!
         </p>
 
-        {/* Language & Platform Controls */}
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-1 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400">Language:</span>
-            {[
-              { id: "english", label: "English" },
-              { id: "telugu", label: "తెలుగు" },
-              { id: "tanglish", label: "Tanglish (Telugu-English)" },
-            ].map((lang) => (
-              <button
-                key={lang.id}
-                type="button"
-                onClick={() => setLanguage(lang.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition border ${
-                  language === lang.id
-                    ? "bg-indigo-600 text-white border-indigo-500"
-                    : "bg-slate-950 text-slate-400 border-slate-800"
-                }`}
-              >
-                {lang.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="h-4 w-px bg-slate-800 hidden sm:block"></div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400">Platform:</span>
-            {[
-              { id: "instagram", label: "📸 Insta" },
-              { id: "linkedin", label: "💼 LinkedIn" },
-              { id: "facebook", label: "📘 FB" },
-              { id: "youtube", label: "🎥 YT" },
-            ].map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setPlatform(item.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition border ${
-                  platform === item.id
-                    ? "bg-pink-600 text-white border-pink-500"
-                    : "bg-slate-950 text-slate-400 border-slate-800"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Form Input */}
-        <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4 text-left shadow-xl">
+        {/* Input Form with Dropdown Selectors */}
+        <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-left shadow-xl">
+          
           <div>
-            <label className="text-[11px] font-bold text-slate-300 mb-1 block">Enter Business Name, Keyword, or Website URL *</label>
+            <label className="text-[11px] font-bold text-slate-300 mb-1.5 block">Enter Business Name, Keyword, or Website URL *</label>
             <input
               type="text"
               required
@@ -411,8 +361,43 @@ export default function HomePage() {
             />
           </div>
 
-          {/* 3 DISTINCT ACTION BUTTONS GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+          {/* DROPDOWN SELECTORS GRID */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* LANGUAGE DROPDOWN */}
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 mb-1.5 block">🌐 Select Content Language:</label>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs font-semibold cursor-pointer"
+              >
+                <option value="english">English (Professional)</option>
+                <option value="telugu">తెలుగు (Telugu)</option>
+                <option value="tanglish">Tanglish (Telugu + English Hybrid)</option>
+              </select>
+            </div>
+
+            {/* PLATFORM DROPDOWN */}
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 mb-1.5 block">📱 Select Social Platform:</label>
+              <select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs font-semibold cursor-pointer"
+              >
+                <option value="instagram">📸 Instagram (Posts & Reels)</option>
+                <option value="linkedin">💼 LinkedIn (B2B Articles)</option>
+                <option value="facebook">📘 Facebook (Community Posts)</option>
+                <option value="youtube">🎥 YouTube (Shorts & Video Prompts)</option>
+                <option value="twitter">🐦 Twitter / X (Threads & Updates)</option>
+              </select>
+            </div>
+
+          </div>
+
+          {/* 3 ACTION BUTTONS */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
             
             {/* BUTTON 1: SOCIAL FLYER & CONTENT */}
             <button
@@ -420,7 +405,7 @@ export default function HomePage() {
               disabled={loading}
               className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl"
             >
-              {loading ? `Generating Flyer Kit...` : `🚀 Generate 3D Flyer & ${platform.toUpperCase()} Kit`}
+              {loading ? `Generating Flyer Kit...` : `🚀 Generate 3D Flyer & Social Kit`}
             </button>
 
             {/* BUTTON 2: NATIONAL SEO KEYWORDS & AUDIT */}
@@ -433,7 +418,7 @@ export default function HomePage() {
               {kwLoading ? `Auditing SEO...` : `🔍 Top 10 SEO Keywords & Audit`}
             </button>
 
-            {/* BUTTON 3: DEDICATED LOCAL SEO & GMB MAP CHECKLIST */}
+            {/* BUTTON 3: LOCAL SEO & GMB MAP CHECKLIST */}
             <button
               type="button"
               onClick={handleGmbChecklist}
@@ -446,68 +431,136 @@ export default function HomePage() {
           </div>
         </form>
 
-        {/* SECTION A: DEDICATED LOCAL SEO & GMB REPORT BOX */}
+        {/* PRICING & SUBSCRIPTION PACKAGES SECTION */}
+        <section className="mt-12 bg-slate-900 border border-slate-800 p-6 rounded-2xl text-left space-y-6 shadow-xl">
+          <div className="text-center space-y-1">
+            <h3 className="text-xl font-extrabold text-white">💎 Choose Your ClipToPosts Growth Plan</h3>
+            <p className="text-xs text-slate-400">Unlock unlimited AI generations, Whitelabel Client PDF Reports & 3D Visual Flyers</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            
+            {/* FREE TRIAL PLAN */}
+            <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl space-y-3 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded-md uppercase">Free Trial</span>
+                <h4 className="text-lg font-bold text-white mt-2">Starter Test</h4>
+                <div className="text-2xl font-black text-white my-1">₹0 <span className="text-xs text-slate-500 font-normal">/ forever</span></div>
+                <ul className="text-xs text-slate-400 space-y-1.5 mt-3">
+                  <li>✓ 3 Free Credits</li>
+                  <li>✓ Standard Social Posts</li>
+                  <li>✓ Basic Keyword List</li>
+                </ul>
+              </div>
+              <button disabled className="w-full bg-slate-800 text-slate-400 text-xs font-bold py-2 rounded-lg cursor-not-allowed">
+                Current Plan
+              </button>
+            </div>
+
+            {/* MONTHLY PRO PLAN */}
+            <div className="bg-slate-950 border border-indigo-600 p-5 rounded-xl space-y-3 flex flex-col justify-between relative shadow-lg">
+              <div>
+                <span className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-700 font-bold px-2 py-0.5 rounded-md uppercase">Popular</span>
+                <h4 className="text-lg font-bold text-white mt-2">Pro Monthly</h4>
+                <div className="text-2xl font-black text-indigo-400 my-1">₹499 <span className="text-xs text-slate-400 font-normal">/ month</span></div>
+                <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
+                  <li>✓ Unlimited Generations</li>
+                  <li>✓ 3D Graphic Flyers</li>
+                  <li>✓ Whitelabel PDF Audits</li>
+                  <li>✓ Local GMB Checklists</li>
+                </ul>
+              </div>
+              <button 
+                onClick={() => alert("Redirecting to Secure Payment Gateway for ₹499 Monthly Plan...")}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-lg transition"
+              >
+                Upgrade Monthly
+              </button>
+            </div>
+
+            {/* 6 MONTHS PLAN */}
+            <div className="bg-slate-950 border border-purple-600 p-5 rounded-xl space-y-3 flex flex-col justify-between relative shadow-lg">
+              <div>
+                <span className="text-[10px] bg-purple-950 text-purple-300 border border-purple-700 font-bold px-2 py-0.5 rounded-md uppercase">Save 16%</span>
+                <h4 className="text-lg font-bold text-white mt-2">Pro 6-Months</h4>
+                <div className="text-2xl font-black text-purple-400 my-1">₹2,499 <span className="text-xs text-slate-400 font-normal">/ 6 mos</span></div>
+                <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
+                  <li>✓ Everything in Monthly</li>
+                  <li>✓ Priority API Speed</li>
+                  <li>✓ CSV & Excel Data Export</li>
+                  <li>✓ Agency Client Pitch Deck</li>
+                </ul>
+              </div>
+              <button 
+                onClick={() => alert("Redirecting to Secure Payment Gateway for ₹2,499 6-Month Plan...")}
+                className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 rounded-lg transition"
+              >
+                Upgrade 6-Months
+              </button>
+            </div>
+
+            {/* YEARLY PLAN */}
+            <div className="bg-slate-950 border border-amber-500 p-5 rounded-xl space-y-3 flex flex-col justify-between relative shadow-lg">
+              <div>
+                <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-700 font-bold px-2 py-0.5 rounded-md uppercase">Best Value (Save 25%)</span>
+                <h4 className="text-lg font-bold text-white mt-2">Pro Annual</h4>
+                <div className="text-2xl font-black text-amber-400 my-1">₹4,499 <span className="text-xs text-slate-400 font-normal">/ year</span></div>
+                <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
+                  <li>✓ Full Enterprise Suite Access</li>
+                  <li>✓ Unlimited Client PDF Downloads</li>
+                  <li>✓ Dedicated Agency Manager</li>
+                  <li>✓ Lifetime Updates</li>
+                </ul>
+              </div>
+              <button 
+                onClick={() => alert("Redirecting to Secure Payment Gateway for ₹4,499 Yearly Plan...")}
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs py-2 rounded-lg transition shadow-lg"
+              >
+                Upgrade Yearly
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+        {/* SECTION A: GMB REPORT BOX */}
         {gmbReport && (
           <div className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl text-left space-y-4 shadow-2xl animate-fade-in">
             <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
               <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
                 <span>📍 Local SEO & Google My Business (GMB) Map Optimization Report</span>
-                <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded-md font-mono">
-                  GMB MAP PACK
-                </span>
               </h3>
-
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleDownloadPDF(gmbReport)}
-                  className="bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-amber-400"
-                >
+                <button onClick={() => handleDownloadPDF(gmbReport)} className="bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-amber-400">
                   📄 Download GMB PDF Report
                 </button>
-
-                <button
-                  onClick={() => handleCopy(gmbReport)}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition"
-                >
+                <button onClick={() => handleCopy(gmbReport)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition">
                   {copied ? "Copied! ✅" : "📋 Copy Text"}
                 </button>
               </div>
             </div>
-
             <div className="text-slate-200 text-xs leading-relaxed bg-slate-950 p-5 rounded-xl border border-slate-800 whitespace-pre-line font-sans">
               {gmbReport}
             </div>
           </div>
         )}
 
-        {/* SECTION B: NATIONAL SEO KEYWORDS & AUDIT REPORT BOX */}
+        {/* SECTION B: SEO KEYWORDS REPORT BOX */}
         {keywordReport && (
           <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl text-left space-y-4 shadow-2xl animate-fade-in">
             <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
               <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
                 <span>🔍 Whitelabel Client SEO Audit & Keyword Intelligence Report</span>
-                <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded-md font-mono">
-                  LIVE SEO DATA
-                </span>
               </h3>
-
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleDownloadPDF(keywordReport)}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-indigo-400"
-                >
+                <button onClick={() => handleDownloadPDF(keywordReport)} className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-indigo-400">
                   📄 Download Professional Client PDF
                 </button>
-
-                <button
-                  onClick={() => handleCopy(keywordReport)}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition"
-                >
+                <button onClick={() => handleCopy(keywordReport)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition">
                   {copied ? "Copied! ✅" : "📋 Copy Raw Text"}
                 </button>
               </div>
             </div>
-
             <div 
               className="text-slate-200 text-xs leading-relaxed bg-slate-950 p-5 rounded-xl border border-slate-800 overflow-x-auto font-sans"
               dangerouslySetInnerHTML={{ __html: renderFormattedHTML(keywordReport) }}
@@ -515,128 +568,62 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* SECTION C: SOCIAL MEDIA FLYER & REEL SUITE DISPLAY */}
+        {/* SECTION C: FLYER & CONTENT SUITE */}
         {result && (
           <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
-            
-            {/* FLYER CARD */}
             <div className="lg:col-span-5 bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-xl">
               <div>
                 <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
                   <span>🎨 Pro Graphic Visual Flyer</span>
-                  <span className="text-[10px] bg-pink-950 text-pink-300 border border-pink-800 px-2 py-0.5 rounded-md font-normal">
-                    Sample-2 Style
-                  </span>
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-1">3D Neon elements & Corporate layout</p>
               </div>
 
-              {/* 3D GRAPHIC CANVAS FLYER */}
-              <div 
-                className={`w-full aspect-square rounded-2xl p-5 flex flex-col justify-between border shadow-2xl relative overflow-hidden ${
-                  isDevotional 
-                    ? "bg-gradient-to-br from-amber-950 via-slate-950 to-orange-950 border-amber-600/50 text-amber-100" 
-                    : "bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950 border-blue-500/50 text-white"
-                }`}
-              >
-                <div className="absolute top-10 -right-10 w-44 h-44 rounded-full border-4 border-indigo-500/30 blur-sm pointer-events-none"></div>
-
+              <div className={`w-full aspect-square rounded-2xl p-5 flex flex-col justify-between border shadow-2xl relative overflow-hidden ${isDevotional ? "bg-gradient-to-br from-amber-950 via-slate-950 to-orange-950 border-amber-600/50 text-amber-100" : "bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950 border-blue-500/50 text-white"}`}>
                 <div className="flex justify-between items-start border-b border-white/15 pb-3 relative z-10">
                   <div>
                     <span className="text-[9px] uppercase tracking-widest text-amber-400 block font-bold">WE'RE CREATIVE</span>
-                    <span className="text-lg font-black tracking-wider uppercase text-white drop-shadow">
-                      {domainName.toUpperCase()}
-                    </span>
+                    <span className="text-lg font-black tracking-wider uppercase text-white drop-shadow">{domainName.toUpperCase()}</span>
                   </div>
-                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 px-3 py-1 rounded-lg font-black text-[10px] shadow-lg flex items-center gap-1">
-                    <span>★ PRO AGENCY</span>
-                  </div>
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 px-3 py-1 rounded-lg font-black text-[10px] shadow-lg">★ PRO AGENCY</div>
                 </div>
 
                 <div className="my-2 space-y-1 relative z-10">
-                  <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">
-                    {isDevotional ? "✨ ఆధ్యాత్మిక విశేషాలు ✨" : "🔥 EXCLUSIVE OFFER & SERVICES"}
-                  </span>
-                  <h3 className="text-lg sm:text-xl font-black leading-tight text-white drop-shadow-md">
-                    {getPostHookTitle()}
-                  </h3>
+                  <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">{isDevotional ? "✨ ఆధ్యాత్మిక విశేషాలు ✨" : "🔥 EXCLUSIVE OFFER & SERVICES"}</span>
+                  <h3 className="text-lg sm:text-xl font-black leading-tight text-white drop-shadow-md">{getPostHookTitle()}</h3>
                 </div>
 
                 <div className="bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/15 space-y-2 relative z-10">
                   <div className="flex justify-between items-center border-b border-white/10 pb-1.5">
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">OUR SERVICES:</span>
-                    <div className="flex gap-1.5 text-xs">
-                      <span className="bg-indigo-600/80 p-1 rounded-md">💼</span>
-                      <span className="bg-blue-600/80 p-1 rounded-md">📘</span>
-                      <span className="bg-pink-600/80 p-1 rounded-md">📸</span>
-                      <span className="bg-red-600/80 p-1 rounded-md">🎥</span>
-                    </div>
                   </div>
-
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-slate-200">
-                    {(autoServices.length > 0 ? autoServices : ["Open Plots (VUDA)", "Luxury Flats", "SEO Strategy", "Brand Growth"]).map((s, idx) => (
-                      <div key={idx} className="flex items-center gap-1 font-semibold truncate">
-                        <span className="text-amber-400">●</span> {s.trim()}
-                      </div>
+                    {(autoServices.length > 0 ? autoServices : ["Digital Marketing", "SEO Strategy", "Funnel Design", "Brand Growth"]).map((s, idx) => (
+                      <div key={idx} className="flex items-center gap-1 font-semibold truncate"><span className="text-amber-400">●</span> {s.trim()}</div>
                     ))}
                   </div>
                 </div>
 
                 <div className="border-t border-white/15 pt-3 flex items-center justify-between text-[10px] relative z-10">
-                  <div>
-                    <span className="block text-slate-400 text-[8px]">Visit website:</span>
-                    <span className="font-bold text-white truncate max-w-[110px] block">{domainName}</span>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg font-black text-[10px] shadow-lg uppercase tracking-wider border border-white/20">
-                    REGISTER NOW
-                  </div>
-
-                  <div className="text-right">
-                    <span className="block text-slate-400 text-[8px]">Call Us:</span>
-                    <span className="font-bold text-amber-300">{autoPhone}</span>
-                  </div>
+                  <div><span className="block text-slate-400 text-[8px]">Website:</span><span className="font-bold text-white truncate max-w-[110px] block">{domainName}</span></div>
+                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg font-black text-[10px] shadow-lg uppercase">REGISTER NOW</div>
+                  <div className="text-right"><span className="block text-slate-400 text-[8px]">Call Us:</span><span className="font-bold text-amber-300">{autoPhone}</span></div>
                 </div>
               </div>
 
-              <button
-                onClick={() => alert("Capture this High-Res 3D Card to post directly on Social Media!")}
-                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl border border-slate-700 transition"
-              >
+              <button onClick={() => alert("Capture this High-Res 3D Card to post directly on Social Media!")} className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl border border-slate-700 transition">
                 📸 Capture / Save Flyer Image
               </button>
             </div>
 
-            {/* CONTENT SUITE */}
             <div className="lg:col-span-7 bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xl flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-indigo-400">
-                    📝 Social Posts, Reel Scripts & Copy Package
-                  </h3>
-                  
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleDownloadPDF(result)}
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition shadow"
-                    >
-                      📄 Export PDF
-                    </button>
-                    <button
-                      onClick={() => handleCopy(result)}
-                      className="bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition"
-                    >
-                      {copied ? "Copied! ✅" : "📋 Copy Text"}
-                    </button>
-                  </div>
+                  <h3 className="text-sm font-bold text-indigo-400">📝 Social Posts, Reel Scripts & Copy Package</h3>
+                  <button onClick={() => handleDownloadPDF(result)} className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition shadow">📄 Export PDF</button>
                 </div>
-                
-                <p className="text-[11px] mt-1 text-slate-400">
-                  Target Platform: <span className="text-pink-400 font-bold uppercase">{platform}</span> | Language: <span className="text-amber-400 uppercase">{language}</span>
-                </p>
               </div>
 
-              <div className="text-slate-200 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800/80 max-h-[500px] overflow-y-auto mt-2 space-y-2">
+              <div className="text-slate-200 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800/80 max-h-[500px] overflow-y-auto mt-2">
                 {result}
               </div>
             </div>
@@ -648,7 +635,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="text-center text-xs text-slate-600 py-4 border-t border-slate-900">
-        © ClipToPosts. Enterprise AI Growth Engine.
+        © ClipToPosts. Enterprise AI Growth Suite.
       </footer>
     </div>
   );
