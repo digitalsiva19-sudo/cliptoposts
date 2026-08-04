@@ -31,7 +31,7 @@ export default function HomePage() {
 
   // User & Subscription Credits State
   const [user, setUser] = useState<any>(null);
-  const [planType, setPlanType] = useState<string>("free"); // free, monthly, 6months, annual
+  const [planType, setPlanType] = useState<string>("free");
   const [credits, setCredits] = useState<number | null>(3);
   const [subId, setSubId] = useState<string | null>(null);
   const [usedCount, setUsedCount] = useState<number>(0);
@@ -374,7 +374,7 @@ export default function HomePage() {
           All-In-One Enterprise Business AI Suite
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          3 Dedicated AI Tools: Social 3D Flyers, SEO Keyword Audits & Local GMB Map Pack Checklists!
+          3 Dedicated AI Tools: Social 3D Flyers, 100+ SEO Keyword Audits & Local GMB Map Pack Checklists!
         </p>
 
         {/* Input Form with Dropdown Selectors */}
@@ -385,7 +385,7 @@ export default function HomePage() {
             <input
               type="text"
               required
-              placeholder="e.g. realestate in vizag or seomynds.com or Vedaswaram"
+              placeholder="e.g. realestate in vizag or dental clinic in kakinada or seomynds.com"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
@@ -439,14 +439,14 @@ export default function HomePage() {
               {loading ? `Generating Flyer Kit...` : `🚀 Generate 3D Flyer & Social Kit`}
             </button>
 
-            {/* BUTTON 2: NATIONAL SEO KEYWORDS & AUDIT */}
+            {/* BUTTON 2: NATIONAL SEO KEYWORDS & AUDIT (100 - 150 KEYWORDS) */}
             <button
               type="button"
               onClick={handleKeywordResearch}
               disabled={kwLoading}
               className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl border border-emerald-400/30 flex items-center justify-center gap-1.5"
             >
-              {kwLoading ? `Auditing SEO...` : `🔍 Top 10 SEO Keywords & Audit`}
+              {kwLoading ? `Mining 100+ Keywords...` : `🔍 Mine 100-150 SEO Keywords & Audit Report`}
             </button>
 
             {/* BUTTON 3: LOCAL SEO & GMB MAP CHECKLIST */}
@@ -496,7 +496,7 @@ export default function HomePage() {
                 <div className="text-2xl font-black text-indigo-400 my-1">₹499 <span className="text-xs text-slate-400 font-normal">/ month</span></div>
                 <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
                   <li>✓ Unlimited AI Generations</li>
-                  <li>✓ 3D Graphic Visual Flyers</li>
+                  <li>✓ 100+ Keyword Mining Reports</li>
                   <li>✓ Whitelabel PDF Client Audits</li>
                   <li>✓ Local GMB Map Checklists</li>
                 </ul>
@@ -581,7 +581,7 @@ export default function HomePage() {
           <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl text-left space-y-4 shadow-2xl animate-fade-in">
             <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
               <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                <span>🔍 Whitelabel Client SEO Audit & Keyword Intelligence Report</span>
+                <span>🔍 Whitelabel Client SEO Audit & Keyword Intelligence Report (100+ Keywords)</span>
               </h3>
               <div className="flex items-center gap-2">
                 <button onClick={() => handleDownloadPDF(keywordReport)} className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-indigo-400">
@@ -671,13 +671,3 @@ export default function HomePage() {
     </div>
   );
 }
-/* (గతంలో పంపిన app/page.tsx లో బటన్ టెక్స్ట్ ను క్రింది విధంగా అప్‌డేట్ చేయండి) */
-
-<button
-  type="button"
-  onClick={handleKeywordResearch}
-  disabled={kwLoading}
-  className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl border border-emerald-400/30 flex items-center justify-center gap-1.5"
->
-  {kwLoading ? `Mining 100+ Keywords...` : `🔍 Mine 100-150 SEO Keywords & Audit Report`}
-</button>
