@@ -71,45 +71,81 @@ export default function HomePage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Download PDF Functionality using Browser Print Window with Custom Stylesheet
+  // Convert Markdown Table to Clean HTML Table for PDF
+  const renderFormattedHTML = (text: string) => {
+    if (!text) return "";
+    
+    let formatted = text;
+
+    // Convert Markdown Tables to HTML Tables
+    const tableRegex = /\|(.+)\|[\r\n]\|[-| ]+\|[\r\n]((?:\|.+\|[\r\n]?)+)/g;
+    formatted = formatted.replace(tableRegex, (match, headerRow, bodyRows) => {
+      const headers = headerRow.split("|").map((h: string) => h.trim()).filter(Boolean);
+      const rows = bodyRows.trim().split("\n").map((r: string) => r.split("|").map((c: string) => c.trim()).filter(Boolean));
+
+      let tableHtml = `<table style="width:100%; border-collapse:collapse; margin:15px 0; font-size:12px; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.05); border-radius:8px; overflow:hidden;">`;
+      tableHtml += `<thead style="background:#4f46e5; color:#fff;"><tr>`;
+      headers.forEach((h: string) => {
+        tableHtml += `<th style="padding:10px; border:1px solid #c7d2fe; text-align:left;">${h}</th>`;
+      });
+      tableHtml += `</tr></thead><tbody>`;
+
+      rows.forEach((row: string[], idx: number) => {
+        const bg = idx % 2 === 0 ? "#f8fafc" : "#ffffff";
+        tableHtml += `<tr style="background:${bg};">`;
+        row.forEach((cell: string) => {
+          tableHtml += `<style>td{padding:8px 10px; border:1px solid #e2e8f0; color:#1e293b;}</style><td>${cell}</td>`;
+        });
+        tableHtml += `</tr>`;
+      });
+      tableHtml += `</tbody></table>`;
+      return tableHtml;
+    });
+
+    return formatted;
+  };
+
+  // High-Resolution Professional PDF Print Handler
   const handleDownloadPDF = () => {
     if (!keywordReport && !result) {
       alert("No report generated yet to export PDF!");
       return;
     }
 
-    const reportContent = keywordReport || result || "";
+    const reportContent = renderFormattedHTML(keywordReport || result || "");
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>${domainName.toUpperCase()} - White Label Client SEO & Growth Audit</title>
+          <title>${domainName.toUpperCase()} - Executive Client Audit Report</title>
           <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #1e293b; background: #ffffff; }
-            .header { border-b: 3px solid #4f46e5; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
-            .logo { font-size: 24px; font-weight: 900; color: #4f46e5; }
-            .badge { background: #e0e7ff; color: #3730a3; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 6px; }
-            h1, h2, h3 { color: #0f172a; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
-            th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
-            th { background-color: #f1f5f9; font-weight: bold; }
-            pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.6; }
-            .footer { margin-top: 40px; border-t: 1px solid #e2e8f0; padding-top: 20px; font-size: 11px; color: #64748b; text-align: center; }
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+            body { font-family: 'Inter', sans-serif; padding: 40px; color: #0f172a; background: #ffffff; }
+            .header { border-bottom: 3px solid #4f46e5; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+            .brand-title { font-size: 26px; font-weight: 800; color: #4f46e5; text-transform: uppercase; letter-spacing: 1px; }
+            .badge { background: #4f46e5; color: #ffffff; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px; text-transform: uppercase; }
+            .section-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+            h1, h2, h3 { color: #1e1b4b; margin-top: 0; }
+            table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 11px; }
+            th { background: #312e81; color: #ffffff; padding: 10px; border: 1px solid #4338ca; text-align: left; font-weight: 700; }
+            td { padding: 9px 10px; border: 1px solid #cbd5e1; color: #1e293b; }
+            tr:nth-child(even) { background-color: #f1f5f9; }
+            .footer { margin-top: 50px; border-top: 1px solid #cbd5e1; padding-top: 15px; font-size: 10px; color: #64748b; text-align: center; }
           </style>
         </head>
         <body>
           <div class="header">
             <div>
-              <div class="logo">${domainName.toUpperCase()}</div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Generated for Client: ${domainName} | Date: ${new Date().toLocaleDateString()}</div>
+              <div class="brand-title">${domainName.toUpperCase()}</div>
+              <div style="font-size: 12px; color: #475569; margin-top: 4px;">Executive Client Audit & Growth Report | Date: ${new Date().toLocaleDateString()}</div>
             </div>
-            <div class="badge">WHITELABEL CLIENT REPORT</div>
+            <div class="badge">PRO WHITELABEL REPORT</div>
           </div>
-          <pre>${reportContent}</pre>
+          <div>${reportContent}</div>
           <div class="footer">
-            Report generated by ClipToPosts Enterprise AI Growth Suite. Confidential.
+            Generated by ClipToPosts Enterprise AI Growth Suite. Confidential Client Document.
           </div>
         </body>
       </html>
@@ -122,10 +158,9 @@ export default function HomePage() {
     }, 500);
   };
 
-  // CSV / Excel Export Functionality
   const handleExportCSV = () => {
     if (!keywordReport) {
-      alert("Please generate Keyword Research Report first to export CSV!");
+      alert("Please generate Keyword Research Report first!");
       return;
     }
 
@@ -133,13 +168,12 @@ export default function HomePage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `${domainName}_Keyword_Audit.csv`);
+    link.setAttribute("download", `${domainName}_SEO_Audit.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Main Social Suite Generator
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText) return;
@@ -204,7 +238,6 @@ export default function HomePage() {
     }
   };
 
-  // Dedicated Keyword Research & Analytics Trigger
   const handleKeywordResearch = async () => {
     if (!inputText) {
       alert("Please enter a Business Name, Keyword, or Website URL first!");
@@ -297,7 +330,7 @@ export default function HomePage() {
           Whitelabel PDF Client Audits, Real SEO Keywords, GMB Optimization & 3D Pro Flyer Banners!
         </p>
 
-        {/* Language & Platform Control Options */}
+        {/* Language & Platform Controls */}
         <div className="flex flex-wrap items-center justify-center gap-4 pt-1 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-400">Language:</span>
@@ -347,21 +380,20 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Business Input Form */}
+        {/* Form */}
         <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4 text-left shadow-xl">
           <div>
             <label className="text-[11px] font-bold text-slate-300 mb-1 block">Enter Business Name, Keyword, or Website URL *</label>
             <input
               type="text"
               required
-              placeholder="e.g. seomynds.com or Digital Marketing Vizag or Vedaswaram"
+              placeholder="e.g. realestate in vizag or seomynds.com or Vedaswaram"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
             />
           </div>
 
-          {/* Action Buttons Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <button
               type="submit"
@@ -371,7 +403,6 @@ export default function HomePage() {
               {loading ? `Generating ${platform.toUpperCase()} Kit...` : `🚀 Generate 3D Flyer & ${platform.toUpperCase()} Kit`}
             </button>
 
-            {/* DEDICATED KEYWORD RESEARCH BUTTON */}
             <button
               type="button"
               onClick={handleKeywordResearch}
@@ -383,7 +414,7 @@ export default function HomePage() {
           </div>
         </form>
 
-        {/* KEYWORD REPORT ANALYTICS BOX WITH WHITELABEL PDF & CSV BUTTONS */}
+        {/* KEYWORD REPORT ANALYTICS BOX WITH WHITELABEL PDF */}
         {keywordReport && (
           <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl text-left space-y-4 shadow-2xl animate-fade-in">
             <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
@@ -394,20 +425,19 @@ export default function HomePage() {
                 </span>
               </h3>
 
-              {/* DOWNLOAD PDF & CSV BUTTONS */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleDownloadPDF}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shadow border border-indigo-400"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow border border-indigo-400"
                 >
-                  📄 Download Client PDF Report
+                  📄 Download Professional Client PDF
                 </button>
 
                 <button
                   onClick={handleExportCSV}
                   className="bg-teal-700 hover:bg-teal-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition"
                 >
-                  📊 Export CSV / Excel
+                  📊 Export CSV
                 </button>
 
                 <button
@@ -419,17 +449,18 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="text-slate-200 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800 overflow-x-auto font-mono">
-              {keywordReport}
-            </div>
+            <div 
+              className="text-slate-200 text-xs leading-relaxed bg-slate-950 p-5 rounded-xl border border-slate-800 overflow-x-auto font-sans"
+              dangerouslySetInnerHTML={{ __html: renderFormattedHTML(keywordReport) }}
+            />
           </div>
         )}
 
-        {/* Results Display */}
+        {/* Social Results Display */}
         {result && (
           <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
             
-            {/* FLYER CARD CONTAINER */}
+            {/* FLYER CARD */}
             <div className="lg:col-span-5 bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-xl">
               <div>
                 <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
@@ -438,7 +469,7 @@ export default function HomePage() {
                     Sample-2 Style
                   </span>
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-1">3D Neon elements & Corporate agency layout</p>
+                <p className="text-[11px] text-slate-500 mt-1">3D Neon elements & Corporate layout</p>
               </div>
 
               {/* 3D GRAPHIC CANVAS FLYER */}
@@ -449,10 +480,8 @@ export default function HomePage() {
                     : "bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950 border-blue-500/50 text-white"
                 }`}
               >
-                {/* 3D Neon Rings Background */}
                 <div className="absolute top-10 -right-10 w-44 h-44 rounded-full border-4 border-indigo-500/30 blur-sm pointer-events-none"></div>
 
-                {/* Header */}
                 <div className="flex justify-between items-start border-b border-white/15 pb-3 relative z-10">
                   <div>
                     <span className="text-[9px] uppercase tracking-widest text-amber-400 block font-bold">WE'RE CREATIVE</span>
@@ -465,30 +494,28 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Main Hook */}
                 <div className="my-2 space-y-1 relative z-10">
                   <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">
-                    {isDevotional ? "✨ ఆధ్యాత్మిక విశేషాలు ✨" : "🔥 DIGITAL MARKETING EXPERT"}
+                    {isDevotional ? "✨ ఆధ్యాత్మిక విశేషాలు ✨" : "🔥 EXCLUSIVE OFFER & SERVICES"}
                   </span>
                   <h3 className="text-lg sm:text-xl font-black leading-tight text-white drop-shadow-md">
                     {getPostHookTitle()}
                   </h3>
                 </div>
 
-                {/* Services Box */}
                 <div className="bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/15 space-y-2 relative z-10">
                   <div className="flex justify-between items-center border-b border-white/10 pb-1.5">
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">OUR SERVICES:</span>
                     <div className="flex gap-1.5 text-xs">
-                      <span className="bg-indigo-600/80 p-1 rounded-md" title="LinkedIn">💼</span>
-                      <span className="bg-blue-600/80 p-1 rounded-md" title="Facebook">📘</span>
-                      <span className="bg-pink-600/80 p-1 rounded-md" title="Instagram">📸</span>
-                      <span className="bg-red-600/80 p-1 rounded-md" title="YouTube">🎥</span>
+                      <span className="bg-indigo-600/80 p-1 rounded-md">💼</span>
+                      <span className="bg-blue-600/80 p-1 rounded-md">📘</span>
+                      <span className="bg-pink-600/80 p-1 rounded-md">📸</span>
+                      <span className="bg-red-600/80 p-1 rounded-md">🎥</span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-slate-200">
-                    {(autoServices.length > 0 ? autoServices : ["Digital Marketing", "SEO Campaign Strategies", "Web Design & Dev", "Brand Growth"]).map((s, idx) => (
+                    {(autoServices.length > 0 ? autoServices : ["Open Plots (VUDA)", "Luxury Flats", "SEO Strategy", "Brand Growth"]).map((s, idx) => (
                       <div key={idx} className="flex items-center gap-1 font-semibold truncate">
                         <span className="text-amber-400">●</span> {s.trim()}
                       </div>
@@ -496,10 +523,9 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Footer */}
                 <div className="border-t border-white/15 pt-3 flex items-center justify-between text-[10px] relative z-10">
                   <div>
-                    <span className="block text-slate-400 text-[8px]">Visit our website:</span>
+                    <span className="block text-slate-400 text-[8px]">Visit website:</span>
                     <span className="font-bold text-white truncate max-w-[110px] block">{domainName}</span>
                   </div>
 
@@ -508,21 +534,21 @@ export default function HomePage() {
                   </div>
 
                   <div className="text-right">
-                    <span className="block text-slate-400 text-[8px]">Call Us For Info:</span>
+                    <span className="block text-slate-400 text-[8px]">Call Us:</span>
                     <span className="font-bold text-amber-300">{autoPhone}</span>
                   </div>
                 </div>
               </div>
 
               <button
-                onClick={() => alert("Capture this High-Res 3D Card to post directly on Instagram, LinkedIn, or Facebook!")}
+                onClick={() => alert("Capture this High-Res 3D Card to post directly on Social Media!")}
                 className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl border border-slate-700 transition"
               >
                 📸 Capture / Save Flyer Image
               </button>
             </div>
 
-            {/* FULL CONTENT SUITE */}
+            {/* CONTENT SUITE */}
             <div className="lg:col-span-7 bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xl flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between">
