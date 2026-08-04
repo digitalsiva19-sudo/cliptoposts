@@ -12,7 +12,11 @@ export default function HomePage() {
   const [platform, setPlatform] = useState("instagram");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  
   const [domainName, setDomainName] = useState<string>("");
+  const [autoPhone, setAutoPhone] = useState<string>("");
+  const [autoAddress, setAutoAddress] = useState<string>("");
+  const [autoServices, setAutoServices] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
 
   const [user, setUser] = useState<any>(null);
@@ -99,6 +103,9 @@ export default function HomePage() {
       if (data.success && data.text) {
         setResult(data.text);
         setDomainName(data.domainName || inputText);
+        setAutoPhone(data.autoPhone);
+        setAutoAddress(data.autoAddress);
+        setAutoServices(data.autoServices || []);
 
         const newUsed = usedCount + 1;
         if (subId) {
@@ -172,10 +179,10 @@ export default function HomePage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto w-full text-center my-6 space-y-6">
         <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
-          Pro Business Social Flyer & AI Suite
+          3D Graphic Agency Social Generator
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Enter your Business Name, Contact, Services & Location to generate a complete Pro Agency Graphic Flyer & Content Package!
+          Type ANY Business Name or URL. Gemini AI auto-generates your Services, Contact, 3D Marketing Graphics & Reel Scripts!
         </p>
 
         {/* Platform Buttons */}
@@ -204,61 +211,51 @@ export default function HomePage() {
 
         {/* Business Input Form */}
         <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 text-left shadow-xl">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-bold text-slate-400 mb-1 block">Business Name or Website URL *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. seomynds.com or Vedaswaram"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
-              />
-            </div>
+          <div>
+            <label className="text-[11px] font-bold text-slate-300 mb-1 block">Business Name or Website URL *</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. seomynds.com or Vedaswaram"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
+            />
+          </div>
 
-            <div>
-              <label className="text-[11px] font-bold text-slate-400 mb-1 block">Phone / Contact Number (Optional)</label>
+          <details className="text-xs text-slate-400 cursor-pointer pt-1">
+            <summary className="hover:text-indigo-400 font-semibold">⚡ Optional Custom Overrides (Phone, Address, Services)</summary>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3">
               <input
                 type="text"
-                placeholder="e.g. +91 9876543210"
+                placeholder="Custom Phone Number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
+                className="bg-slate-950 border border-slate-800 text-white px-3 py-2 rounded-lg text-xs"
               />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-bold text-slate-400 mb-1 block">Key Services (Comma separated - Optional)</label>
               <input
                 type="text"
-                placeholder="e.g. SEO, Web Design, Social Media, Lead Strategy"
+                placeholder="Custom Services (comma separated)"
                 value={services}
                 onChange={(e) => setServices(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
+                className="bg-slate-950 border border-slate-800 text-white px-3 py-2 rounded-lg text-xs"
               />
-            </div>
-
-            <div>
-              <label className="text-[11px] font-bold text-slate-400 mb-1 block">Location / Address (Optional)</label>
               <input
                 type="text"
-                placeholder="e.g. Vizag, AP / Online Services"
+                placeholder="Custom Address / Location"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
+                className="bg-slate-950 border border-slate-800 text-white px-3 py-2 rounded-lg text-xs"
               />
             </div>
-          </div>
+          </details>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-lg mt-2"
+            className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-lg"
           >
-            {loading ? `Analyzing Business & Designing Pro Graphic...` : `🚀 Generate Pro Graphic Flyer & ${platform.toUpperCase()} Assets`}
+            {loading ? `Analyzing Business & Designing 3D Graphic...` : `🚀 Auto-Generate 3D Pro Flyer & ${platform.toUpperCase()} Kit`}
           </button>
         </form>
 
@@ -266,55 +263,69 @@ export default function HomePage() {
         {result && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             
-            {/* PRO BUSINESS GRAPHIC FLYER CARD (Sample 3 Replica Layout) */}
+            {/* 3D GRAPHIC MARKETING FLYER CARD */}
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-xl">
               <div>
                 <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
-                  <span>🎨 Pro Agency Graphic Flyer</span>
+                  <span>🎨 3D Graphic Agency Flyer</span>
                   <span className="text-[10px] bg-pink-950 text-pink-300 border border-pink-800 px-2 py-0.5 rounded-md font-normal">
                     Ready Post
                   </span>
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-1">High conversion agency layout</p>
+                <p className="text-[11px] text-slate-500 mt-1">Full 3D social icons + agency branding layout</p>
               </div>
 
-              {/* 3rd Sample Replica Graphic Flyer */}
+              {/* Ultra Pro 3D Graphic Flyer Canvas */}
               <div 
                 className={`w-full aspect-square rounded-2xl p-5 flex flex-col justify-between border shadow-2xl relative overflow-hidden ${
                   isDevotional 
-                    ? "bg-gradient-to-br from-amber-950 via-slate-950 to-orange-950 border-amber-600/40 text-amber-100" 
-                    : "bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950 border-blue-500/40 text-white"
+                    ? "bg-gradient-to-br from-amber-950 via-slate-950 to-orange-950 border-amber-600/50 text-amber-100" 
+                    : "bg-gradient-to-br from-blue-950 via-indigo-950 to-slate-950 border-indigo-500/50 text-white"
                 }`}
               >
-                {/* Header Section: Logo & Brand Title */}
-                <div className="flex justify-between items-start border-b border-white/15 pb-3">
+                {/* 3D Floating Graphic Badges background */}
+                <div className="absolute top-12 right-4 opacity-20 pointer-events-none flex gap-2 text-4xl">
+                  <span>📱</span><span>🚀</span><span>📈</span>
+                </div>
+
+                {/* Header: Brand Name & 3D Logo Badge */}
+                <div className="flex justify-between items-start border-b border-white/15 pb-3 relative z-10">
                   <div>
                     <span className="text-[10px] uppercase tracking-widest text-amber-400 block font-bold">WE ARE CREATIVE</span>
-                    <span className="text-lg font-black tracking-wider uppercase text-white">
+                    <span className="text-xl font-black tracking-wider uppercase text-white drop-shadow">
                       {domainName.toUpperCase()}
                     </span>
                   </div>
-                  <div className="bg-white/10 px-3 py-1 rounded-lg border border-white/10 text-right">
-                    <span className="text-[9px] block text-slate-300">BRAND LOGO</span>
-                    <span className="text-xs font-black text-amber-400">★ PRO</span>
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 px-3 py-1 rounded-lg font-black text-[10px] shadow-lg flex items-center gap-1">
+                    <span>⚡ AGENCY</span>
                   </div>
                 </div>
 
                 {/* Main Offer Title / Hook */}
-                <div className="my-2 space-y-1">
-                  <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider block">
-                    {isDevotional ? "✨ ఆద్యాత్మిక సేవలు & మంత్రాలు" : "🚀 BUSINESS AGENCY SOLUTIONS"}
+                <div className="my-2 space-y-1 relative z-10">
+                  <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">
+                    {isDevotional ? "✨ ఆధ్యాత్మిక విశేషాలు ✨" : "🔥 DIGITAL MARKETING & BRAND GROWTH"}
                   </span>
-                  <h3 className="text-xl sm:text-2xl font-black leading-tight text-white drop-shadow">
+                  <h3 className="text-lg sm:text-xl font-black leading-tight text-white drop-shadow-md">
                     {getPostHookTitle()}
                   </h3>
                 </div>
 
-                {/* Services Section */}
-                <div className="bg-black/40 backdrop-blur-md p-3 rounded-xl border border-white/10 space-y-1 my-1">
-                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block mb-1">OUR KEY SERVICES:</span>
+                {/* 3D Social Media Badges + Key Services Box */}
+                <div className="bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/15 space-y-2 relative z-10">
+                  <div className="flex justify-between items-center border-b border-white/10 pb-1.5">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">OUR KEY SERVICES:</span>
+                    {/* 3D Social Media Icons */}
+                    <div className="flex gap-1.5 text-xs">
+                      <span title="Instagram">📸</span>
+                      <span title="Facebook">📘</span>
+                      <span title="LinkedIn">💼</span>
+                      <span title="YouTube">🎥</span>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-slate-200">
-                    {(services ? services.split(",") : ["Web & Funnel Design", "Organic SEO Strategy", "Lead Generation", "Brand Positioning"]).map((s, idx) => (
+                    {(autoServices.length > 0 ? autoServices : ["Web & Funnel Design", "Organic SEO Strategy", "Lead Generation", "Brand Positioning"]).map((s, idx) => (
                       <div key={idx} className="flex items-center gap-1 font-semibold truncate">
                         <span className="text-amber-400">✓</span> {s.trim()}
                       </div>
@@ -322,26 +333,26 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Footer Section: Website, Call-to-action & Contact */}
-                <div className="border-t border-white/15 pt-3 flex items-center justify-between text-[10px]">
+                {/* Footer Section: Website, CTA & Auto Phone */}
+                <div className="border-t border-white/15 pt-3 flex items-center justify-between text-[10px] relative z-10">
                   <div>
-                    <span className="block text-slate-400 text-[9px]">Visit Website:</span>
-                    <span className="font-bold text-white truncate max-w-[120px] block">{domainName}</span>
+                    <span className="block text-slate-400 text-[8px]">Visit Website:</span>
+                    <span className="font-bold text-white truncate max-w-[110px] block">{domainName}</span>
                   </div>
 
-                  <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 px-3 py-1.5 rounded-lg font-black text-[10px] shadow-lg uppercase tracking-wider">
-                    REGISTER NOW
+                  <div className="bg-gradient-to-r from-pink-500 to-indigo-600 text-white px-3 py-1.5 rounded-lg font-black text-[10px] shadow-lg uppercase tracking-wider">
+                    REGISTER NOW ➔
                   </div>
 
                   <div className="text-right">
-                    <span className="block text-slate-400 text-[9px]">Call Us For More Info:</span>
-                    <span className="font-bold text-amber-300">{phone || "+91 9876543210"}</span>
+                    <span className="block text-slate-400 text-[8px]">Call Us For Info:</span>
+                    <span className="font-bold text-amber-300">{autoPhone}</span>
                   </div>
                 </div>
               </div>
 
               <p className="text-[11px] text-center text-slate-500">
-                100% Agency Grade Visual Flyer
+                100% Agency Grade 3D Visual Flyer
               </p>
             </div>
 
