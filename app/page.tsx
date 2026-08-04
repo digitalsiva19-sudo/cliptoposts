@@ -6,6 +6,9 @@ import { supabase } from "./lib/supabase";
 
 export default function HomePage() {
   const [inputText, setInputText] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [services, setServices] = useState("");
   const [platform, setPlatform] = useState("instagram");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -82,7 +85,13 @@ export default function HomePage() {
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputUrl: inputText, platform }),
+        body: JSON.stringify({ 
+          inputUrl: inputText, 
+          platform,
+          phone,
+          address,
+          services
+        }),
       });
 
       const data = await response.json();
@@ -113,25 +122,13 @@ export default function HomePage() {
     }
   };
 
-  // Helper to extract post title for poster visual
   const getPostHookTitle = () => {
     if (!result) return "";
     const match = result.match(/• POST TITLE \/ HOOK:\s*\n?([^\n]+)/i) || result.match(/🎯 VIRAL HOOK:\s*\n?([^\n]+)/i);
-    return match ? match[1].replace(/"/g, "") : `${domainName.toUpperCase()} Official Update`;
+    return match ? match[1].replace(/"/g, "") : `GROW YOUR BUSINESS WITH ${domainName.toUpperCase()}`;
   };
 
   const isDevotional = domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja") || domainName.includes("astro");
-
-  // Dynamic High-Quality Background Patterns based on Niche
-  const getBgImage = () => {
-    if (isDevotional) {
-      return "https://images.unsplash.com/photo-1609348085359-7104dd2d431c?q=80&w=1000&auto=format&fit=crop"; // Rich Indian Temple / Golden Lights Background
-    } else if (domainName.includes("kids") || domainName.includes("education")) {
-      return "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1000&auto=format&fit=crop"; // Education / Learning Graphic
-    } else {
-      return "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1000&auto=format&fit=crop"; // Modern High-Tech Business Dark Gradient
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between p-4 sm:p-6">
@@ -175,13 +172,13 @@ export default function HomePage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto w-full text-center my-6 space-y-6">
         <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
-          Universal Business AI Social Generator
+          Pro Business Social Flyer & AI Suite
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Type ANY Website URL or Business Name. Get high-converting visual banners, video scripts & keywords!
+          Enter your Business Name, Contact, Services & Location to generate a complete Pro Agency Graphic Flyer & Content Package!
         </p>
 
-        {/* Platform Selection Buttons */}
+        {/* Platform Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           {[
             { id: "instagram", label: "📸 Instagram" },
@@ -205,23 +202,63 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Generator Form */}
-        <form onSubmit={handleGenerate} className="space-y-3 mt-4">
-          <input
-            type="text"
-            required
-            placeholder="Type Business Name or Website URL (e.g. vedaswaram.com or seomynds.com)"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 text-white px-5 py-3.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
-          />
+        {/* Business Input Form */}
+        <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 text-left shadow-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 mb-1 block">Business Name or Website URL *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. seomynds.com or Vedaswaram"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 mb-1 block">Phone / Contact Number (Optional)</label>
+              <input
+                type="text"
+                placeholder="e.g. +91 9876543210"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 mb-1 block">Key Services (Comma separated - Optional)</label>
+              <input
+                type="text"
+                placeholder="e.g. SEO, Web Design, Social Media, Lead Strategy"
+                value={services}
+                onChange={(e) => setServices(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 mb-1 block">Location / Address (Optional)</label>
+              <input
+                type="text"
+                placeholder="e.g. Vizag, AP / Online Services"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
+              />
+            </div>
+          </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-lg"
+            className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-lg mt-2"
           >
-            {loading ? `Analyzing ${inputText} with Gemini AI...` : `Generate ${platform.toUpperCase()} Banner & Scripts`}
+            {loading ? `Analyzing Business & Designing Pro Graphic...` : `🚀 Generate Pro Graphic Flyer & ${platform.toUpperCase()} Assets`}
           </button>
         </form>
 
@@ -229,55 +266,82 @@ export default function HomePage() {
         {result && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             
-            {/* Rich Graphic Banner Visual */}
+            {/* PRO BUSINESS GRAPHIC FLYER CARD (Sample 3 Replica Layout) */}
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-xl">
               <div>
                 <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
-                  <span>🎨 {platform.toUpperCase()} Rich Social Graphic</span>
+                  <span>🎨 Pro Agency Graphic Flyer</span>
                   <span className="text-[10px] bg-pink-950 text-pink-300 border border-pink-800 px-2 py-0.5 rounded-md font-normal">
-                    Pro Design
+                    Ready Post
                   </span>
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-1">HD Background + Typography Banner</p>
+                <p className="text-[11px] text-slate-500 mt-1">High conversion agency layout</p>
               </div>
 
-              {/* Rich Graphic Visual Overlay */}
+              {/* 3rd Sample Replica Graphic Flyer */}
               <div 
-                className="w-full aspect-square rounded-2xl p-6 flex flex-col justify-between border border-white/20 shadow-2xl relative overflow-hidden bg-cover bg-center"
-                style={{ backgroundImage: `url(${getBgImage()})` }}
+                className={`w-full aspect-square rounded-2xl p-5 flex flex-col justify-between border shadow-2xl relative overflow-hidden ${
+                  isDevotional 
+                    ? "bg-gradient-to-br from-amber-950 via-slate-950 to-orange-950 border-amber-600/40 text-amber-100" 
+                    : "bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950 border-blue-500/40 text-white"
+                }`}
               >
-                {/* Dark Overlay for readability */}
-                <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-[2px] z-0"></div>
-
-                {/* Content over background */}
-                <div className="relative z-10 flex justify-between items-center border-b border-white/20 pb-3">
-                  <span className="text-xs font-black tracking-widest uppercase text-amber-400 bg-black/40 px-3 py-1 rounded-lg backdrop-blur-sm border border-white/10">
-                    {isDevotional ? "🕉️ " + domainName : domainName}
-                  </span>
-                  <span className="text-[10px] px-2.5 py-1 rounded-md bg-indigo-600 text-white font-bold uppercase tracking-wider shadow">
-                    {platform}
-                  </span>
+                {/* Header Section: Logo & Brand Title */}
+                <div className="flex justify-between items-start border-b border-white/15 pb-3">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-widest text-amber-400 block font-bold">WE ARE CREATIVE</span>
+                    <span className="text-lg font-black tracking-wider uppercase text-white">
+                      {domainName.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="bg-white/10 px-3 py-1 rounded-lg border border-white/10 text-right">
+                    <span className="text-[9px] block text-slate-300">BRAND LOGO</span>
+                    <span className="text-xs font-black text-amber-400">★ PRO</span>
+                  </div>
                 </div>
 
-                <div className="relative z-10 my-auto text-center px-2">
-                  <span className="text-xs uppercase font-bold tracking-widest text-indigo-300 mb-1 block">
-                    {isDevotional ? "✨ ఆధ్యాత్మిక విశేషాలు ✨" : "⚡ BRAND GROWTH INSIGHT"}
+                {/* Main Offer Title / Hook */}
+                <div className="my-2 space-y-1">
+                  <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider block">
+                    {isDevotional ? "✨ ఆద్యాత్మిక సేవలు & మంత్రాలు" : "🚀 BUSINESS AGENCY SOLUTIONS"}
                   </span>
-                  <span className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-lg block">
+                  <h3 className="text-xl sm:text-2xl font-black leading-tight text-white drop-shadow">
                     {getPostHookTitle()}
-                  </span>
+                  </h3>
                 </div>
 
-                <div className="relative z-10 flex justify-between items-center border-t border-white/20 pt-3 text-[11px] text-slate-200 font-medium">
-                  <span className="bg-black/50 px-2.5 py-1 rounded text-slate-300 border border-white/10">🌐 {domainName}</span>
-                  <span className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-lg ${isDevotional ? "bg-amber-500 text-slate-950" : "bg-gradient-to-r from-indigo-500 to-pink-500 text-white"}`}>
-                    SWIPE TO LEARN ➔
-                  </span>
+                {/* Services Section */}
+                <div className="bg-black/40 backdrop-blur-md p-3 rounded-xl border border-white/10 space-y-1 my-1">
+                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block mb-1">OUR KEY SERVICES:</span>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-slate-200">
+                    {(services ? services.split(",") : ["Web & Funnel Design", "Organic SEO Strategy", "Lead Generation", "Brand Positioning"]).map((s, idx) => (
+                      <div key={idx} className="flex items-center gap-1 font-semibold truncate">
+                        <span className="text-amber-400">✓</span> {s.trim()}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer Section: Website, Call-to-action & Contact */}
+                <div className="border-t border-white/15 pt-3 flex items-center justify-between text-[10px]">
+                  <div>
+                    <span className="block text-slate-400 text-[9px]">Visit Website:</span>
+                    <span className="font-bold text-white truncate max-w-[120px] block">{domainName}</span>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 px-3 py-1.5 rounded-lg font-black text-[10px] shadow-lg uppercase tracking-wider">
+                    REGISTER NOW
+                  </div>
+
+                  <div className="text-right">
+                    <span className="block text-slate-400 text-[9px]">Call Us For More Info:</span>
+                    <span className="font-bold text-amber-300">{phone || "+91 9876543210"}</span>
+                  </div>
                 </div>
               </div>
 
               <p className="text-[11px] text-center text-slate-500">
-                100% Professional & Safe Social Visual
+                100% Agency Grade Visual Flyer
               </p>
             </div>
 
@@ -314,7 +378,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="text-center text-xs text-slate-600 py-4 border-t border-slate-900">
-        © ClipToPosts. All-In-One Universal Business AI Suite.
+        © ClipToPosts. Pro Business Social Media Suite.
       </footer>
     </div>
   );
