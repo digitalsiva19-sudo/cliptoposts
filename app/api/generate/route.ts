@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const domainName = cleanUrl.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0].toLowerCase();
     const brandName = domainName.split(".")[0].toUpperCase();
 
-    // Fetch Metadata safely
+    // 1. Scraping metadata and contact details
     let scrapedMetadata = "";
     if (!cleanUrl.startsWith("http")) {
       cleanUrl = "https://" + cleanUrl;
@@ -32,38 +32,48 @@ export async function POST(req: Request) {
       console.log("Scraping fallback used");
     }
 
-    // Universal Prompt for Gemini
+    // 2. Comprehensive Prompt for Business Intelligence & Growth Assets
     const promptText = `
-You are an elite Social Media Growth Strategist and Content Creator.
-Target Business Name or URL: ${inputUrl} (Extracted Domain: ${domainName})
-Scraped Website Data: ${scrapedMetadata || "Direct Domain Inference"}
-Requested Platform: ${platform.toUpperCase()}
+You are an All-In-One Enterprise Digital Marketing & Business Analytics AI Engine.
+Target Brand/URL: ${inputUrl} (Domain: ${domainName})
+Scraped Website Data: ${scrapedMetadata || "Infer from brand name"}
+Requested Social Platform: ${platform.toUpperCase()}
 
-TASK:
-1. Deeply analyze '${inputUrl}'. Determine the exact industry category.
-2. Auto-extract or infer:
-   - 4 Key Bullet Services
-   - Standard Contact Phone (if provided or construct professional placeholder e.g., +91 98765 43210)
-   - Estimated Location/Address (e.g., India / Online Services)
-
-3. Output MUST be formatted into TWO DISTINCT SECTIONS for ${platform.toUpperCase()}:
+Perform a deep analysis of this business and provide a complete growth kit with the following structured sections:
 
 --------------------------------------------------
-📸 PART 1: SOCIAL MEDIA POST (STATIC / CAROUSEL POST)
+📊 SECTION 1: BUSINESS ANALYSIS & ONLINE STATUS
+• Industry Category:
+• Target Audience Profile:
+• Unique Selling Proposition (USP):
+• Online Presence & Status:
+
+--------------------------------------------------
+📸 SECTION 2: ${platform.toUpperCase()} SOCIAL MEDIA POST
 • POST TITLE / HOOK:
-• POST CAPTION / DESCRIPTION:
-• KEYWORDS:
-• HASHTAGS:
+• FULL CAPTION / DESCRIPTION:
+• CALL TO ACTION (CTA):
 
 --------------------------------------------------
-🎬 PART 2: SHORT VIDEO / REEL / SHORTS SCRIPT
-• VIDEO TITLE:
-• VIDEO DESCRIPTION:
-• COMPLETE SCRIPT (0-15s / 0-60s with Hook, Value Body & CTA):
-• VIDEO KEYWORDS:
-• VIDEO HASHTAGS:
-• BEST TIME TO POST ON ${platform.toUpperCase()}:
+🔍 SECTION 3: KEYWORD RESEARCH & ANALYTICS
+• High Search Volume Keywords:
+• Low Competition Long-Tail Keywords:
+• Recommended Hashtags:
+
 --------------------------------------------------
+🎬 SECTION 4: SHORT VIDEO & REEL SCRIPT (0-30 SECONDS)
+• VIDEO TITLE:
+• SCENE-BY-SCENE VISUAL PROMPTS & AUDIO SCRIPT:
+  - [0-3s Hook Visual]: 
+  - [3-15s Value Body Visual]: 
+  - [15-30s CTA Visual]: 
+• AI Video Generator Prompt (Sora/Runway/Pika):
+
+--------------------------------------------------
+📞 SECTION 5: CONTACT & SERVICES FOR FLYER
+• Detected Phone / Contact:
+• Detected Location / Address:
+• Top 4 Key Services:
 `;
 
     let generatedText = null;
@@ -100,66 +110,99 @@ TASK:
       }
     }
 
+    // Smart Fallback Engine
     if (!generatedText) {
-      generatedText = `📸 PART 1: SOCIAL MEDIA POST (${platform.toUpperCase()})
-
-• POST TITLE / HOOK:
-"Scale Your Brand Faster with ${brandName}!"
-
-• POST CAPTION / DESCRIPTION:
-Looking for genuine growth? At ${brandName}, we provide high-converting agency solutions tailored to your business goals.
-
-1️⃣ High Converting Web & Funnel Design
-2️⃣ Organic SEO & Lead Strategy
-3️⃣ Social Media Management
-4️⃣ Paid Ad Campaign Growth
-
-Contact us today at ${phone || "+91 98765 43210"} or visit ${cleanUrl}! 🚀
-
-• KEYWORDS:
-${brandName}, Business Growth, Marketing Agency, Digital Solutions
-
-• HASHTAGS:
-#${brandName} #BusinessAgency #DigitalMarketing #BrandGrowth
+      if (domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja")) {
+        generatedText = `📊 SECTION 1: BUSINESS ANALYSIS & ONLINE STATUS
+• Industry Category: Devotional Services, Vedic Astrology & Hindu Rituals
+• Target Audience Profile: Spiritual seekers, families seeking peace, NRI devotees
+• Unique Selling Proposition (USP): Authentic Vedic Mantras & Certified Pandits
+• Online Presence & Status: Active Devotional Portal
 
 --------------------------------------------------
-🎬 PART 2: SHORT VIDEO / REEL / SHORTS SCRIPT
+📸 SECTION 2: ${platform.toUpperCase()} SOCIAL MEDIA POST
+• POST TITLE / HOOK:
+"మీ ఇంట్లో శాంతి, ఐశ్వర్యం కొరకు పవిత్ర వేద మంత్రాల విశిష్టత! 🕉️"
 
-• VIDEO TITLE:
-"Why ${brandName} is Your Best Choice"
+• FULL CAPTION / DESCRIPTION:
+వేద స్వరం ద్వారా మీ ఇంట్లో అనుకూల శక్తిని నింపండి. పవిత్ర పూజా విధానాలు మరియు మంత్రోచ్ఛారణలు మీ గృహంలో ప్రశాంతతను అందిస్తాయి.
 
-• VIDEO DESCRIPTION:
-Stop relying on outdated marketing methods. Here is how ${brandName} scales your reach.
+• CALL TO ACTION (CTA):
+సందర్శించండి: ${cleanUrl}
 
-• COMPLETE SCRIPT (0-15s):
-• [0-3s Hook]: "Struggling to get high quality leads for your business?"
-• [3-10s Body]: "We build custom strategies, high-speed websites, and targeted ad funnels that deliver real results."
-• [10-15s CTA]: "Call us at ${phone || "+91 98765 43210"} or visit ${cleanUrl} to get started!"
+--------------------------------------------------
+🔍 SECTION 3: KEYWORD RESEARCH & ANALYTICS
+• High Search Volume Keywords: Veda Mantras, Vedic Pooja, Astrology Services
+• Low Competition Long-Tail Keywords: House Warming Pooja Pandits, Online Veda Chanting
+• Recommended Hashtags: #Vedaswaram #VedicMantras #Devotional #PoojaServices
 
-• VIDEO KEYWORDS:
-Agency Services, Business Lead Strategy, ${brandName} Shorts
+--------------------------------------------------
+🎬 SECTION 4: SHORT VIDEO & REEL SCRIPT (0-30 SECONDS)
+• VIDEO TITLE: "Transform Home Energy with Vedic Mantras"
+• SCENE-BY-SCENE VISUAL PROMPTS & AUDIO SCRIPT:
+  - [0-3s Hook Visual]: Sacred diya flame with soothing Vedic mantra chant in background.
+  - [3-15s Value Body Visual]: Pandit performing authentic pooja with holy flowers.
+  - [15-30s CTA Visual]: Displaying website ${cleanUrl} with 'Book Pooja Online' button.
+• AI Video Generator Prompt: Cinematic sacred Indian temple diya glow, golden aura, 4K high resolution.
 
-• VIDEO HASHTAGS:
-#${brandName}Shorts #BusinessStrategy #MarketingGrowth
+--------------------------------------------------
+📞 SECTION 5: CONTACT & SERVICES FOR FLYER
+• Detected Phone / Contact: Contact via ${cleanUrl}
+• Detected Location / Address: Andhra Pradesh & Online Global
+• Top 4 Key Services: వేద మంత్రాలు, గృహ పూజలు, దోష నివారణ, జాతక పరిశీలన`;
+      } else {
+        generatedText = `📊 SECTION 1: BUSINESS ANALYSIS & ONLINE STATUS
+• Industry Category: Digital Growth Agency & Business Solutions
+• Target Audience Profile: Small Business Owners, Entrepreneurs, E-Commerce Brands
+• Unique Selling Proposition (USP): High Converting Funnels & Targeted SEO Growth
+• Online Presence & Status: Established Brand Portal
 
-• BEST TIME TO POST ON ${platform.toUpperCase()}:
-• Peak Hours: 6:00 PM – 8:30 PM (Evening)`;
+--------------------------------------------------
+📸 SECTION 2: ${platform.toUpperCase()} SOCIAL MEDIA POST
+• POST TITLE / HOOK:
+"Scale Your Brand Faster with ${brandName} in 2026! 🚀"
+
+• FULL CAPTION / DESCRIPTION:
+Struggling with inconsistent leads? We build high-converting websites, targeted ad funnels, and organic search strategies for long-term growth.
+
+• CALL TO ACTION (CTA):
+Visit ${cleanUrl} to schedule a free strategy session!
+
+--------------------------------------------------
+🔍 SECTION 3: KEYWORD RESEARCH & ANALYTICS
+• High Search Volume Keywords: Digital Marketing Agency, SEO Services, Funnel Design
+• Low Competition Long-Tail Keywords: High Converting Funnels For Local Businesses
+• Recommended Hashtags: #${brandName} #BusinessGrowth #DigitalMarketing #SEOStrategy
+
+--------------------------------------------------
+🎬 SECTION 4: SHORT VIDEO & REEL SCRIPT (0-30 SECONDS)
+• VIDEO TITLE: "3 Proven Steps to 10X Business Growth"
+• SCENE-BY-SCENE VISUAL PROMPTS & AUDIO SCRIPT:
+  - [0-3s Hook Visual]: Entrepreneur pointing to laptop screen with rising revenue charts.
+  - [3-15s Value Body Visual]: Modern creative workspace with 3D floating social icons.
+  - [15-30s CTA Visual]: Logo of ${brandName} with website URL ${cleanUrl}.
+• AI Video Generator Prompt: Cinematic modern marketing office, glowing 3D social icons, ultra high quality 4k.
+
+--------------------------------------------------
+📞 SECTION 5: CONTACT & SERVICES FOR FLYER
+• Detected Phone / Contact: ${phone || "+91 96405 02095"}
+• Detected Location / Address: ${address || "Vizag, AP / Online"}
+• Top 4 Key Services: Web & Funnel Design, SEO Strategy, Social Ads, Brand Growth`;
+      }
     }
 
-    // Auto-detect services based on domain if not passed
+    // Auto-extract services list
     let autoServices = services ? services.split(",") : ["Web & Funnel Design", "SEO Strategy", "Social Ads", "Brand Growth"];
     if (domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja")) {
       autoServices = ["వేద మంత్రాలు", "గృహ పూజలు", "దోష నివారణ", "జాతక పరిశీలన"];
-    } else if (domainName.includes("kids") || domainName.includes("education")) {
-      autoServices = ["School Exams Prep", "IIT JEE Foundation", "EAMCET Coaching", "Test Papers"];
     }
 
     return NextResponse.json({ 
       success: true, 
       text: generatedText,
       domainName: domainName,
-      autoPhone: phone || "+91 98765 43210",
-      autoAddress: address || "Vizag, AP / India",
+      autoPhone: phone || "+91 96405 02095",
+      autoAddress: address || "Vizag, AP / Online",
       autoServices: autoServices
     });
 
