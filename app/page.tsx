@@ -10,9 +10,12 @@ export default function HomePage() {
   const [address, setAddress] = useState("");
   const [services, setServices] = useState("");
   const [platform, setPlatform] = useState("instagram");
-  const [flyerStyle, setFlyerStyle] = useState("3d-agency"); // 3d-agency, devotional, modern-dark
+  const [flyerStyle, setFlyerStyle] = useState("3d-agency");
   const [loading, setLoading] = useState(false);
+  const [kwLoading, setKwLoading] = useState(false);
+  
   const [result, setResult] = useState<string | null>(null);
+  const [keywordReport, setKeywordReport] = useState<string | null>(null);
   
   const [domainName, setDomainName] = useState<string>("");
   const [autoPhone, setAutoPhone] = useState<string>("");
@@ -61,13 +64,13 @@ export default function HomePage() {
     window.location.reload();
   };
 
-  const handleCopy = () => {
-    if (!result) return;
-    navigator.clipboard.writeText(result);
+  const handleCopy = (textToCopy: string) => {
+    navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
 
+  // Main Social Suite Generator
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText) return;
@@ -95,7 +98,8 @@ export default function HomePage() {
           platform,
           phone,
           address,
-          services
+          services,
+          mode: "suite"
         }),
       });
 
@@ -127,6 +131,42 @@ export default function HomePage() {
       alert("API Error: " + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Dedicated Keyword Research & Analytics Trigger
+  const handleKeywordResearch = async () => {
+    if (!inputText) {
+      alert("Please enter a Business Name or Website URL first!");
+      return;
+    }
+
+    setKwLoading(true);
+    setKeywordReport(null);
+
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          inputUrl: inputText, 
+          mode: "keywords"
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.keywordData) {
+        setKeywordReport(data.keywordData);
+      } else {
+        alert("Keyword Research Error: " + (data.error || "Failed to fetch keyword analytics."));
+      }
+
+    } catch (err: any) {
+      console.error(err);
+      alert("API Error: " + err.message);
+    } finally {
+      setKwLoading(false);
     }
   };
 
@@ -183,7 +223,7 @@ export default function HomePage() {
           All-In-One Enterprise AI Growth Suite
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Deep Business Intelligence, Keyword Research, Short Video Prompts & 3D Pro Flyer Banners!
+          Deep Business Intelligence, SEO Keyword Analytics, Short Video Scripts & 3D Pro Flyer Banners!
         </p>
 
         {/* Platform Selection */}
@@ -224,72 +264,58 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Design Style Selector */}
-          <div>
-            <label className="text-[11px] font-bold text-slate-400 mb-1.5 block">Select Flyer Graphic Template Style:</label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: "3d-agency", name: "💼 3D Corporate Agency (John Smith Style)" },
-                { id: "devotional", name: "🕉️ Sacred Devotional / Temple" },
-                { id: "modern-dark", name: "⚡ Modern Dark Tech / E-Com" },
-              ].map((style) => (
-                <button
-                  key={style.id}
-                  type="button"
-                  onClick={() => setFlyerStyle(style.id)}
-                  className={`p-2.5 rounded-xl border text-[11px] font-bold transition text-center ${
-                    flyerStyle === style.id
-                      ? "bg-indigo-950 border-indigo-500 text-indigo-200"
-                      : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
-                  }`}
-                >
-                  {style.name}
-                </button>
-              ))}
+          {/* Action Buttons Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-xl"
+            >
+              {loading ? `Generating ${platform.toUpperCase()} Assets...` : `🚀 Generate ${platform.toUpperCase()} Flyer & Social Kit`}
+            </button>
+
+            {/* DEDICATED KEYWORD RESEARCH BUTTON */}
+            <button
+              type="button"
+              onClick={handleKeywordResearch}
+              disabled={kwLoading}
+              className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-xl border border-emerald-400/30 flex items-center justify-center gap-2"
+            >
+              {kwLoading ? `Analyzing SEO Data...` : `🔍 Generate Top 10 SEO Keywords & Analytics`}
+            </button>
+          </div>
+        </form>
+
+        {/* KEYWORD REPORT ANALYTICS BOX */}
+        {keywordReport && (
+          <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl text-left space-y-4 shadow-2xl animate-fade-in">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                <span>🔍 Top 10 SEO Keywords & Ranking Analytics Report</span>
+                <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded-md font-mono">
+                  LIVE SEO DATA
+                </span>
+              </h3>
+
+              <button
+                onClick={() => handleCopy(keywordReport)}
+                className="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 text-[11px] font-bold px-3 py-1.5 rounded-lg transition"
+              >
+                {copied ? "Copied! ✅" : "📋 Copy Keywords Data"}
+              </button>
+            </div>
+
+            <div className="text-slate-200 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800 overflow-x-auto font-mono">
+              {keywordReport}
             </div>
           </div>
-
-          <details className="text-xs text-slate-400 cursor-pointer pt-1">
-            <summary className="hover:text-indigo-400 font-semibold">⚡ Optional Custom Contact Overrides</summary>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3">
-              <input
-                type="text"
-                placeholder="Custom Phone Number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="bg-slate-950 border border-slate-800 text-white px-3 py-2 rounded-lg text-xs"
-              />
-              <input
-                type="text"
-                placeholder="Custom Services (comma separated)"
-                value={services}
-                onChange={(e) => setServices(e.target.value)}
-                className="bg-slate-950 border border-slate-800 text-white px-3 py-2 rounded-lg text-xs"
-              />
-              <input
-                type="text"
-                placeholder="Custom Location / Address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="bg-slate-950 border border-slate-800 text-white px-3 py-2 rounded-lg text-xs"
-              />
-            </div>
-          </details>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-xl"
-          >
-            {loading ? `Deeply Analyzing ${inputText} & Generating Assets...` : `🚀 Run Business Intelligence & Generate ${platform.toUpperCase()} Kit`}
-          </button>
-        </form>
+        )}
 
         {/* Results Display */}
         {result && (
           <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
             
-            {/* FLYER CARD CONTAINER (Lg: 5 Cols) */}
+            {/* FLYER CARD CONTAINER */}
             <div className="lg:col-span-5 bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-xl">
               <div>
                 <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
@@ -306,16 +332,13 @@ export default function HomePage() {
                 className={`w-full aspect-square rounded-2xl p-5 flex flex-col justify-between border shadow-2xl relative overflow-hidden ${
                   isDevotional 
                     ? "bg-gradient-to-br from-amber-950 via-slate-950 to-orange-950 border-amber-600/50 text-amber-100" 
-                    : flyerStyle === "modern-dark"
-                    ? "bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 border-purple-600/50 text-white"
                     : "bg-gradient-to-br from-blue-900 via-indigo-950 to-slate-950 border-blue-500/50 text-white"
                 }`}
               >
-                {/* 3D Neon Rings Graphic Background Simulation */}
+                {/* 3D Neon Rings Graphic Background */}
                 <div className="absolute top-10 -right-10 w-44 h-44 rounded-full border-4 border-indigo-500/30 blur-sm pointer-events-none"></div>
-                <div className="absolute bottom-10 -left-10 w-36 h-36 rounded-full border-4 border-pink-500/20 blur-sm pointer-events-none"></div>
 
-                {/* Header: Brand Name & 3D Logo Badge */}
+                {/* Header */}
                 <div className="flex justify-between items-start border-b border-white/15 pb-3 relative z-10">
                   <div>
                     <span className="text-[9px] uppercase tracking-widest text-amber-400 block font-bold">WE'RE CREATIVE</span>
@@ -328,7 +351,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Main Offer Title / Hook */}
+                {/* Main Hook */}
                 <div className="my-2 space-y-1 relative z-10">
                   <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">
                     {isDevotional ? "✨ ఆధ్యాత్మిక విశేషాలు ✨" : "🔥 DIGITAL MARKETING EXPERT"}
@@ -338,11 +361,10 @@ export default function HomePage() {
                   </h3>
                 </div>
 
-                {/* 3D Social Media Badges + Key Services Box */}
+                {/* Services Box */}
                 <div className="bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/15 space-y-2 relative z-10">
                   <div className="flex justify-between items-center border-b border-white/10 pb-1.5">
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">OUR SERVICES:</span>
-                    {/* 3D Social Media Floating Icons */}
                     <div className="flex gap-1.5 text-xs">
                       <span className="bg-indigo-600/80 p-1 rounded-md" title="LinkedIn">💼</span>
                       <span className="bg-blue-600/80 p-1 rounded-md" title="Facebook">📘</span>
@@ -360,7 +382,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Footer Section: Website, CTA & Auto Phone */}
+                {/* Footer */}
                 <div className="border-t border-white/15 pt-3 flex items-center justify-between text-[10px] relative z-10">
                   <div>
                     <span className="block text-slate-400 text-[8px]">Visit our website:</span>
@@ -386,16 +408,16 @@ export default function HomePage() {
               </button>
             </div>
 
-            {/* FULL BUSINESS INTELLIGENCE SUITE (Lg: 7 Cols) */}
+            {/* FULL CONTENT SUITE */}
             <div className="lg:col-span-7 bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xl flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-indigo-400">
-                    📊 Complete AI Business Intelligence Suite
+                    📝 Social Posts, Reel Scripts & Copy Package
                   </h3>
                   
                   <button
-                    onClick={handleCopy}
+                    onClick={() => handleCopy(result)}
                     className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shadow"
                   >
                     {copied ? "Copied! ✅" : "📋 Copy All Report"}
@@ -419,7 +441,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="text-center text-xs text-slate-600 py-4 border-t border-slate-900">
-        © ClipToPosts. All-In-One Enterprise AI Growth Engine.
+        © ClipToPosts. Enterprise AI Growth Engine.
       </footer>
     </div>
   );
