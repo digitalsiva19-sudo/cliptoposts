@@ -81,12 +81,12 @@ export default function HomePage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Convert Markdown Headings (###) & Tables (|) to Clean HTML
+  // Clean HTML Formatter for Markdown
   const renderFormattedHTML = (text: string) => {
     if (!text) return "";
     let formatted = text;
 
-    // Clean ### Headings into Indigo/Purple Titles
+    // Convert ### Headings to Purple Styled Box Headlines
     formatted = formatted.replace(/^###?\s*(.+)$/gm, '<h3 style="color:#c084fc; font-size:14px; font-weight:800; margin-top:24px; margin-bottom:10px; border-bottom:1px solid #581c87; padding-bottom:6px;">$1</h3>');
 
     // Convert Markdown Tables to Beautiful HTML Tables
@@ -371,10 +371,10 @@ export default function HomePage() {
           All-In-One Enterprise Business AI Suite
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          3 Dedicated AI Tools: Social 3D Flyers, 100+ SEO Keyword Audits & Local GMB Map Pack Checklists!
+          3 Dedicated AI Tools: Social 3D Flyers, High-Intent SEO Keyword Audits & Local GMB Map Pack Checklists!
         </p>
 
-        {/* Input Form with Dropdown Selectors */}
+        {/* Form */}
         <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-left shadow-xl">
           
           <div>
@@ -382,16 +382,14 @@ export default function HomePage() {
             <input
               type="text"
               required
-              placeholder="e.g. realestate in vizag or dental clinic in vizag or seomynds.com"
+              placeholder="e.g. realestate in vizag or seo services in vizag or dental clinic in vizag"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
             />
           </div>
 
-          {/* DROPDOWN SELECTORS GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
             <div>
               <label className="text-[11px] font-bold text-slate-400 mb-1.5 block">🌐 Select Content Language:</label>
               <select
@@ -419,12 +417,9 @@ export default function HomePage() {
                 <option value="twitter">🐦 Twitter / X (Threads & Updates)</option>
               </select>
             </div>
-
           </div>
 
-          {/* 3 ACTION BUTTONS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-            
             <button
               type="submit"
               disabled={loading}
@@ -439,7 +434,7 @@ export default function HomePage() {
               disabled={kwLoading}
               className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl border border-emerald-400/30 flex items-center justify-center gap-1.5"
             >
-              {kwLoading ? `Mining 100+ Keywords...` : `🔍 Mine 100-150 SEO Keywords & Audit Report`}
+              {kwLoading ? `Mining Keywords...` : `🔍 High-Intent SEO Keywords & Audit`}
             </button>
 
             <button
@@ -450,7 +445,6 @@ export default function HomePage() {
             >
               {gmbLoading ? `Analyzing GMB Data...` : `📍 Local SEO & GMB Map Checklist`}
             </button>
-
           </div>
         </form>
 
@@ -462,7 +456,6 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            
             <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl space-y-3 flex flex-col justify-between">
               <div>
                 <span className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded-md uppercase">Free Trial</span>
@@ -486,13 +479,13 @@ export default function HomePage() {
                 <div className="text-2xl font-black text-indigo-400 my-1">₹499 <span className="text-xs text-slate-400 font-normal">/ month</span></div>
                 <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
                   <li>✓ Unlimited AI Generations</li>
-                  <li>✓ 100+ Keyword Mining Reports</li>
+                  <li>✓ High-Intent Keyword Audits</li>
                   <li>✓ Whitelabel PDF Client Audits</li>
                   <li>✓ Local GMB Map Checklists</li>
                 </ul>
               </div>
               <button 
-                onClick={() => alert("Redirecting to Secure Gateway for ₹499 Subscription...")}
+                onClick={() => alert("Redirecting to Gateway for ₹499 Subscription...")}
                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-lg transition"
               >
                 Upgrade Monthly
@@ -512,7 +505,7 @@ export default function HomePage() {
                 </ul>
               </div>
               <button 
-                onClick={() => alert("Redirecting to Secure Gateway for ₹2,499 Subscription...")}
+                onClick={() => alert("Redirecting to Gateway for ₹2,499 Subscription...")}
                 className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 rounded-lg transition"
               >
                 Upgrade 6-Months
@@ -532,13 +525,12 @@ export default function HomePage() {
                 </ul>
               </div>
               <button 
-                onClick={() => alert("Redirecting to Secure Gateway for ₹4,499 Subscription...")}
+                onClick={() => alert("Redirecting to Gateway for ₹4,499 Subscription...")}
                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs py-2 rounded-lg transition shadow-lg"
               >
                 Upgrade Yearly
               </button>
             </div>
-
           </div>
         </section>
 
@@ -569,7 +561,7 @@ export default function HomePage() {
           <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl text-left space-y-4 shadow-2xl animate-fade-in">
             <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
               <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                <span>🔍 Whitelabel Client SEO Audit & Keyword Intelligence Report (100+ Keywords)</span>
+                <span>🔍 Whitelabel Client SEO Audit & Keyword Intelligence Report</span>
               </h3>
               <div className="flex items-center gap-2">
                 <button onClick={() => handleDownloadPDF(keywordReport)} className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-indigo-400">
@@ -616,7 +608,7 @@ export default function HomePage() {
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">OUR SERVICES:</span>
                   </div>
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-slate-200">
-                    {(autoServices.length > 0 ? autoServices : ["Teeth Cleaning", "Root Canal", "Braces & Aligners", "Dental Implants"]).map((s, idx) => (
+                    {(autoServices.length > 0 ? autoServices : ["SEO Audit", "Local GMB Growth", "Web Design", "Paid Ads"]).map((s, idx) => (
                       <div key={idx} className="flex items-center gap-1 font-semibold truncate"><span className="text-amber-400">●</span> {s.trim()}</div>
                     ))}
                   </div>
