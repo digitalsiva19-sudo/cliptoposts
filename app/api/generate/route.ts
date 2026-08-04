@@ -10,12 +10,12 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // 1. Clean Domain Extraction
+    // 1. Clean Domain & Brand Name Extraction
     let cleanUrl = inputUrl.trim();
     const domainName = cleanUrl.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0].toLowerCase();
-    const brandTitle = domainName.split(".")[0].toUpperCase();
+    const brandName = domainName.split(".")[0].toUpperCase();
 
-    // 2. Try Fetching Metadata safely
+    // 2. Fetch Metadata safely
     let scrapedMetadata = "";
     if (!cleanUrl.startsWith("http")) {
       cleanUrl = "https://" + cleanUrl;
@@ -30,34 +30,56 @@ export async function POST(req: Request) {
         scrapedMetadata = `Title: ${metaData.data.title || ""}, Description: ${metaData.data.description || ""}`;
       }
     } catch (e) {
-      console.log("Microlink fetch fallback triggered");
+      console.log("Scraping fallback used");
     }
 
-    // 3. Clean Prompt Construction
+    // 3. Dynamic Image Topic Generation based on Business Name / URL Analysis
+    let imageTopic = `${domainName} professional social media modern design 4k`;
+    if (domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja") || domainName.includes("astro") || domainName.includes("bhakti")) {
+      imageTopic = "sacred indian vedic pooja divine spiritual glow golden aura aesthetic 4k";
+    } else if (domainName.includes("kids") || domainName.includes("education")) {
+      imageTopic = "vibrant modern education study learning students workspace 4k";
+    } else if (domainName.includes("realestate") || domainName.includes("property")) {
+      imageTopic = "luxury modern architectural building real estate exterior 4k";
+    }
+
+    const encodedPrompt = encodeURIComponent(`${imageTopic}, high resolution, social media post visual banner`);
+    const generatedImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1080&nologo=true`;
+
+    // 4. Universal & Deep Analysis Prompt for Gemini
     const promptText = `
-You are an expert social media growth strategist.
-Target Brand / Domain: ${domainName}
-Scraped Info: ${scrapedMetadata || "None"}
+You are an elite Social Media Growth Strategist and Content Creator.
+Target Business Name or URL: ${inputUrl} (Extracted Domain: ${domainName})
+Scraped Website Data: ${scrapedMetadata || "Direct Domain Inference"}
+Requested Platform: ${platform.toUpperCase()}
 
-Instructions:
-1. Infer the business category based on domain '${domainName}' or metadata. 
-   - If domain contains 'vedaswaram', 'vedas', 'pooja', 'astro', 'bhakti' or spiritual terms: Focus strictly on Vedic astrology, Hindu rituals, mantras, pooja services, and devotional guidance.
-   - If domain contains 'seo', 'marketing', 'agency': Focus strictly on SEO, leads, and business growth.
-   - For all other domains: Tailor content directly to that specific niche.
+TASK:
+1. Deeply analyze the input '${inputUrl}'. Determine the exact industry category (e.g., Spiritual/Devotional, Digital Marketing, Education, E-Commerce, Real Estate, Health, Finance, Food/Restaurant, etc.).
+2. Adapt the language tone and content 100% specifically to what this business actually does. Use a mix of English and regional context (like Telugu/English blend if Indian/Devotional context) to make it highly engaging and human-curated.
 
-2. Generate highly engaging, human-style content specifically for the platform: ${platform.toUpperCase()}.
+3. Format the final output cleanly for ${platform.toUpperCase()} into TWO DISTINCT SECTIONS:
 
-Content Requirements for ${platform.toUpperCase()}:
-- If INSTAGRAM: Viral Hook, Human Caption with Emojis, 15-Sec Reel Script (0-15s breakdown), Niche Hashtags, Best Posting Time.
-- If LINKEDIN: Professional B2B Headline, Article/Post Body, Engagement Question, Hashtags, Best Posting Time.
-- If FACEBOOK: Catchy Community Hook, Lead Gen Copy with Call-to-action, Hashtags, Best Posting Time.
-- If TWITTER: 5-Tweet Viral Thread (1/5 to 5/5 format), Hashtags, Best Posting Time.
-- If YOUTUBE: 5 Short Video Ideas, 60-Sec Short Video Script (Hook, Body, CTA), SEO Title, Description, Tags, Best Upload Time.
+--------------------------------------------------
+📸 PART 1: SOCIAL MEDIA POST (STATIC / CAROUSEL POST)
+• POST TITLE / HOOK:
+• POST CAPTION / DESCRIPTION:
+• KEYWORDS:
+• HASHTAGS:
 
-Do NOT generate generic digital marketing templates if the domain is not marketing. Tailor the content directly to this specific business domain.
+--------------------------------------------------
+🎬 PART 2: SHORT VIDEO / REEL / SHORTS SCRIPT
+• VIDEO TITLE:
+• VIDEO DESCRIPTION:
+• COMPLETE SCRIPT (0-15s / 0-60s with Hook, Value Body & CTA):
+• VIDEO KEYWORDS:
+• VIDEO HASHTAGS:
+• BEST TIME TO POST ON ${platform.toUpperCase()}:
+--------------------------------------------------
+
+CRITICAL REQUIREMENT:
+Analyze the business accurately. DO NOT output generic marketing templates unless the business is an actual digital marketing agency.
 `;
 
-    // 4. Try Google Gemini API with multiple candidate model names
     let generatedText = null;
 
     if (apiKey) {
@@ -83,66 +105,111 @@ Do NOT generate generic digital marketing templates if the domain is not marketi
             const textResult = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
             if (textResult) {
               generatedText = textResult;
-              break; // Success! Exit loop
+              break;
             }
           }
         } catch (err) {
-          console.log(`Failed model candidate: ${endpoint}`);
+          console.log(`Failed candidate: ${endpoint}`);
         }
       }
     }
 
-    // 5. Intelligent Fallback Generator if API fails/is unavailable
+    // 5. Intelligent Fallback Generator if Gemini API is unreachable
     if (!generatedText) {
       if (domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja") || domainName.includes("astro")) {
-        generatedText = `🕉️ VEDASWARAM DEVOTIONAL & VEDIC CONTENT PACKAGE (${platform.toUpperCase()})
+        generatedText = `📸 PART 1: SOCIAL MEDIA POST (${platform.toUpperCase()})
 
-🎯 VIRAL HOOK:
-"మీ ఇంట్లో మానసిక ప్రశాంతత మరియు ఐశ్వర్యం కొరకు వేద మంత్రాల విశిష్టత తెలుసుకోండి! 👇"
+• POST TITLE / HOOK:
+"మీ ఇంట్లో శాంతి, ఐశ్వర్యం కొరకు పవిత్ర వేద మంత్రాల విశిష్టత! 🕉️"
 
-📝 CAPTION & DEVOTIONAL STORY:
-వేద స్వరం ద్వారా మీ గృహంలో అనుకూల శక్తిని (Positive Energy) నింపండి. పురాతన వేద మంత్రాలు మరియు పవిత్ర పూజా విధానాలు మీ జీవితంలో ఎదురయ్యే అడ్డంకులను తొలగించడంలో సహాయపడతాయి.
+• POST CAPTION / DESCRIPTION:
+వేద స్వరం ద్వారా మీ ఇంట్లో అనుకూల శక్తిని (Positive Energy) నింపండి. పురాతన వేద మంత్రాలు మరియు నియమబద్ధమైన పూజా విధానాలు మీ జీవితంలోని అడ్డంకులను తొలగించి, ప్రశాంతతను అందిస్తాయి.
 
-1️⃣ నిత్య పారాయణం & శ్లోకాల ప్రాముఖ్యత
-2️⃣ దోష నివారణ పూజలు & వేద పండితుల సలహాలు
-3️⃣ పవిత్ర మంత్రోచ్చారణల ద్వారా మానసిక ప్రశాంతత
+1️⃣ నిత్య పారాయణం & వేద శ్లోకాల ప్రాముఖ్యత
+2️⃣ దోష నివారణ పూజలు & పండితుల ఆధ్యాత్మిక సలహాలు
+3️⃣ మంత్రోచ్ఛారణల ద్వారా గృహ శాంతి
 
-మీ మిత్రులకు, కుటుంబ సభ్యులకు ఈ పవిత్రమైన సమాచారాన్ని షేర్ చేయండి! భక్తి సమాచారం & పూజా సేవలకు ${cleanUrl} ని సందర్శించండి. 🌺
+మరిన్ని పవిత్ర ఆధ్యాత్మిక వివరాలకు & పూజా సేవలకు ${cleanUrl} సందర్శించండి. 🌺
 
-🎬 15-SEC REEL SCRIPT / VIDEO IDEA:
-• [0-3s Hook]: [వేద మంత్రోచ్ఛారణ ప్లే అవుతుంది] "మీ గృహంలో శాంతి, సమృద్ధి కలగాలంటే ఈ వేద మంత్రాన్ని రోజు వినండి..."
-• [3-10s Value]: "వేద స్వరాల కంపనాలు మీ ఇంటి వాతావరణంలో ఉన్న నకారాత్మక శక్తిని (Negative Energy) తొలగిస్తాయి."
-• [10-15s CTA]: "మరిన్ని పవిత్ర విషయాలు & పూజా వివరాల కోసం పైన ఉన్న లింక్ క్లిక్ చేయండి!"
+• KEYWORDS:
+వేద మంత్రాలు, గృహ పూజలు, ఆధ్యాత్మిక సలహాలు, Veda Mantras, Vedic Pooja Services, Spiritual Peace, Hindu Rituals
 
-🏷️ HASHTAGS:
-#Vedaswaram #DevotionalVibes #VedicMantras #HinduRituals #BhaktiSangeet #PoojaServices
+• HASHTAGS:
+#Vedaswaram #DevotionalVibes #VedicMantras #PoojaServices #BhaktiSangeet #SpiritualGrowth
 
-⏰ BEST TIME TO POST:
-• Morning Slot: 6:00 AM – 8:00 AM (Devotional Peak Hours)`;
+--------------------------------------------------
+🎬 PART 2: SHORT VIDEO / REEL / SHORTS SCRIPT
+
+• VIDEO TITLE:
+"ఈ పవిత్ర వేద మంత్రం మీ ఇంటి వాతావరణాన్ని ఎలా మారుస్తుందో చూడండి! 🕉️"
+
+• VIDEO DESCRIPTION:
+ఇంట్లో ప్రతికూల శక్తి తొలగిపోయి లక్ష్మీదేవి అనుగ్రహం కలగడానికి వేద మంత్రాల విశిష్టతను తెలుసుకోండి. Full details at ${cleanUrl}.
+
+• COMPLETE SCRIPT (0-15s):
+• [0-3s Hook]: [పవిత్రమైన వేద మంత్ర ధ్వని] "మీ ఇంట్లో ఎప్పుడూ నిరాశ లేదా ఒత్తిడి అనిపిస్తోందా?"
+• [3-10s Body]: "ప్రతిరోజూ ఉదయం వేద స్వరాల కంపనాలు మీ ఇంటి వాతావరణంలో ఉన్న నకారాత్మక శక్తిని పూర్తిగా తొలగిస్తాయి."
+• [10-15s CTA]: "మరిన్ని వేద సూక్తులు & సేవలకు పైన ఉన్న లింక్ ద్వారా ${cleanUrl} ని సందర్శించండి!"
+
+• VIDEO KEYWORDS:
+Vedic Chant Shorts, Devotional Reel Script, House Pooja Tips, Mantra Benefits
+
+• VIDEO HASHTAGS:
+#VedaSwaramReels #SpiritualShorts #MantraPower #DevotionalShorts
+
+• BEST TIME TO POST ON ${platform.toUpperCase()}:
+• Devotional Peak Hours: 6:00 AM – 8:30 AM (Morning)`;
       } else {
-        generatedText = `📢 CUSTOM BRAND CONTENT FOR ${brandTitle} (${platform.toUpperCase()})
+        generatedText = `📸 PART 1: SOCIAL MEDIA POST (${platform.toUpperCase()})
 
-🎯 ATTENTION HOOK:
-"Looking to scale ${brandTitle} effectively in 2026? Here is what you need to know 👇"
+• POST TITLE / HOOK:
+"Scale Your Brand Faster with ${brandName} in 2026 👇"
 
-📝 CAPTION & DESCRIPTION:
-Building a strong online brand presence requires consistency and strategic positioning. Here is how ${brandTitle} delivers value:
+• POST CAPTION / DESCRIPTION:
+Looking for genuine growth? At ${brandName}, we provide custom solutions tailored to your market needs:
 
 1️⃣ High Quality Service & Customer First Approach
-2️⃣ Modern Digital Solutions Tailored to Your Need
-3️⃣ Proven Track Record of Success
+2️⃣ Strategic Brand Positioning
+3️⃣ High-Converting Lead Funnels
 
 Save this post and visit ${cleanUrl} to learn more today! 🚀
 
-🏷️ HASHTAGS:
-#${brandTitle} #BusinessGrowth #DigitalStrategy #Innovation2026
+• KEYWORDS:
+${brandName}, Business Growth, Digital Solutions, Marketing Strategy, Brand Success
 
-⏰ BEST TIME TO POST:
-• Peak Hours: 6:00 PM – 9:00 PM`;
+• HASHTAGS:
+#${brandName} #BusinessGrowth #BrandSuccess #Innovation2026
+
+--------------------------------------------------
+🎬 PART 2: SHORT VIDEO / REEL / SHORTS SCRIPT
+
+• VIDEO TITLE:
+"How ${brandName} Helps You Achieve 10X Better Results"
+
+• VIDEO DESCRIPTION:
+Stop relying on outdated methods. Here is how ${brandName} scales your reach.
+
+• COMPLETE SCRIPT (0-15s):
+• [0-3s Hook]: "Struggling to get consistent results for your brand?"
+• [3-10s Body]: "Here is how ${brandName} simplifies the process and maximizes your impact..."
+• [10-15s CTA]: "Visit ${cleanUrl} or click the link in bio to learn more!"
+
+• VIDEO KEYWORDS:
+Growth Tips, Brand Strategy, ${brandName} Short
+
+• VIDEO HASHTAGS:
+#${brandName}Shorts #ViralGrowth #BusinessStrategy
+
+• BEST TIME TO POST ON ${platform.toUpperCase()}:
+• Peak Hours: 6:00 PM – 8:30 PM (Evening)`;
       }
     }
 
-    return NextResponse.json({ success: true, text: generatedText });
+    return NextResponse.json({ 
+      success: true, 
+      text: generatedText, 
+      imageUrl: generatedImageUrl 
+    });
 
   } catch (error: any) {
     console.error("API Route Error:", error);
