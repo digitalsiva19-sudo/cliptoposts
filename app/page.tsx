@@ -52,6 +52,12 @@ export default function HomePage() {
     window.location.reload();
   };
 
+  // Clean URL/Input into Clean Business Name
+  const cleanBusinessName = (input: string) => {
+    let name = input.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0].split(".")[0];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText) return;
@@ -71,6 +77,9 @@ export default function HomePage() {
     setResult(null);
     setImageUrl(null);
 
+    const brandName = cleanBusinessName(inputText);
+    const logoName = businessLogo ? businessLogo : brandName;
+
     try {
       // 1. Update Credits in Supabase
       const newUsed = usedCount + 1;
@@ -83,139 +92,120 @@ export default function HomePage() {
       setUsedCount(newUsed);
       setCredits(Math.max(0, limitCount - newUsed));
 
-      // 2. Set Platform Aspect Ratios & Dimensions
+      // 2. Set Platform Aspect Ratios
       let width = 1080;
-      let height = 1080;
-      let aspectLabel = "1080x1350 (4:5 Portrait)";
+      let height = 1350;
 
-      if (platform === "instagram") {
-        width = 1080; height = 1350; aspectLabel = "1080x1350 (4:5 Portrait)";
-      } else if (platform === "linkedin") {
-        width = 1200; height = 627; aspectLabel = "1200x627 (1.91:1 Landscape)";
-      } else if (platform === "facebook") {
-        width = 1200; height = 630; aspectLabel = "1200x630 (FB Banner)";
-      } else if (platform === "twitter") {
-        width = 1600; height = 900; aspectLabel = "1600x900 (16:9 Widescreen)";
-      } else if (platform === "youtube") {
-        width = 1080; height = 1920; aspectLabel = "1080x1920 (9:16 Shorts)";
-      }
+      if (platform === "instagram") { width = 1080; height = 1350; }
+      else if (platform === "linkedin") { width = 1200; height = 627; }
+      else if (platform === "facebook") { width = 1200; height = 630; }
+      else if (platform === "twitter") { width = 1600; height = 900; }
+      else if (platform === "youtube") { width = 1080; height = 1920; }
 
-      // 3. Generate Image with Branding Prompt
-      const logoPrompt = businessLogo ? `with branding logo text '${businessLogo}'` : "";
-      const cleanPrompt = encodeURIComponent(`Professional human-designed ${platform} social media post image for ${inputText} ${logoPrompt}, highly detailed, clean typography, 4k resolution, modern aesthetic`);
-      const generatedImg = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=${width}&height=${height}&nologo=true`;
+      // 3. Ultra-High Quality Social Media Graphic Design Prompt
+      const imagePrompt = encodeURIComponent(
+        `Modern infographic social media post banner for ${brandName}, digital marketing design, clean typography headline, professional aesthetic, vibrant gradient background, vector art style, graphic design layout, 4k`
+      );
+      const generatedImg = `https://image.pollinations.ai/prompt/${imagePrompt}?width=${width}&height=${height}&nologo=true`;
       setImageUrl(generatedImg);
 
-      // 4. Generate Human Touch Content & Best Time to Post
+      // 4. Clean Human Content Output
       setTimeout(() => {
         let contentData = "";
 
         if (platform === "instagram") {
           contentData = `📸 INSTAGRAM POST & REEL (HUMAN CURATED)
 
-🎯 VIRAL TITLE / HOOK:
-"Stop making this mistake with ${inputText}! Here's what actually works 👇"
+🎯 VIRAL HOOK:
+"3 Proven Strategies to Scale ${brandName} in 2026 👇"
 
 📝 DESCRIPTION (CAPTION):
-Let's be real—growing ${inputText} isn't as hard as people make it sound. If you're struggling to get results, here is a simple 3-step strategy that top krew use:
+Are you looking to boost your online reach and convert visitors into clients? Here is what ${brandName} focuses on to drive maximum growth:
 
-1️⃣ Focus on genuine value first, not just selling.
-2️⃣ Be consistent with your message and brand identity.
-3️⃣ Build real connections in the comments!
+1️⃣ Search Engine Optimization (SEO) for Organic Traffic.
+2️⃣ Targeted Meta & Google Ads for Instant Leads.
+3️⃣ High-Converting Landing Page Design.
 
-Save this post right now so you don't lose it later. Tag a friend who needs to hear this today! 💡
+Save this post right now! Send us a DM or visit ${inputText} to get started today! 🚀
 
 🏷️ KEYWORDS & HASHTAGS:
-#${inputText.replace(/\s+/g, '')} #InstagramGrowth #ViralReel #MarketingHacks #BusinessTips2026
+#${brandName} #DigitalMarketing #SEOStrategy #BusinessGrowth #VizagMarketing #MarketingTips2026
 
 ⏰ BEST TIME TO POST ON INSTAGRAM:
 • Best Slot: 6:00 PM – 8:30 PM (Peak Engagement)
 • Alternative: 11:30 AM – 1:00 PM (Lunch Break)`;
         } else if (platform === "linkedin") {
-          contentData = `💼 LINKEDIN PROFESSIONAL THOUGHT LEADERSHIP POST
+          contentData = `💼 LINKEDIN PROFESSIONAL POST
 
 🎯 ATTENTION HEADLINE:
-The Unspoken Truth About ${inputText} in 2026
+How ${brandName} is transforming digital visibility for businesses.
 
 📝 DESCRIPTION:
-Most leaders focus on short-term wins. But when it comes to ${inputText}, real leverage comes from building systems that scale.
+In today's digital-first economy, visibility is profitability. At ${brandName}, we believe that a strong digital strategy relies on 3 pillars:
 
-Here are 3 core lessons I've learned recently:
+🔹 Pillar 1: Data-Driven Keyword Optimization.
+🔹 Pillar 2: Authority Building & Backlink Strategy.
+🔹 Pillar 3: User Experience & Conversion Rate Optimization.
 
-🔹 Lesson 1: Strategy without execution is just hallucination.
-🔹 Lesson 2: Your brand reputation is built in the micro-moments.
-🔹 Lesson 3: Prioritize long-term trust over immediate sales.
-
-What has been your biggest learning experience with ${inputText}? Would love to know your thoughts in the comments! 👇
+What is your biggest hurdle when it comes to online branding? Let's connect in the comments! 👇
 
 🏷️ KEYWORDS & HASHTAGS:
-#${inputText.replace(/\s+/g, '')} #Leadership #BusinessGrowth #Strategy #Innovation
+#${brandName} #SEO #B2BMarketing #BusinessGrowth #Leadership
 
 ⏰ BEST TIME TO POST ON LINKEDIN:
-• Best Slot: 8:00 AM – 10:30 AM (Tuesday, Wednesday, Thursday)
-• Alternative: 12:00 PM – 1:00 PM`;
+• Best Slot: 8:00 AM – 10:30 AM (Tue, Wed, Thu)`;
         } else if (platform === "facebook") {
           contentData = `📘 FACEBOOK COMMUNITY ENGAGEMENT POST
 
 🎯 CATCHY TITLE:
-Are you looking to scale your business with ${inputText}?
+Ready to take ${brandName} to the next level?
 
 📝 DESCRIPTION:
-Hey Everyone! 👋 If you've been wanting to take your ${inputText} to the next level without spending hours figuring everything out, we have something special for you.
+Hey Business Owners! 👋 Struggling to get consistent leads online? ${brandName} helps you build a strong online presence that gets actual results.
 
-Here is what we focus on:
-✅ High Quality Execution
-✅ Dedicated Support
-✅ Proven Growth Framework
+✅ Custom Website Solutions
+✅ Complete SEO & Marketing Strategy
+✅ Guaranteed Growth Framework
 
-Drop a "YES" in the comments if you want the free guide sent directly to your inbox! 👇
+Click the link below or message us directly to book a free consultation today! 👇
 
 🏷️ HASHTAGS:
-#${inputText.replace(/\s+/g, '')} #BusinessCommunity #DigitalMarketing #SmallBusinessSupport
+#${brandName} #SmallBusinessSupport #DigitalGrowth #MarketingAgency
 
 ⏰ BEST TIME TO POST ON FACEBOOK:
-• Best Slot: 1:00 PM – 4:00 PM (Thursdays & Fridays)
-• Alternative: 8:00 PM – 9:30 PM`;
+• Best Slot: 1:00 PM – 4:00 PM`;
         } else if (platform === "twitter") {
-          contentData = `🐦 TWITTER / X VIRAL THREAD (HUMAN STYLE)
+          contentData = `🐦 TWITTER / X VIRAL THREAD
 
-🧵 THREAD TITLE:
-How to master ${inputText} in 2026 (without burning out):
+1/5 Most businesses struggle with SEO because they overcomplicate it. Here is how ${brandName} simplifies organic growth 👇
 
-1/5 Most people overcomplicate ${inputText}. Here is the exact framework broken down into simple steps 👇
+2/5 Step 1: Target high-intent keywords that your customers are actively searching for.
 
-2/5 Step 1: Simplify your message. If a 10-year-old can't understand what you do, you're losing customers.
+3/5 Step 2: Create clear, fast-loading, and responsive web pages.
 
-3/5 Step 2: Double down on what works and cut out the noise.
+4/5 Step 3: Track conversions, not just vanity metrics.
 
-4/5 Step 3: Automate repetitive tasks using modern tools.
+5/5 Retweet if you found this helpful! Follow for more growth insights from ${brandName}. 🚀
 
-5/5 Found this useful? 
-• RT the first tweet to help others.
-• Follow for more daily insights on ${inputText}! 🚀
-
-⏰ BEST TIME TO POST ON TWITTER (X):
-• Best Slot: 9:00 AM or 5:00 PM
-• Peak Days: Wednesday & Friday`;
+⏰ BEST TIME TO POST ON TWITTER:
+• Best Slot: 9:00 AM or 5:00 PM`;
         } else if (platform === "youtube") {
-          contentData = `🎥 YOUTUBE SHORTS SCRIPT & SEO GUIDE
+          contentData = `🎥 YOUTUBE SHORTS SCRIPT & SEO
 
 🎯 VIRAL VIDEO TITLE IDEAS:
-1. Don't Do ${inputText} Until You Watch This!
-2. How I Mastered ${inputText} in 30 Days 🚀
+1. How ${brandName} Boosts Website Traffic Fast!
+2. The Ultimate Marketing Strategy for 2026 🚀
 
-📝 15-SECOND SHORTS SCRIPT:
-• [0-3s Hook]: "If you are doing ${inputText}, stop what you're doing and watch this!"
-• [3-10s Value]: "Here is the #1 shortcut that doubles your efficiency in half the time..."
-• [10-15s CTA]: "Subscribe now for daily growth hacks!"
+📝 SHORTS SCRIPT (15s):
+• [0-3s Hook]: "Want to rank #1 on Google for your business?"
+• [3-10s Value]: "Here is how ${brandName} helps you get organic leads without burning ad budget..."
+• [10-15s CTA]: "Subscribe now and visit our website to learn more!"
 
-🏷️ SEO DESCRIPTION & TAGS:
-Ultimate guide on ${inputText}. Learn the practical tips and tricks to succeed fast.
-Tags: ${inputText}, ${inputText} strategy, ${inputText} tips, youtube shorts
+🏷️ SEO TAGS:
+${brandName}, digital marketing, SEO tips, organic traffic, marketing agency
 
 ⏰ BEST TIME TO POST ON YOUTUBE:
-• Best Slot: 4:00 PM – 7:00 PM (Weekdays)
-• Weekends: 12:00 PM – 3:00 PM`;
+• Best Slot: 5:00 PM – 8:00 PM`;
         }
 
         setResult(contentData);
@@ -270,10 +260,10 @@ Tags: ${inputText}, ${inputText} strategy, ${inputText} tips, youtube shorts
       {/* Main Content */}
       <main className="max-w-4xl mx-auto w-full text-center my-6 space-y-6">
         <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
-          Human-Grade AI Social Media & Image Suite
+          Human-Grade AI Social Media & Banner Suite
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Generate pixel-perfect platform images, human-style captions, tags & exact posting times in seconds!
+          Type your Business Name or Website URL. Get high-converting social media posts and graphic banners in seconds!
         </p>
 
         {/* Platform Selection Buttons */}
@@ -306,14 +296,14 @@ Tags: ${inputText}, ${inputText} strategy, ${inputText} tips, youtube shorts
             <input
               type="text"
               required
-              placeholder="Topic / Business Name (e.g. SEO Mynds Media, Vizag)"
+              placeholder="Business Name or Website URL (e.g. https://seomynds.com)"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               className="flex-1 bg-slate-900 border border-slate-800 text-white px-5 py-3.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
             />
             <input
               type="text"
-              placeholder="Brand/Logo Text (Optional Watermark)"
+              placeholder="Brand/Logo Text (Optional)"
               value={businessLogo}
               onChange={(e) => setBusinessLogo(e.target.value)}
               className="sm:w-1/3 bg-slate-900 border border-slate-800 text-white px-4 py-3.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
@@ -325,7 +315,7 @@ Tags: ${inputText}, ${inputText} strategy, ${inputText} tips, youtube shorts
             disabled={loading}
             className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm whitespace-nowrap shadow-lg"
           >
-            {loading ? "Crafting Human Content..." : `Generate ${platform.toUpperCase()} Post + Perfect Image`}
+            {loading ? "Crafting Social Media Graphic & Post..." : `Generate ${platform.toUpperCase()} Post + Banner Graphic`}
           </button>
         </form>
 
@@ -337,33 +327,33 @@ Tags: ${inputText}, ${inputText} strategy, ${inputText} tips, youtube shorts
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between">
               <div>
                 <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
-                  <span>🎨 Platform Specific Image</span>
+                  <span>🎨 Social Media Banner Graphic</span>
                   <span className="text-[10px] bg-pink-950 text-pink-300 border border-pink-800 px-2 py-0.5 rounded-md font-normal">
                     {platform.toUpperCase()}
                   </span>
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-1">Sized perfectly for engagement</p>
+                <p className="text-[11px] text-slate-500 mt-1">Infographic style marketing visual</p>
               </div>
 
               {imageUrl ? (
                 <div className="relative group rounded-xl overflow-hidden border border-slate-800 my-2">
                   <img
                     src={imageUrl}
-                    alt="AI Generated Banner"
+                    alt="AI Generated Social Media Banner"
                     className="w-full h-auto object-cover rounded-xl"
                   />
                   <a
                     href={imageUrl}
                     target="_blank"
-                    download="social_post_image.jpg"
+                    download="social_post_banner.jpg"
                     className="mt-3 block text-center bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2 rounded-lg transition border border-slate-700"
                   >
-                    ⬇️ Download High-Res Image
+                    ⬇️ Download Banner Graphic
                   </a>
                 </div>
               ) : (
                 <div className="h-48 bg-slate-950 rounded-xl flex items-center justify-center text-xs text-slate-600">
-                  Generating Custom Image...
+                  Generating Graphic Design...
                 </div>
               )}
             </div>
@@ -371,7 +361,7 @@ Tags: ${inputText}, ${inputText} strategy, ${inputText} tips, youtube shorts
             {/* AI Text Content Box */}
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3">
               <h3 className="text-sm font-bold text-indigo-400">
-                📝 Human-Style Title, Caption & Timings
+                📝 Human-Style Content & Timings
               </h3>
               <p className="text-slate-300 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800/80 max-h-[380px] overflow-y-auto">
                 {result}
