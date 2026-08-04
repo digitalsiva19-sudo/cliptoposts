@@ -9,7 +9,7 @@ export default function HomePage() {
   const [platform, setPlatform] = useState("instagram");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [domainName, setDomainName] = useState<string>("");
   const [copied, setCopied] = useState(false);
 
   const [user, setUser] = useState<any>(null);
@@ -77,7 +77,6 @@ export default function HomePage() {
 
     setLoading(true);
     setResult(null);
-    setImageUrl(null);
 
     try {
       const response = await fetch("/api/generate", {
@@ -90,11 +89,8 @@ export default function HomePage() {
 
       if (data.success && data.text) {
         setResult(data.text);
-        if (data.imageUrl) {
-          setImageUrl(data.imageUrl);
-        }
+        setDomainName(data.domainName || inputText);
 
-        // Deduct credit only on success
         const newUsed = usedCount + 1;
         if (subId) {
           await supabase
@@ -116,6 +112,15 @@ export default function HomePage() {
       setLoading(false);
     }
   };
+
+  // Helper to extract post title for poster visual
+  const getPostHookTitle = () => {
+    if (!result) return "";
+    const match = result.match(/• POST TITLE \/ HOOK:\s*\n?([^\n]+)/i) || result.match(/🎯 VIRAL HOOK:\s*\n?([^\n]+)/i);
+    return match ? match[1].replace(/"/g, "") : `${domainName.toUpperCase()} Official Update`;
+  };
+
+  const isDevotional = domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja") || domainName.includes("astro");
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between p-4 sm:p-6">
@@ -162,7 +167,7 @@ export default function HomePage() {
           Universal Business AI Social Generator
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Type ANY Website URL or Business Name. Get deep business analysis, social posts, video scripts, keywords & AI images!
+          Type ANY Website URL or Business Name. Get clean, brand-safe Social Post Posters, Video Scripts & Keywords!
         </p>
 
         {/* Platform Selection Buttons */}
@@ -194,7 +199,7 @@ export default function HomePage() {
           <input
             type="text"
             required
-            placeholder="Type ANY Business Name or Website URL (e.g. vedaswaram.com or Kids Education Hub)"
+            placeholder="Type Business Name or Website URL (e.g. vedaswaram.com)"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             className="w-full bg-slate-900 border border-slate-800 text-white px-5 py-3.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
@@ -205,47 +210,60 @@ export default function HomePage() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-lg"
           >
-            {loading ? `Deeply Analyzing ${inputText} with Gemini AI...` : `Analyze & Generate ${platform.toUpperCase()} Asset Suite`}
+            {loading ? `Analyzing ${inputText} with Gemini AI...` : `Generate ${platform.toUpperCase()} Post Poster & Script`}
           </button>
         </form>
 
         {/* Results Display */}
-        {(result || imageUrl) && (
+        {result && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             
-            {/* AI Image Visual Box */}
+            {/* Clean, Brand-Safe Visual Poster Box */}
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-xl">
               <div>
                 <h3 className="text-sm font-bold text-pink-400 flex items-center justify-between">
-                  <span>🎨 {platform.toUpperCase()} Visual Post Image</span>
+                  <span>🎨 {platform.toUpperCase()} Ready Poster Card</span>
                   <span className="text-[10px] bg-pink-950 text-pink-300 border border-pink-800 px-2 py-0.5 rounded-md font-normal">
-                    AI HD Image
+                    Brand Safe Visual
                   </span>
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-1">Domain-matched aesthetic social post image</p>
+                <p className="text-[11px] text-slate-500 mt-1">High conversion text overlay post card</p>
               </div>
 
-              {imageUrl ? (
-                <div className="relative group rounded-xl overflow-hidden border border-slate-800 my-2">
-                  <img
-                    src={imageUrl}
-                    alt="AI Generated Social Media Image"
-                    className="w-full h-auto object-cover rounded-xl shadow-lg"
-                  />
-                  <a
-                    href={imageUrl}
-                    target="_blank"
-                    download="social_post_image.jpg"
-                    className="mt-3 block text-center bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 rounded-lg transition border border-indigo-500"
-                  >
-                    ⬇️ Download High Resolution Image
-                  </a>
+              {/* Dynamic Poster Card */}
+              <div 
+                className={`w-full aspect-square rounded-2xl p-6 flex flex-col justify-between border shadow-2xl transition ${
+                  isDevotional 
+                    ? "bg-gradient-to-br from-amber-950 via-orange-950 to-slate-950 border-amber-600/50 text-amber-100" 
+                    : "bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 border-indigo-600/50 text-white"
+                }`}
+              >
+                <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                  <span className="text-xs font-black tracking-widest uppercase text-amber-400">
+                    {isDevotional ? "🕉️ " + domainName : domainName}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white font-medium">
+                    {platform.toUpperCase()}
+                  </span>
                 </div>
-              ) : (
-                <div className="h-64 bg-slate-950 rounded-xl flex items-center justify-center text-xs text-slate-600">
-                  Generating Aesthetic Visual Image...
+
+                <div className="my-auto space-y-3 text-center">
+                  <span className="text-2xl sm:text-3xl font-extrabold block leading-snug drop-shadow-md">
+                    {getPostHookTitle()}
+                  </span>
                 </div>
-              )}
+
+                <div className="flex justify-between items-center border-t border-white/10 pt-3 text-[11px] text-slate-300 font-medium">
+                  <span>🌐 {domainName}</span>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${isDevotional ? "bg-amber-500 text-slate-950" : "bg-indigo-500 text-white"}`}>
+                    SWIPE & READ
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-center text-slate-500">
+                100% Clean & Safe Visual Template
+              </p>
             </div>
 
             {/* AI Text Output Box with COPY BUTTON */}
@@ -256,7 +274,6 @@ export default function HomePage() {
                     📝 Post Content & Reel Script Package
                   </h3>
                   
-                  {/* COPY BUTTON */}
                   <button
                     onClick={handleCopy}
                     className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1"
@@ -265,8 +282,8 @@ export default function HomePage() {
                   </button>
                 </div>
                 
-                <p className="text-slate-[400] text-[11px] mt-1 text-slate-400">
-                  Platform: <span className="text-pink-400 font-bold uppercase">{platform}</span>
+                <p className="text-[11px] mt-1 text-slate-400">
+                  Target Platform: <span className="text-pink-400 font-bold uppercase">{platform}</span>
                 </p>
               </div>
 
