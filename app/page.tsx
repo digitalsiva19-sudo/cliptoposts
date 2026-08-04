@@ -17,27 +17,28 @@ export default function HomePage() {
   const [usedCount, setUsedCount] = useState<number>(0);
   const [limitCount, setLimitCount] = useState<number>(5);
 
+  const refreshUserCredits = async (userId: string) => {
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("id, generations_limit, generations_used")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (sub) {
+      setSubId(sub.id);
+      setUsedCount(sub.generations_used || 0);
+      setLimitCount(sub.generations_limit || 5);
+      setCredits(Math.max(0, sub.generations_limit - sub.generations_used));
+    }
+  };
+
   useEffect(() => {
     async function checkAuth() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
         setUser(session.user);
-        
-        const { data: sub } = await supabase
-          .from("subscriptions")
-          .select("id, generations_limit, generations_used")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-
-        if (sub) {
-          setSubId(sub.id);
-          setUsedCount(sub.generations_used || 0);
-          setLimitCount(sub.generations_limit || 5);
-          setCredits(Math.max(0, sub.generations_limit - sub.generations_used));
-        } else {
-          setCredits(5);
-        }
+        await refreshUserCredits(session.user.id);
       }
     }
 
@@ -71,15 +72,15 @@ export default function HomePage() {
         </div>
         <div>
           <div style="font-size: 20px; font-weight: 900; line-height: 1.2; color: #ffffff;">
-            Official Social Media Content Banner
+            Custom Social Media Content Visual
           </div>
           <p style="font-size: 11px; color: #cbd5e1; margin-top: 4px;">
-            AI Curated for high engagement and maximum reach.
+            AI Curated for maximum engagement and brand reach.
           </p>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 10px; font-size: 11px;">
           <span style="color: #94a3b8;">${url}</span>
-          <span style="background: #4f46e5; color: white; padding: 5px 10px; border-radius: 6px; font-weight: bold;">VISIT WEBSITE</span>
+          <span style="background: #4f46e5; color: white; padding: 5px 10px; border-radius: 6px; font-weight: bold;">VIEW DETAILS</span>
         </div>
       </div>
     `;
@@ -108,18 +109,7 @@ export default function HomePage() {
     const cleanUrl = inputText.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0];
 
     try {
-      // 1. Update Credits in Supabase
-      const newUsed = usedCount + 1;
-      if (subId) {
-        await supabase
-          .from("subscriptions")
-          .update({ generations_used: newUsed })
-          .eq("id", subId);
-      }
-      setUsedCount(newUsed);
-      setCredits(Math.max(0, limitCount - newUsed));
-
-      // 2. Call Real Gemini Backend API
+      // 1. First, call the Gemini API Backend
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -128,11 +118,31 @@ export default function HomePage() {
 
       const data = await response.json();
 
+      // If successful, update credits in Supabase and update local state
       if (data.success && data.text) {
         setResult(data.text);
         setPostHtml1(generateBannerHtml(brandName, cleanUrl, platform));
+
+        // Update Credits in Supabase and local state
+        const newUsed = usedCount + 1;
+        if (subId) {
+          await supabase
+            .from("subscriptions")
+            .update({ generations_used: newUsed })
+            .eq("id", subId);
+        }
+        setUsedCount(newUsed);
+        setCredits(Math.max(0, limitCount - newUsed));
+
       } else {
-        alert("Generation Error: " + (data.error || "Something went wrong"));
+        // If error has noCreditReduction, do not update Supabase
+        if (data.noCreditReduction) {
+          console.log("No credit reduction due to error.");
+          alert("Error: " + (data.error || "Something went wrong. Credits were not deducted."));
+        } else {
+          // Standard error where credits might be deducted
+          alert("Generation Error: " + (data.error || "Something went wrong"));
+        }
       }
 
     } catch (err: any) {
@@ -185,10 +195,10 @@ export default function HomePage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto w-full text-center my-6 space-y-6">
         <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
-          Real AI Social Media Generator
+          Human-Grade AI Social Media Generator
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Powered by Google Gemini 1.5 Flash. Enter any website URL to generate 100% relevant social posts!
+          Powered by Gemini 1.5 Flash. Analyze any website URL to generate custom-tailored social media content instantly!
         </p>
 
         {/* Platform Selection Buttons */}
@@ -231,7 +241,7 @@ export default function HomePage() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-lg"
           >
-            {loading ? "Analyzing Website & Generating AI Content..." : `Generate Custom ${platform.toUpperCase()} Content with Gemini AI`}
+            {loading ? `Analyzing ${inputText} with Gemini AI...` : `Generate Custom ${platform.toUpperCase()} Content`}
           </button>
         </form>
 
@@ -240,19 +250,19 @@ export default function HomePage() {
           <div className="mt-8 space-y-6 text-left">
             
             {/* Custom Graphic */}
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3">
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xl">
               <h3 className="text-sm font-bold text-pink-400">
-                🎨 {platform.toUpperCase()} Banner Visual
+                🎨 {platform.toUpperCase()} Custom Graphic Visual
               </h3>
               <div dangerouslySetInnerHTML={{ __html: postHtml1 || "" }} />
             </div>
 
-            {/* Real Gemini AI Generated Content */}
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3">
+            {/* Real Gemini Generated Content */}
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xl">
               <h3 className="text-sm font-bold text-indigo-400 flex items-center justify-between">
                 <span>🤖 Gemini 1.5 Flash Real AI Output</span>
                 <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded-md font-normal">
-                  Live Scraped
+                  Custom & Relevant
                 </span>
               </h3>
               <p className="text-slate-200 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800/80">
@@ -267,7 +277,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="text-center text-xs text-slate-600 py-4 border-t border-slate-900">
-        © ClipToPosts. Powered by Google Gemini.
+        © ClipToPosts. All-In-One Social Media AI Suite.
       </footer>
     </div>
   );
