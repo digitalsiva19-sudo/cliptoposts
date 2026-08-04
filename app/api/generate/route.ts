@@ -36,15 +36,16 @@ export async function POST(req: Request) {
     const promptText = `
 You are an elite Social Media Growth Strategist and Content Creator.
 Target Business Name or URL: ${inputUrl} (Extracted Domain: ${domainName})
-Contact Phone: ${phone || "Not Provided"}
-Address: ${address || "Not Provided"}
-Provided Services: ${services || "Infer from website"}
 Scraped Website Data: ${scrapedMetadata || "Direct Domain Inference"}
 Requested Platform: ${platform.toUpperCase()}
 
 TASK:
-1. Deeply analyze the business category. 
-2. Generate 4 key bullet services if not explicitly provided.
+1. Deeply analyze '${inputUrl}'. Determine the exact industry category.
+2. Auto-extract or infer:
+   - 4 Key Bullet Services
+   - Standard Contact Phone (if provided or construct professional placeholder e.g., +91 98765 43210)
+   - Estimated Location/Address (e.g., India / Online Services)
+
 3. Output MUST be formatted into TWO DISTINCT SECTIONS for ${platform.toUpperCase()}:
 
 --------------------------------------------------
@@ -99,7 +100,6 @@ TASK:
       }
     }
 
-    // Fallback Engine
     if (!generatedText) {
       generatedText = `📸 PART 1: SOCIAL MEDIA POST (${platform.toUpperCase()})
 
@@ -114,7 +114,7 @@ Looking for genuine growth? At ${brandName}, we provide high-converting agency s
 3️⃣ Social Media Management
 4️⃣ Paid Ad Campaign Growth
 
-Contact us today at ${phone || "+91 9876543210"} or visit ${cleanUrl}! 🚀
+Contact us today at ${phone || "+91 98765 43210"} or visit ${cleanUrl}! 🚀
 
 • KEYWORDS:
 ${brandName}, Business Growth, Marketing Agency, Digital Solutions
@@ -134,7 +134,7 @@ Stop relying on outdated marketing methods. Here is how ${brandName} scales your
 • COMPLETE SCRIPT (0-15s):
 • [0-3s Hook]: "Struggling to get high quality leads for your business?"
 • [3-10s Body]: "We build custom strategies, high-speed websites, and targeted ad funnels that deliver real results."
-• [10-15s CTA]: "Call us at ${phone || "+91 9876543210"} or visit ${cleanUrl} to get started!"
+• [10-15s CTA]: "Call us at ${phone || "+91 98765 43210"} or visit ${cleanUrl} to get started!"
 
 • VIDEO KEYWORDS:
 Agency Services, Business Lead Strategy, ${brandName} Shorts
@@ -146,10 +146,21 @@ Agency Services, Business Lead Strategy, ${brandName} Shorts
 • Peak Hours: 6:00 PM – 8:30 PM (Evening)`;
     }
 
+    // Auto-detect services based on domain if not passed
+    let autoServices = services ? services.split(",") : ["Web & Funnel Design", "SEO Strategy", "Social Ads", "Brand Growth"];
+    if (domainName.includes("vedaswaram") || domainName.includes("vedas") || domainName.includes("pooja")) {
+      autoServices = ["వేద మంత్రాలు", "గృహ పూజలు", "దోష నివారణ", "జాతక పరిశీలన"];
+    } else if (domainName.includes("kids") || domainName.includes("education")) {
+      autoServices = ["School Exams Prep", "IIT JEE Foundation", "EAMCET Coaching", "Test Papers"];
+    }
+
     return NextResponse.json({ 
       success: true, 
       text: generatedText,
-      domainName: domainName
+      domainName: domainName,
+      autoPhone: phone || "+91 98765 43210",
+      autoAddress: address || "Vizag, AP / India",
+      autoServices: autoServices
     });
 
   } catch (error: any) {
