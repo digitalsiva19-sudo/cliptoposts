@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     let cleanInput = inputUrl.trim();
     let cleanUrl = cleanInput.replace(/(https?:\/\/)?(www\.)?/, "").split("/")[0].toLowerCase();
 
-    // Smart Location Detection
+    // Smart Location Extractor
     const inputLower = cleanInput.toLowerCase();
     let detectedLocation = "India";
     const cities = ["hyderabad", "vizag", "visakhapatnam", "bangalore", "bengaluru", "chennai", "mumbai", "delhi", "pune", "kolkata", "kakinada", "vijayawada", "guntur", "tirupati"];
@@ -25,36 +25,37 @@ export async function POST(req: Request) {
       }
     }
 
-    // MODE 1: DEDICATED LOCAL SEO & GMB MAP CHECKLIST REQUEST
+    // MODE 1: DEDICATED LOCAL SEO & GMB MAP CHECKLIST
     if (mode === "gmb") {
       const gmbPrompt = `
 You are a World-Class Local SEO & Google Business Profile (GMB) Specialist.
 Target Query / Business: '${cleanInput}'
-Location: ${detectedLocation}
+Location Context: ${detectedLocation}
 
-Generate a Comprehensive Local SEO & GMB Map Pack Optimization Audit Checklist:
+TASK:
+Provide a comprehensive Local SEO & GMB Map Pack Optimization Audit Checklist strictly tailored ONLY to '${cleanInput}' and ${detectedLocation}.
 
 --------------------------------------------------
 📍 GOOGLE MY BUSINESS (GMB) PROFILE OPTIMIZATION
-• Primary GMB Category & Secondary Categories:
+• Primary Category & Secondary Categories:
 • Optimized Business Title & Description for ${detectedLocation}:
 • Top 20 Google Map Pack Keywords for ${detectedLocation}:
 
 --------------------------------------------------
 📢 HIGH-CONVERTING GMB LOCAL POST TEMPLATES (3 VARIATIONS)
-• Post 1 (Offer & Discount): Title, Full Body Content, Hashtags
-• Post 2 (Educational/Service Highlight): Title, Full Body Content, Hashtags
-• Post 3 (Customer Trust & Review Highlight): Title, Full Body Content, Hashtags
+• Post 1 (Offer & Promotion): Title, Body Content, CTA & Hashtags
+• Post 2 (Educational/Service Highlight): Title, Body Content, CTA & Hashtags
+• Post 3 (Customer Trust & Review Highlight): Title, Body Content, CTA & Hashtags
 
 --------------------------------------------------
 ⭐ CLIENT 5-STAR GOOGLE REVIEW REQUEST TEMPLATES
-• WhatsApp / SMS Review Template:
-• Email Follow-Up Template:
+• WhatsApp / SMS Review Template (High Conversion):
+• Email Follow-Up Review Template:
 
 --------------------------------------------------
 📌 LOCAL CITATIONS & MAP RANKING ACTION PLAN
-• Top 10 Local Citation Websites in ${detectedLocation}:
-• Step-by-step Map Pack Ranking Strategy:
+• Top 10 Local Citation Directories in ${detectedLocation}:
+• Step-by-Step Top 3 Map Pack Ranking Action Plan:
 `;
 
       let gmbResult = await callGemini(apiKey, gmbPrompt);
@@ -89,29 +90,43 @@ Generate a Comprehensive Local SEO & GMB Map Pack Optimization Audit Checklist:
       return NextResponse.json({ success: true, gmbData: gmbResult, domainName: cleanInput });
     }
 
-    // MODE 2: MASSIVE KEYWORD RESEARCH & AUDIT REPORT (100 - 150 KEYWORDS)
+    // MODE 2: MASSIVE 100 - 150 KEYWORDS RESEARCH & AUDIT
     if (mode === "keywords") {
       const keywordPrompt = `
-You are an Advanced SEO & Keyword Intelligence Engine (Ahrefs / SEMrush Alternative).
+You are an Advanced Enterprise SEO & Keyword Mining Engine (Ahrefs / SEMrush Alternative).
 Target Query / Niche: '${cleanInput}'
-Location Context: ${detectedLocation}
+Target Location: ${detectedLocation}
 
-TASK:
-Generate a massive keyword mining report containing 100 to 150 Highly Relevant Keywords for '${cleanInput}'. 
-Structure the response into 5 distinct tables (20-30 keywords per table) with columns: (# | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact).
+CRITICAL TASK:
+Generate a massive, deep keyword mining report containing at least 100 Highly Relevant, High-Value Keywords for '${cleanInput}'.
+Do NOT stop at 10 or 20 keywords. You MUST output 5 distinct tables with 20 to 30 keywords each.
+
+Output Format (Columns: # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Monthly Revenue Impact):
 
 --------------------------------------------------
-📊 TABLE 1: TOP 30 HIGH-VOLUME PRIMARY KEYWORDS
+📊 TABLE 1: TOP 25 HIGH-VOLUME PRIMARY KEYWORDS
+(Industry core search phrases)
+
 --------------------------------------------------
-🎯 TABLE 2: TOP 30 HIGH-INTENT TRANSACTIONAL KEYWORDS (Buying Keywords)
+🎯 TABLE 2: TOP 25 HIGH-INTENT TRANSACTIONAL KEYWORDS 
+(Buying & hiring keywords)
+
 --------------------------------------------------
-🚀 TABLE 3: TOP 30 LOW-COMPETITION LONG-TAIL KEYWORDS (Quick Ranking)
+🚀 TABLE 3: TOP 25 LOW-COMPETITION LONG-TAIL KEYWORDS 
+(Quick ranking opportunities for fast traffic)
+
 --------------------------------------------------
-📍 TABLE 4: TOP 30 LOCAL SEO & LOCATION KEYWORDS (${detectedLocation} & Nearby)
+📍 TABLE 4: TOP 25 LOCAL SEO & GEO KEYWORDS 
+(Tailored specifically for ${detectedLocation} and surrounding areas)
+
 --------------------------------------------------
-💡 TABLE 5: TOP 30 QUESTION-BASED & INFORMATIONAL KEYWORDS (Blogs/FAQs)
+💡 TABLE 5: TOP 25 QUESTION-BASED & INFORMATIONAL KEYWORDS 
+(FAQs, Blogs, and User Queries)
+
 --------------------------------------------------
-🚀 ON-PAGE & CONTENT SEO ACTION PLAN FOR '${cleanInput.toUpperCase()}'
+🚀 ON-PAGE & CONTENT SEO STRATEGY FOR '${cleanInput.toUpperCase()}'
+• Recommended Page H1 & H2 Hierarchy:
+• Technical Action Plan to Rank in Top 3:
 `;
 
       let kwResult = await callGemini(apiKey, keywordPrompt);
@@ -197,6 +212,7 @@ Contact us or visit our website to get started!`;
   }
 }
 
+// Gemini API Call with 8192 Max Output Token Limit for 100+ Keywords
 async function callGemini(apiKey: string | undefined, prompt: string) {
   if (!apiKey) return null;
 
@@ -212,7 +228,13 @@ async function callGemini(apiKey: string | undefined, prompt: string) {
       const geminiRes = await fetch(`${endpoint}?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens: 8192,
+            temperature: 0.7
+          }
+        })
       });
 
       if (geminiRes.ok) {
