@@ -343,7 +343,7 @@ export default function HomePage() {
             <input
               type="text"
               required
-              placeholder="e.g. realestate in vizag or seo services in vizag or dental clinic in vizag"
+              placeholder="e.g. realestate in vizag or digital marketing in india or dental clinic in vizag"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
@@ -534,7 +534,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* RENDER TABLE DYNAMICALLY */}
+            {/* RENDER TABLE DYNAMICALLY FROM JSON */}
             <div id="keyword-tables-area" className="space-y-6">
               {keywordJson.map((catItem: any, idx: number) => (
                 <div key={idx} className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
@@ -605,7 +605,7 @@ export default function HomePage() {
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">OUR SERVICES:</span>
                   </div>
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-slate-200">
-                    {(autoServices.length > 0 ? autoServices : ["Open Plots", "Luxury Flats", "Villas", "Commercial Property"]).map((s, idx) => (
+                    {(autoServices.length > 0 ? autoServices : ["SEO Optimization", "PPC Ads", "Social Media Ads", "Lead Generation"]).map((s, idx) => (
                       <div key={idx} className="flex items-center gap-1 font-semibold truncate"><span className="text-amber-400">●</span> {s.trim()}</div>
                     ))}
                   </div>
