@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     cleanInput = cleanInput.replace(/serives/gi, "services").replace(/cliinc/gi, "clinic");
     const inputLower = cleanInput.toLowerCase();
     
-    let detectedLocation = "India";
+    let detectedLocation = "Vizag";
     const cities = ["hyderabad", "vizag", "visakhapatnam", "bangalore", "bengaluru", "chennai", "mumbai", "delhi", "pune", "kolkata", "kakinada", "vijayawada", "guntur", "tirupati"];
     
     for (const city of cities) {
@@ -32,39 +32,15 @@ export async function POST(req: Request) {
     // MODE 1: LOCAL SEO & GMB CHECKLIST
     if (mode === "gmb") {
       const gmbPrompt = `
-You are a Local SEO Specialist. Analyze '${cleanInput}'.
-Location Focus: ${detectedLocation}
-
-Provide a clean, actionable Local SEO & GMB Checklist:
-
---------------------------------------------------
-📍 GOOGLE MY BUSINESS (GMB) PROFILE OPTIMIZATION
-• Primary & Secondary Categories:
-• Optimized Business Title & Description for ${detectedLocation}:
-• Top 20 Google Map Pack Keywords:
-
---------------------------------------------------
-📢 HIGH-CONVERTING GMB LOCAL POST TEMPLATES (3 VARIATIONS)
-• Post 1 (Offer/Discount): Title, Content & Hashtags
-• Post 2 (Service Highlight): Title, Content & Hashtags
-• Post 3 (Trust & Reviews): Title, Content & Hashtags
-
---------------------------------------------------
-⭐ CLIENT 5-STAR GOOGLE REVIEW REQUEST TEMPLATES
-• WhatsApp Review Request Template:
-• Email Follow-Up Review Template:
-
---------------------------------------------------
-📌 LOCAL CITATIONS & MAP RANKING ACTION PLAN
-• Top Directories in ${detectedLocation}:
-• Step-by-Step Top 3 Map Pack Ranking Action Plan:
+You are a Local SEO Specialist. Analyze '${cleanInput}'. Location: ${detectedLocation}.
+Provide a clean, actionable Local SEO & GMB Checklist strictly tailored to '${cleanInput}'.
 `;
 
       let gmbResult = await callGemini(apiKey, gmbPrompt);
 
       if (!gmbResult) {
         gmbResult = `📍 GOOGLE MY BUSINESS (GMB) PROFILE OPTIMIZATION
-• Primary Category: Professional Local Business Services
+• Primary Category: Professional Services / Local Business
 • Location Context: ${detectedLocation}
 • Top Google Map Pack Keywords:
   1. ${cleanInput} near me
@@ -73,17 +49,14 @@ Provide a clean, actionable Local SEO & GMB Checklist:
   4. affordable ${cleanInput}
   5. local ${cleanInput} experts
 
---------------------------------------------------
 📢 HIGH-CONVERTING GMB LOCAL POST TEMPLATES
 • Offer Title: "🚀 Special Offer on ${cleanInput.toUpperCase()} in ${detectedLocation}!"
 • Content: Get top-rated professional services tailored specifically for your needs in ${detectedLocation}. Call us today for a free session!
 • Local Hashtags: #${cleanInput.replace(/\s+/g, '')} #${detectedLocation}Business
 
---------------------------------------------------
 ⭐ CLIENT 5-STAR GOOGLE REVIEW REQUEST TEMPLATES
 • WhatsApp Template: "Hello! Thank you for choosing our services for ${cleanInput}. Could you please take 30 seconds to share your feedback on Google Maps? Click here: [GMB Review Link]."
 
---------------------------------------------------
 📌 LOCAL CITATIONS & MAP RANKING ACTION PLAN
 • Top Directories: Justdial ${detectedLocation}, IndiaMART, Facebook Local Page
 • Action Steps: Maintain 100% NAP consistency, post weekly geo-tagged photos, collect reviews.`;
@@ -95,35 +68,53 @@ Provide a clean, actionable Local SEO & GMB Checklist:
     // MODE 2: HIGH-INTENT KEYWORD INTELLIGENCE AUDIT
     if (mode === "keywords") {
       const keywordPrompt = `
-You are a World-Class SEO Keyword Engine (Ahrefs / SEMrush Alternative).
-Target Query: '${cleanInput}'
+You are an Advanced SEO Keyword Mining Engine (Ahrefs / SEMrush Alternative).
+Target Query/Niche: '${cleanInput}'
 Location Context: ${detectedLocation}
 
 CRITICAL RULES:
-1. NEVER create awkward repetitive phrases like '${cleanInput} in ${detectedLocation} in ${detectedLocation}' or '${cleanInput} packages'.
-2. Provide REAL, natural human search queries from Google.
-3. Output 3 HIGH-DENSITY MARKDOWN TABLES (Primary, Transactional, Long-Tail/Local). Each table MUST have at least 15-20 distinct rows.
+1. NEVER append words like 'packages' or 'agency' unless relevant.
+2. NEVER output repetitive phrases like 'in ${detectedLocation} in ${detectedLocation}'.
+3. Output REAL, high-conversion human search phrases from Google.
+4. Output Markdown Tables with columns: (# | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact).
 
-OUTPUT FORMAT:
-
-TABLE 1: TOP 20 HIGH-VOLUME PRIMARY KEYWORDS
-| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
-
-TABLE 2: TOP 20 HIGH-INTENT TRANSACTIONAL KEYWORDS
-| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
-
-TABLE 3: TOP 20 LOCAL SEO & LONG-TAIL KEYWORDS (${detectedLocation.toUpperCase()})
-| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
-
-ON-PAGE SEO ACTION PLAN FOR '${cleanInput.toUpperCase()}':
-• Technical & Content Strategy Action Items:
+TABLE 1: TOP HIGH-VOLUME PRIMARY KEYWORDS
+TABLE 2: TOP HIGH-INTENT TRANSACTIONAL KEYWORDS
+TABLE 3: TOP LOCAL SEO & LONG-TAIL KEYWORDS FOR ${detectedLocation.toUpperCase()}
 `;
 
       let kwResult = await callGemini(apiKey, keywordPrompt);
 
+      // SMART DYNAMIC FALLBACK BASED ON NICHE
       if (!kwResult) {
-        // High quality fallback with real search terms
-        kwResult = `TABLE 1: TOP HIGH-VOLUME PRIMARY KEYWORDS
+        if (inputLower.includes("realestate") || inputLower.includes("property") || inputLower.includes("flat") || inputLower.includes("plot")) {
+          kwResult = `TABLE 1: TOP HIGH-VOLUME PRIMARY KEYWORDS
+| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
+|---|---|---|---|---|---|---|
+| 1 | open plots for sale in vizag | 24,500/mo | 42% (Medium) | 25 - 40 Days | Transactional | High (₹15L+) |
+| 2 | 2bhk flats in vizag for sale | 18,200/mo | 38% (Medium) | 15 - 30 Days | Local | High (₹20L+) |
+| 3 | gated community villas in madhurawada | 14,100/mo | 40% (Medium) | 20 - 35 Days | Commercial | High (₹35L+) |
+| 4 | vuda approved layouts near bhogapuram | 11,800/mo | 32% (Easy) | 15 - 25 Days | Commercial | High (₹12L+) |
+| 5 | residential land for sale in beach road vizag | 9,400/mo | 28% (Easy) | 10 - 20 Days | Transactional | High (₹25L+) |
+| 6 | 3bhk luxury apartments in vizag | 8,200/mo | 35% (Easy) | 15 - 25 Days | Transactional | High (₹30L+) |
+| 7 | best real estate builders in vizag | 7,100/mo | 45% (Medium) | 25 - 40 Days | Commercial | High (₹40L+) |
+| 8 | commercial space for sale in vizag | 6,500/mo | 39% (Medium) | 20 - 35 Days | Commercial | High (₹50L+) |
+| 9 | land rates near vizag airport corridor | 5,800/mo | 22% (Easy) | 7 - 14 Days | Informational | Medium (₹10L+) |
+| 10 | property management companies in vizag | 4,900/mo | 26% (Easy) | 10 - 20 Days | Commercial | Medium (₹8L+) |
+
+TABLE 2: TOP HIGH-INTENT TRANSACTIONAL KEYWORDS
+| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
+|---|---|---|---|---|---|---|
+| 1 | buy vuda approved plots in bhogapuram | 6,800/mo | 28% (Easy) | 10 - 20 Days | Transactional | Very High |
+| 2 | ready to move 2bhk flats in madhurawada | 5,400/mo | 25% (Easy) | 10 - 15 Days | Transactional | Very High |
+| 3 | sea view apartments for sale in vizag | 4,200/mo | 31% (Easy) | 12 - 22 Days | Transactional | Very High |
+
+ON-PAGE SEO ACTION PLAN FOR REAL ESTATE
+1. Build Location Landing Pages for Madhurawada, Bhogapuram & Gajuwaka.
+2. Integrate 3D Virtual Tour & WhatsApp Quick Inquiry.
+3. Optimize Title Tags with "VUDA Approved Plots & Luxury Flats in Vizag".`;
+        } else if (inputLower.includes("seo") || inputLower.includes("marketing") || inputLower.includes("agency")) {
+          kwResult = `TABLE 1: TOP HIGH-VOLUME PRIMARY KEYWORDS
 | # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
 |---|---|---|---|---|---|---|
 | 1 | best seo services in vizag | 24,500/mo | 42% (Medium) | 20 - 35 Days | Transactional | High |
@@ -131,22 +122,30 @@ ON-PAGE SEO ACTION PLAN FOR '${cleanInput.toUpperCase()}':
 | 3 | top rated digital marketing agency vizag | 14,100/mo | 40% (Medium) | 20 - 35 Days | Commercial | High |
 | 4 | local business seo optimization vizag | 11,800/mo | 32% (Easy) | 15 - 25 Days | Commercial | High |
 | 5 | website seo pricing in vizag | 9,400/mo | 28% (Easy) | 10 - 20 Days | Transactional | High |
-| 6 | affordable monthly seo plans vizag | 8,200/mo | 25% (Easy) | 10 - 20 Days | Transactional | High |
-| 7 | ecommerce seo agency vizag | 7,100/mo | 36% (Easy) | 15 - 25 Days | Commercial | High |
-| 8 | best seo expert near me | 6,500/mo | 30% (Easy) | 12 - 22 Days | Transactional | Medium |
-| 9 | google map ranking services vizag | 5,800/mo | 22% (Easy) | 7 - 14 Days | Local | High |
-| 10 | organic lead generation agency vizag | 4,900/mo | 34% (Easy) | 15 - 25 Days | Commercial | High |
 
 TABLE 2: TOP HIGH-INTENT TRANSACTIONAL KEYWORDS
 | # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
 |---|---|---|---|---|---|---|
-| 1 | hire best seo freelancer in vizag | 6,800/mo | 28% (Easy) | 10 - 20 Days | Transactional | Very High |
-| 2 | professional website audit consultant vizag | 5,400/mo | 25% (Easy) | 10 - 15 Days | Transactional | Very High |
-| 3 | local gmb rank tracking service | 4,200/mo | 20% (Easy) | 7 - 14 Days | Transactional | High |
+| 1 | hire best seo expert in vizag | 6,800/mo | 28% (Easy) | 10 - 20 Days | Transactional | Very High |
+| 2 | affordable monthly seo packages vizag | 5,400/mo | 25% (Easy) | 10 - 15 Days | Transactional | Very High |
 
 ON-PAGE SEO ACTION PLAN
 1. Optimize Primary H1 Tags with Location-Based Services.
 2. Build Dedicated Landing Pages for Local Niche Keywords.`;
+        } else {
+          kwResult = `TABLE 1: TOP HIGH-VOLUME PRIMARY KEYWORDS
+| # | Search Keyword | Monthly Volume | SEO Difficulty % | Est. Ranking Days | Search Intent | Est. Revenue Impact |
+|---|---|---|---|---|---|---|
+| 1 | best ${cleanInput} | 24,500/mo | 35% (Easy) | 15 - 25 Days | Transactional | High |
+| 2 | ${cleanInput} near me | 18,200/mo | 30% (Easy) | 10 - 20 Days | Local | High |
+| 3 | top rated ${cleanInput} in ${detectedLocation} | 14,100/mo | 32% (Easy) | 12 - 22 Days | Commercial | High |
+| 4 | professional ${cleanInput} services | 11,800/mo | 28% (Easy) | 10 - 18 Days | Commercial | High |
+| 5 | affordable ${cleanInput} options | 9,400/mo | 22% (Easy) | 7 - 15 Days | Transactional | High |
+
+ON-PAGE SEO ACTION PLAN
+1. Optimize Page Title & Meta Tags with Primary Keyword.
+2. Improve Mobile Page Speed and Schema Markup.`;
+        }
       }
 
       return NextResponse.json({ success: true, keywordData: kwResult, domainName: cleanInput });
@@ -179,7 +178,7 @@ Achieve fast and measurable results with custom-tailored solutions for ${cleanIn
 Contact us or visit our website to get started!`;
     }
 
-    let autoServices = services ? String(services).split(",") : ["SEO Audit", "Local GMB Growth", "Web Design", "Paid Ads"];
+    let autoServices = services ? String(services).split(",") : ["Open Plots", "Luxury Flats", "Villas", "Commercial Property"];
 
     return NextResponse.json({ 
       success: true, 
