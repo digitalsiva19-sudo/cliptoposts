@@ -10,6 +10,9 @@ export default function HomePage() {
   const [result, setResult] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [credits, setCredits] = useState<number | null>(null);
+  const [subId, setSubId] = useState<string | null>(null);
+  const [usedCount, setUsedCount] = useState<number>(0);
+  const [limitCount, setLimitCount] = useState<number>(5);
 
   useEffect(() => {
     async function checkAuth() {
@@ -18,13 +21,17 @@ export default function HomePage() {
       if (session?.user) {
         setUser(session.user);
         
+        // Fetch subscription credits
         const { data: sub } = await supabase
           .from("subscriptions")
-          .select("generations_limit, generations_used")
+          .select("id, generations_limit, generations_used")
           .eq("user_id", session.user.id)
           .maybeSingle();
 
         if (sub) {
+          setSubId(sub.id);
+          setUsedCount(sub.generations_used || 0);
+          setLimitCount(sub.generations_limit || 5);
           setCredits(Math.max(0, sub.generations_limit - sub.generations_used));
         } else {
           setCredits(5);
@@ -73,9 +80,34 @@ export default function HomePage() {
     setLoading(true);
     setResult(null);
 
-    // Dynamic Full AI Post Response
-    setTimeout(() => {
-      setResult(`🚀 VIRAL SOCIAL MEDIA POST GENERATED
+    try {
+      // 1. Update credits in Supabase Database
+      const newUsed = usedCount + 1;
+      if (subId) {
+        await supabase
+          .from("subscriptions")
+          .update({ generations_used: newUsed })
+          .eq("id", subId);
+      } else {
+        // Create default record if missing
+        await supabase.from("subscriptions").insert([
+          {
+            user_id: user.id,
+            plan_name: "Free Plan",
+            generations_limit: 5,
+            generations_used: 1,
+            price: 0,
+          },
+        ]);
+      }
+
+      // Update Local State immediately
+      setUsedCount(newUsed);
+      setCredits(Math.max(0, limitCount - newUsed));
+
+      // 2. Generate AI Output
+      setTimeout(() => {
+        setResult(`🚀 VIRAL SOCIAL MEDIA POST GENERATED
 
 🔗 Source Video: ${videoUrl}
 
@@ -93,10 +125,14 @@ Transform your video content into viral social media posts instantly! Save this 
 
 🏷️ HASHTAGS:
 #ContentCreation #VideoMarketing #SocialMediaGrowth #ClipToPosts #ViralStrategy`);
+        
+        setLoading(false);
+      }, 1200);
 
-      if (credits !== null) setCredits(credits - 1);
+    } catch (err) {
+      console.error(err);
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
