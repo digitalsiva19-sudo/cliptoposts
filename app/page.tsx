@@ -6,8 +6,7 @@ import { supabase } from "./lib/supabase";
 
 export default function HomePage() {
   const [inputText, setInputText] = useState("");
-  const [niche, setNiche] = useState("");
-  const [backlinkCategory, setBacklinkCategory] = useState("digital_marketing"); // 🏷️ New Backlink Category State
+  const [backlinkCategory, setBacklinkCategory] = useState("Digital Marketing & SEO Agency"); // 🏷️ Custom Text Input State
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [platform, setPlatform] = useState("instagram");
@@ -147,7 +146,7 @@ export default function HomePage() {
         body: JSON.stringify({ 
           inputUrl: inputText, 
           mode, 
-          niche: mode === "backlinks" ? backlinkCategory : niche, // Passing selected backlink category or general niche
+          niche: backlinkCategory, // Passing custom typed niche/category seamlessly
           phone, 
           email, 
           platform 
@@ -228,6 +227,8 @@ export default function HomePage() {
 
         {/* Form Inputs */}
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-left shadow-2xl">
+          
+          {/* Domain Name & Custom Niche Type Input Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-[11px] font-bold text-slate-300 mb-1 block">Business / Domain Name *</label>
@@ -240,34 +241,20 @@ export default function HomePage() {
                 className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
               />
             </div>
+
             <div>
-              <label className="text-[11px] font-bold text-slate-300 mb-1 block">Select Business Niche / Category</label>
+              <label className="text-[11px] font-bold text-blue-400 mb-1 block">
+                🔗 Business Niche / Category (Type Your Own) *
+              </label>
               <input
                 type="text"
-                placeholder="e.g. Digital Marketing, Real Estate, Education"
-                value={niche}
-                onChange={(e) => setNiche(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
+                required
+                placeholder="e.g. Dental Clinic, Real Estate, Digital Marketing"
+                value={backlinkCategory}
+                onChange={(e) => setBacklinkCategory(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-blue-500 text-xs"
               />
             </div>
-          </div>
-
-          {/* 🏷️ BACKLINK CATEGORY SELECTOR OPTION */}
-          <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-            <label className="text-[11px] font-bold text-blue-400 mb-1 block">
-              🔗 Select Backlink Niche Category (For 100+ Custom Backlinks Generation)
-            </label>
-            <select
-              value={backlinkCategory}
-              onChange={(e) => setBacklinkCategory(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 text-white px-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 text-xs"
-            >
-              <option value="digital_marketing">Digital Marketing & SEO Agencies</option>
-              <option value="jobs_career">Jobs, Careers & Recruitment Portals</option>
-              <option value="kids_education">Kids Stories, Schools & Education</option>
-              <option value="ecommerce_retail">E-Commerce & Retail Business</option>
-              <option value="real_estate">Real Estate & Property Hub</option>
-            </select>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -415,7 +402,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* DISPLAY 2: BACKLINKS (105+ LIST) */}
+        {/* DISPLAY 2: BACKLINKS */}
         {backlinkData && (
           <div className="bg-slate-900 border border-blue-500/40 p-6 rounded-2xl text-left space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -474,6 +461,7 @@ export default function HomePage() {
                           <th className="p-2 border border-slate-800">Search Keyword</th>
                           <th className="p-2 border border-slate-800">Volume</th>
                           <th className="p-2 border border-slate-800">Difficulty</th>
+                          <th className="p-2 border border-slate-800">Position</th>
                           <th className="p-2 border border-slate-800">Est. Days</th>
                           <th className="p-2 border border-slate-800">Intent</th>
                         </tr>
@@ -485,6 +473,7 @@ export default function HomePage() {
                             <td className="p-2 border border-slate-800/40 font-semibold text-white">{k.kw}</td>
                             <td className="p-2 border border-slate-800/40 text-emerald-400">{k.vol}</td>
                             <td className="p-2 border border-slate-800/40 text-amber-300">{k.diff}</td>
+                            <td className="p-2 border border-slate-800/40 text-cyan-400 font-bold">{k.pos}</td>
                             <td className="p-2 border border-slate-800/40 text-slate-400">{k.days} Days</td>
                             <td className="p-2 border border-slate-800/40"><span className="bg-indigo-950 text-indigo-300 text-[10px] px-2 py-0.5 rounded border border-indigo-800">{k.intent}</span></td>
                           </tr>
@@ -510,7 +499,7 @@ export default function HomePage() {
                   <tr className="bg-amber-950 text-amber-200 border-b border-amber-800">
                     <th className="p-2.5 border border-slate-800">Checklist Item</th>
                     <th className="p-2.5 border border-slate-800">Audit Finding</th>
-                    <th className="p-2.5 border border-slate-800">Status</th>
+                    <th className="p-2.5 border border-slate-800">Ranking / Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -518,7 +507,7 @@ export default function HomePage() {
                     <tr key={idx} className="hover:bg-slate-950/80 border-b border-slate-800/50 text-slate-200">
                       <td className="p-2.5 border border-slate-800/40 font-bold text-white">{item.check}</td>
                       <td className="p-2.5 border border-slate-800/40 text-slate-300">{item.details}</td>
-                      <td className="p-2.5 border border-slate-800/40"><span className="bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded text-[10px]">{item.status}</span></td>
+                      <td className="p-2.5 border border-slate-800/40"><span className="bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">{item.rankPos || item.status}</span></td>
                     </tr>
                   ))}
                 </tbody>
@@ -533,6 +522,9 @@ export default function HomePage() {
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <h3 className="text-sm font-bold text-pink-400 uppercase">📄 Executive Website SEO Audit & Proposal: {pitchStructuredData.domain}</h3>
             </div>
+            <p className="text-xs text-slate-300 bg-slate-950 p-4 rounded-xl border border-slate-800 leading-relaxed">
+              {pitchStructuredData.summary}
+            </p>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
@@ -547,7 +539,7 @@ export default function HomePage() {
                     <tr key={idx} className="hover:bg-slate-950/80 border-b border-slate-800/50 text-slate-200">
                       <td className="p-2.5 border border-slate-800 font-bold text-white">{f.item}</td>
                       <td className="p-2.5 border border-slate-800 text-slate-300">{f.issue}</td>
-                      <td className="p-2.5 border border-slate-800"><span className="bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded text-[10px]">{f.priority}</span></td>
+                      <td className="p-2.5 border border-slate-800"><span className="bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded text-[10px] font-bold">{f.priority}</span></td>
                     </tr>
                   ))}
                 </tbody>
