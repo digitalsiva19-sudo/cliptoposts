@@ -175,7 +175,15 @@ Looking to double your leads and brand authority? At ${domainName}, we craft hig
 🏷️ VIRAL HASHTAGS:
 #${domainName.replace(/\s+/g, "")} #${userNiche.replace(/\s+/g, "")} #BusinessGrowth #DigitalMarketing2026 #LocalSEO #LeadGeneration #Viral${targetPlatform}`;
 
-      return NextResponse.json({ success: true, socialData: socialText, domainName });
+      return NextResponse.json({ 
+        success: true, 
+        socialData: socialText, 
+        domainName,
+        bannerHeadline: `Scale Your ${userNiche} Business`,
+        bannerSubheadline: `Get Top 3 Google Map Pack & High-ROI Sales Leads`,
+        bannerPhone: userPhone,
+        bannerEmail: userEmail
+      });
     }
 
     return NextResponse.json({ error: "Invalid Mode" }, { status: 400 });
@@ -234,7 +242,6 @@ function getDomainFallback(domain: string) {
   };
 }
 
-// GENERATES 150+ HIGH DA BACKLINKS LIST
 function generate150Backlinks(domain: string) {
   const platforms = [
     { name: "Medium.com", da: "96", type: "Article / Guest Post", url: "https://medium.com" },
