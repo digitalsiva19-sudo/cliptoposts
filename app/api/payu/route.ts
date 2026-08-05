@@ -1,304 +1,54 @@
-"use client";
+import { NextResponse } from "next/server";
+import crypto from "crypto";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { supabase } from "../lib/supabase";
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { amount, planType, firstname, email, phone } = body;
 
-export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  
-  const [planType, setPlanType] = useState<string>("free");
-  const [usedCount, setUsedCount] = useState<number>(0);
-  const [credits, setCredits] = useState<number>(3);
-  const [paying, setPaying] = useState(false);
+    const key = process.env.NEXT_PUBLIC_PAYU_KEY;
+    const salt = process.env.PAYU_SALT;
 
-  useEffect(() => {
-    async function loadUserData() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
+    // Check Key and Salt presence
+    if (!key || !salt) {
+      return NextResponse.json(
+        { success: false, error: "PayU Merchant Key or Salt missing in Vercel settings!" },
+        { status: 400 }
+      );
+    }
 
-        if (session?.user) {
-          setUser(session.user);
+    const txnid = `txnid_${Date.now()}`;
+    const productinfo = `ClipToPosts ${String(planType).toUpperCase()} Subscription`;
 
-          // Check query URL for PayU success redirect status
-          const urlParams = new URLSearchParams(window.location.search);
-          const status = urlParams.get("status");
+    // SHA-512 Hash Generation: key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||SALT
+    const hashString = `${key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|||||||||||${salt}`;
+    const hash = crypto.createHash("sha512").update(hashString).digest("hex");
 
-          if (status === "success") {
-            alert("🎉 PayU Payment Successful! Your Unlimited Pro Plan is now Activated.");
-            
-            // Activate Unlimited Access in Supabase
-            await supabase
-              .from("subscriptions")
-              .upsert({
-                user_id: session.user.id,
-                plan_type: "pro_monthly",
-                generations_limit: 999999
-              });
+    const host = req.headers.get("host");
+    const protocol = host?.includes("localhost") ? "http" : "https";
 
-            window.history.replaceState({}, document.title, "/dashboard");
-          } else if (status === "failed") {
-            alert("❌ PayU Payment Failed or Cancelled. Please try again.");
-            window.history.replaceState({}, document.title, "/dashboard");
-          }
+    const surl = `${protocol}://${host}/api/payu/response`;
+    const furl = `${protocol}://${host}/api/payu/response`;
 
-          const { data: sub } = await supabase
-            .from("subscriptions")
-            .select("plan_type, generations_used")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-
-          if (sub) {
-            setPlanType(sub.plan_type || "free");
-            const used = sub.generations_used || 0;
-            setUsedCount(used);
-            setCredits(sub.plan_type === "free" ? Math.max(0, 3 - used) : 999999);
-          }
-        } else {
-          window.location.href = "/login";
-        }
-      } catch (err) {
-        console.error("Dashboard error:", err);
-      } finally {
-        setLoading(false);
+    return NextResponse.json({
+      success: true,
+      payuData: {
+        key,
+        txnid,
+        amount: String(amount),
+        productinfo,
+        firstname,
+        email,
+        phone: phone || "9640502095",
+        surl,
+        furl,
+        hash,
+        action: "https://secure.payu.in/_payment"
       }
-    }
+    });
 
-    loadUserData();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  };
-
-  // PayU Integration Handler
-  const handlePayUPayment = async (amount: number, selectedPlan: string) => {
-    if (!user) {
-      alert("Please login first!");
-      return;
-    }
-
-    setPaying(true);
-
-    try {
-      const res = await fetch("/api/payu", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount,
-          planType: selectedPlan,
-          firstname: user.email?.split("@")[0] || "Customer",
-          email: user.email,
-          phone: "9640502095"
-        })
-      });
-
-      const data = await res.json();
-
-      if (!data.success || !data.payuData) {
-        alert("Error launching PayU Gateway: " + (data.error || "Missing API Credentials"));
-        setPaying(false);
-        return;
-      }
-
-      // Create dynamic hidden form and submit to PayU Gateway
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = data.payuData.action;
-
-      Object.keys(data.payuData).forEach((key) => {
-        if (key !== "action") {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = data.payuData[key];
-          form.appendChild(input);
-        }
-      });
-
-      document.body.appendChild(form);
-      form.submit();
-
-    } catch (err: any) {
-      console.error(err);
-      alert("PayU Payment Error: " + err.message);
-      setPaying(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center font-sans">
-        <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs text-slate-400 font-medium">Loading User Dashboard...</p>
-        </div>
-      </div>
-    );
+  } catch (error: any) {
+    console.error("PayU Route Error:", error);
+    return NextResponse.json({ success: false, error: error?.message || "Internal Server Error" }, { status: 500 });
   }
-
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between p-4 sm:p-6">
-      
-      {/* Header */}
-      <header className="max-w-6xl mx-auto w-full flex items-center justify-between py-4 border-b border-slate-800">
-        <Link href="/" className="text-2xl font-black bg-gradient-to-r from-indigo-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">
-          ClipToPosts <span className="text-xs bg-indigo-900/80 text-indigo-300 border border-indigo-700 px-2 py-0.5 rounded-md font-mono">DASHBOARD</span>
-        </Link>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow"
-          >
-            🚀 Launch AI Tools
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="bg-slate-800 hover:bg-slate-700 text-red-400 border border-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-5xl mx-auto w-full my-8 space-y-8 text-left">
-        
-        {/* User Card */}
-        <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 border border-indigo-800/50 p-6 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-2xl">
-          <div>
-            <span className="text-[10px] bg-indigo-900 text-indigo-300 font-mono font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border border-indigo-700">
-              User Profile
-            </span>
-            <h2 className="text-xl sm:text-2xl font-black text-white mt-2">
-              Welcome Back, <span className="text-indigo-400">{user?.email?.split("@")[0]}</span> 👋
-            </h2>
-            <p className="text-xs text-slate-400 mt-1">{user?.email}</p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className={`text-xs px-3.5 py-2 rounded-xl font-bold border shadow ${planType === "free" ? "bg-amber-950 text-amber-300 border-amber-800" : "bg-emerald-950 text-emerald-300 border-emerald-800"}`}>
-              ⚡ Plan: {planType.toUpperCase()} {planType === "free" ? `(${credits}/3 Credits Left)` : "UNLIMITED"}
-            </span>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2 shadow-lg">
-            <div className="text-xs text-slate-400 font-medium">Current Active Plan</div>
-            <div className="text-2xl font-black text-indigo-400 uppercase">{planType} SUITE</div>
-            <p className="text-[11px] text-slate-500">
-              {planType === "free" ? "Limited to 3 trial generations" : "Full access to 100+ Keywords & 3D Flyers"}
-            </p>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2 shadow-lg">
-            <div className="text-xs text-slate-400 font-medium">Total AI Generations Used</div>
-            <div className="text-2xl font-black text-emerald-400">{usedCount} <span className="text-xs text-slate-500 font-normal">Runs</span></div>
-            <p className="text-[11px] text-slate-500">Keyword Audits, GMB Checklists & Social Kit Runs</p>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2 shadow-lg">
-            <div className="text-xs text-slate-400 font-medium">Remaining Credits</div>
-            <div className="text-2xl font-black text-purple-400">
-              {planType === "free" ? `${credits} / 3` : "∞ Unlimited"}
-            </div>
-            <p className="text-[11px] text-slate-500">
-              {planType === "free" ? "Upgrade to Pro for unlimited generation" : "Active Unlimited Access"}
-            </p>
-          </div>
-        </div>
-
-        {/* Subscription Upgrade Section */}
-        <section className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-6 shadow-xl">
-          <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              💳 Secure PayU Checkout & Upgrade Plans
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Pay via PhonePe, Google Pay, PayTM, Credit/Debit Cards, UPI & Netbanking.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            
-            {/* PRO MONTHLY */}
-            <div className="bg-slate-950 border border-indigo-600/80 p-5 rounded-xl space-y-3 flex flex-col justify-between shadow-lg">
-              <div>
-                <span className="text-[10px] bg-indigo-950 text-indigo-300 font-bold px-2 py-0.5 rounded uppercase border border-indigo-800">Popular</span>
-                <h4 className="text-base font-bold text-white mt-2">Pro Monthly</h4>
-                <div className="text-2xl font-black text-indigo-400 my-1">₹499 <span className="text-xs text-slate-500 font-normal">/ month</span></div>
-                <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
-                  <li>✓ Unlimited AI Generations</li>
-                  <li>✓ 100+ Keyword Mining Reports</li>
-                  <li>✓ Whitelabel Client PDF Exports</li>
-                  <li>✓ Local GMB Map Checklists</li>
-                </ul>
-              </div>
-              <button 
-                onClick={() => handlePayUPayment(499, "pro_monthly")}
-                disabled={paying || planType.includes("pro")}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold py-2.5 rounded-lg transition shadow"
-              >
-                {paying ? "Redirecting to PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹499 via PayU"}
-              </button>
-            </div>
-
-            {/* PRO 6-MONTHS */}
-            <div className="bg-slate-950 border border-purple-600/80 p-5 rounded-xl space-y-3 flex flex-col justify-between shadow-lg">
-              <div>
-                <span className="text-[10px] bg-purple-950 text-purple-300 font-bold px-2 py-0.5 rounded uppercase border border-purple-800">Save 16%</span>
-                <h4 className="text-base font-bold text-white mt-2">Pro 6-Months</h4>
-                <div className="text-2xl font-black text-purple-400 my-1">₹2,499 <span className="text-xs text-slate-500 font-normal">/ 6 mos</span></div>
-                <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
-                  <li>✓ Everything in Monthly Plan</li>
-                  <li>✓ Priority High-Speed API</li>
-                  <li>✓ CSV & Excel Data Exports</li>
-                  <li>✓ Agency Client Pitch Deck</li>
-                </ul>
-              </div>
-              <button 
-                onClick={() => handlePayUPayment(2499, "pro_6months")}
-                disabled={paying || planType.includes("pro")}
-                className="w-full bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold py-2.5 rounded-lg transition shadow"
-              >
-                {paying ? "Redirecting to PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹2,499 via PayU"}
-              </button>
-            </div>
-
-            {/* PRO ANNUAL */}
-            <div className="bg-slate-950 border border-amber-500/80 p-5 rounded-xl space-y-3 flex flex-col justify-between shadow-lg">
-              <div>
-                <span className="text-[10px] bg-amber-950 text-amber-300 font-bold px-2 py-0.5 rounded uppercase border border-amber-800">Best Value</span>
-                <h4 className="text-base font-bold text-white mt-2">Pro Annual</h4>
-                <div className="text-2xl font-black text-amber-400 my-1">₹4,499 <span className="text-xs text-slate-500 font-normal">/ year</span></div>
-                <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
-                  <li>✓ Full Enterprise Suite Access</li>
-                  <li>✓ Unlimited Client PDF Downloads</li>
-                  <li>✓ Dedicated Agency Growth Manager</li>
-                  <li>✓ Lifetime Feature Updates</li>
-                </ul>
-              </div>
-              <button 
-                onClick={() => handlePayUPayment(4499, "pro_annual")}
-                disabled={paying || planType.includes("pro")}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 text-slate-950 font-black text-xs py-2.5 rounded-lg transition shadow"
-              >
-                {paying ? "Redirecting to PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹4,499 via PayU"}
-              </button>
-            </div>
-
-          </div>
-        </section>
-
-      </main>
-
-      {/* Footer */}
-      <footer className="text-center text-xs text-slate-600 py-4 border-t border-slate-900">
-        © ClipToPosts Enterprise AI Growth Suite. PayU Gateway Integrated.
-      </footer>
-    </div>
-  );
 }
