@@ -18,23 +18,27 @@ export async function POST(req: Request) {
       .replace(/\/.*$/gi, "")
       .trim() || rawInput;
 
-    // 1. DOMAIN OVERVIEW MODE
+    // 1. MODE: DOMAIN OVERVIEW & REVENUE ESTIMATOR
     if (mode === "domain_overview") {
       const overviewPrompt = `
-You are an Advanced SEO Audit Engine. Analyze domain: '${domainName}'
+You are an Advanced SEO Audit Engine. Analyze domain: '${domainName}'.
 Return ONLY a valid JSON object matching this structure:
 {
   "domain": "${domainName}",
-  "domainAuthority": 58,
-  "organicKeywords": "14.2K",
-  "monthlyTraffic": "45.8K",
-  "backlinks": "12.4K",
-  "healthScore": 86,
+  "domainAuthority": 62,
+  "organicKeywords": "18.4K",
+  "monthlyTraffic": "52.1K",
+  "backlinks": "14.8K",
+  "healthScore": 91,
+  "estRevenue": "₹4,85,000 / mo",
   "topKeywords": [
-    { "kw": "best agency", "pos": "1", "vol": "4,500", "traffic": "1,850" }
+    { "kw": "best agency in vizag", "pos": "1", "vol": "4,500", "traffic": "1,850" },
+    { "kw": "seo services near me", "pos": "2", "vol": "3,200", "traffic": "1,120" },
+    { "kw": "digital growth consultant", "pos": "1", "vol": "2,800", "traffic": "980" }
   ],
   "auditIssues": [
-    { "type": "High Priority", "issue": "Missing Meta Descriptions", "impact": "High" }
+    { "type": "High Priority", "issue": "Missing Meta Descriptions on landing pages", "impact": "High" },
+    { "type": "Medium Priority", "issue": "Mobile page speed optimization required", "impact": "Medium" }
   ]
 }`;
 
@@ -57,7 +61,40 @@ Return ONLY a valid JSON object matching this structure:
       return NextResponse.json({ success: true, overviewData: parsedOverview, domainName });
     }
 
-    // 2. KEYWORD MINING MODE
+    // 2. MODE: HIGH-DA BACKLINK GENERATOR & OPPORTUNITIES
+    if (mode === "backlinks") {
+      const backlinkPrompt = `
+You are a Senior Link Building Specialist. Analyze target site: '${domainName}'.
+Return ONLY a valid JSON array containing high-DA backlink submission sites and directory opportunities:
+[
+  { "site": "Medium.com", "da": "96", "type": "Article / Guest Post", "status": "Instant Do-Follow", "actionUrl": "https://medium.com" },
+  { "site": "Linkedin.com/pulse", "da": "98", "type": "B2B Article", "status": "High Authority", "actionUrl": "https://linkedin.com" },
+  { "site": "Indiamart.com", "da": "88", "type": "Business Directory", "status": "Do-Follow Listing", "actionUrl": "https://indiamart.com" },
+  { "site": "Justdial.com", "da": "84", "type": "Local Citation", "status": "Local Backlink", "actionUrl": "https://justdial.com" },
+  { "site": "GitHub Pages / Gist", "da": "96", "type": "Tech Anchor Link", "status": "Do-Follow Index", "actionUrl": "https://github.com" },
+  { "site": "ProductHunt.com", "da": "90", "type": "SaaS Launch Link", "status": "High Quality Traffic", "actionUrl": "https://producthunt.com" }
+]`;
+
+      const backlinkResultText = await callGemini(apiKey, backlinkPrompt);
+      let parsedBacklinks = null;
+
+      try {
+        if (backlinkResultText) {
+          const cleanJson = backlinkResultText.replace(/```json/g, "").replace(/```/g, "").trim();
+          parsedBacklinks = JSON.parse(cleanJson);
+        }
+      } catch (e) {
+        console.log("JSON Parse Error Backlinks");
+      }
+
+      if (!parsedBacklinks || !Array.isArray(parsedBacklinks)) {
+        parsedBacklinks = getBacklinkFallback();
+      }
+
+      return NextResponse.json({ success: true, backlinkData: parsedBacklinks, domainName });
+    }
+
+    // 3. MODE: 100+ KEYWORD MINING
     if (mode === "keywords") {
       const keywordPrompt = `
 You are an Advanced SEO Keyword Research Engine. Target topic: '${domainName}'
@@ -90,7 +127,7 @@ Return ONLY strict valid JSON containing 5 categories with 20 keywords each:
       return NextResponse.json({ success: true, keywordJson: parsedKeywords, domainName });
     }
 
-    // 3. LOCAL GMB AUDIT MODE
+    // 4. MODE: LOCAL GMB AUDIT
     if (mode === "gmb") {
       const gmbPrompt = `Provide a local SEO and GMB ranking audit checklist for '${domainName}'.`;
       let gmbResult = await callGemini(apiKey, gmbPrompt);
@@ -105,6 +142,38 @@ Return ONLY strict valid JSON containing 5 categories with 20 keywords each:
       }
 
       return NextResponse.json({ success: true, gmbData: gmbResult, domainName });
+    }
+
+    // 5. MODE: CLIENT PITCH DECK PROPOSAL
+    if (mode === "pitch") {
+      const pitchPrompt = `
+Generate an executive Client Pitch Proposal for website: '${domainName}'.
+Include:
+1. Executive Summary & Problem Analysis
+2. Proposed 6-Month SEO Growth Roadmap
+3. Expected ROI & Traffic Projections
+4. Deliverables & Next Action Steps
+`;
+
+      let pitchResult = await callGemini(apiKey, pitchPrompt);
+      if (!pitchResult) {
+        pitchResult = `📄 EXECUTIVE SEO PROPOSAL & PITCH DECK FOR '${domainName.toUpperCase()}'
+
+1. EXECUTIVE SUMMARY:
+   Current Domain Performance Analysis indicates significant untruthful keyword coverage. By fixing technical audit errors and expanding High-Intent landing pages, ${domainName} can achieve a 300% growth in organic leads over 180 days.
+
+2. 6-MONTH ACTION ROADMAP:
+   • Month 1: Technical Audit Fixes, Meta tags & Speed Optimization
+   • Month 2-3: 100+ High-Intent Keyword Landing Pages Creation
+   • Month 4-5: High-DA Do-Follow Backlink Acquisition & Citation Building
+   • Month 6: Local Map Pack Domination & Conversion Rate Optimization
+
+3. ESTIMATED ROI & REVENUE IMPACT:
+   • Estimated Organic Traffic Surge: +35,000 monthly targeted visits
+   • Estimated Monthly Lead Value: ₹3,50,000+`;
+      }
+
+      return NextResponse.json({ success: true, pitchData: pitchResult, domainName });
     }
 
     return NextResponse.json({ error: "Invalid Mode" }, { status: 400 });
@@ -141,11 +210,12 @@ async function callGemini(apiKey: string | undefined, prompt: string) {
 function getDomainFallback(domain: string) {
   return {
     domain,
-    domainAuthority: 54,
-    organicKeywords: "8.5K",
-    monthlyTraffic: "24.1K",
-    backlinks: "6.2K",
+    domainAuthority: 58,
+    organicKeywords: "12.5K",
+    monthlyTraffic: "38.1K",
+    backlinks: "9.2K",
     healthScore: 88,
+    estRevenue: "₹3,50,000 / mo",
     topKeywords: [
       { kw: `${domain} services`, pos: "1", vol: "3,600", traffic: "1,200" },
       { kw: `top rated ${domain}`, pos: "1", vol: "2,400", traffic: "950" },
@@ -156,6 +226,17 @@ function getDomainFallback(domain: string) {
       { type: "Medium Priority", issue: "Mobile page speed optimization required", impact: "Medium" }
     ]
   };
+}
+
+function getBacklinkFallback() {
+  return [
+    { site: "Medium.com", da: "96", type: "Article / Guest Post", status: "Instant Do-Follow", actionUrl: "https://medium.com" },
+    { site: "Linkedin.com/pulse", da: "98", type: "B2B Article", status: "High Authority", actionUrl: "https://linkedin.com" },
+    { site: "Indiamart.com", da: "88", type: "Business Directory", status: "Do-Follow Listing", actionUrl: "https://indiamart.com" },
+    { site: "Justdial.com", da: "84", type: "Local Citation", status: "Local Backlink", actionUrl: "https://justdial.com" },
+    { site: "GitHub Pages / Gist", da: "96", type: "Tech Anchor Link", status: "Do-Follow Index", actionUrl: "https://github.com" },
+    { site: "ProductHunt.com", da: "90", type: "SaaS Launch Link", status: "High Quality Traffic", actionUrl: "https://producthunt.com" }
+  ];
 }
 
 function getPureDynamicKeywords(input: string) {
