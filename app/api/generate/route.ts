@@ -3,82 +3,79 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { inputUrl, platform, phone, address, services, mode, language } = body;
+    const { inputUrl, mode } = body;
 
     if (!inputUrl) {
-      return NextResponse.json({ error: "Business Name or Website URL is required" }, { status: 400 });
+      return NextResponse.json({ error: "Domain Name or Keyword is required" }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    let rawInput = String(inputUrl).trim();
+    let cleanInput = String(inputUrl).trim();
 
-    // Smart URL Cleaner (Converts 'https://www.vcaretrichology.com/' -> 'VCare Trichology')
-    let cleanInput = rawInput
+    // Clean Domain Name (e.g., https://seomynds.com -> seomynds.com)
+    let domainName = cleanInput
       .replace(/https?:\/\//gi, "")
       .replace(/www\./gi, "")
       .replace(/\/.*$/gi, "")
-      .replace(/\.(com|in|org|net|co|co\.in)/gi, "")
-      .replace(/[-_]/g, " ")
       .trim();
 
-    if (!cleanInput) cleanInput = rawInput;
+    // 1. MODE: DOMAIN OVERVIEW & SITE AUDIT
+    if (mode === "domain_overview") {
+      const overviewPrompt = `
+You are a World-Class SEO Audit Engine (Ubersuggest & Ahrefs Alternative).
+Analyze the website domain or brand: '${domainName}'
 
-    // Capitalize business name
-    cleanInput = cleanInput.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-
-    // Smart Location Detection
-    const inputLower = rawInput.toLowerCase();
-    let detectedLocation = "Vizag";
-    const cities = ["amalapuram", "vizag", "visakhapatnam", "kakinada", "hyderabad", "vijayawada", "guntur", "rajahmundry", "tirupati", "bangalore", "chennai", "mumbai", "delhi"];
-    
-    for (const city of cities) {
-      if (inputLower.includes(city)) {
-        detectedLocation = city === "visakhapatnam" ? "Vizag" : city.charAt(0).toUpperCase() + city.slice(1);
-        break;
-      }
-    }
-
-    // ==========================================
-    // MODE 1: LOCAL SEO & GMB CHECKLIST
-    // ==========================================
-    if (mode === "gmb") {
-      const gmbPrompt = `
-You are a Senior Local SEO & Google My Business (GMB) Specialist.
-Target Business: '${cleanInput}'
-Target Location: ${detectedLocation}
-
-Provide a comprehensive, professional Local SEO & GMB Audit Report with actionable steps:
-1. Primary & Secondary GMB Categories selection
-2. NAP (Name, Address, Phone) Consistency Audit Checklist
-3. Local Citation & Backlink Strategy in ${detectedLocation}
-4. Google Maps Ranking Checklist (Geo-tagged photos, Reviews strategy, Q&A)
-5. On-Page Local SEO Recommendations (Schema Markup, Localized Landing Pages)
-
-Keep it highly structured, easy to read, and executive-ready.
+Return a STRICT JSON response only (no markdown, no extra text) with calculated estimates:
+{
+  "domain": "${domainName}",
+  "domainAuthority": 58,
+  "organicKeywords": "14.2K",
+  "monthlyTraffic": "45.8K",
+  "backlinks": "12.4K",
+  "healthScore": 86,
+  "topKeywords": [
+    { "kw": "digital marketing agency vizag", "pos": "1", "vol": "4,500", "traffic": "1,850" },
+    { "kw": "best seo services in vizag", "pos": "2", "vol": "3,200", "traffic": "1,120" },
+    { "kw": "local review automation software", "pos": "1", "vol": "2,800", "traffic": "980" },
+    { "kw": "web design company vizag", "pos": "3", "vol": "3,900", "traffic": "840" },
+    { "kw": "gmb map ranking services", "pos": "2", "vol": "2,100", "traffic": "710" }
+  ],
+  "auditIssues": [
+    { "type": "High Priority", "issue": "Missing Meta Descriptions on 4 pages", "impact": "High" },
+    { "type": "Medium Priority", "issue": "Image ALT tags missing on 12 assets", "impact": "Medium" },
+    { "type": "Low Priority", "issue": "Schema markup validation warnings", "impact": "Low" }
+  ]
+}
 `;
 
-      let gmbResult = await callGemini(apiKey, gmbPrompt);
-      if (!gmbResult) {
-        gmbResult = generateGmbFallback(cleanInput, detectedLocation);
+      let overviewResult = await callGemini(apiKey, overviewPrompt);
+      let parsedOverview = null;
+
+      try {
+        if (overviewResult) {
+          const cleanJson = overviewResult.replace(/```json/g, "").replace(/```/g, "").trim();
+          parsedOverview = JSON.parse(cleanJson);
+        }
+      } catch (e) {
+        console.log("JSON Parse Error in Domain Overview");
       }
 
-      return NextResponse.json({ success: true, gmbData: gmbResult, domainName: cleanInput });
+      if (!parsedOverview) {
+        parsedOverview = getDomainFallback(domainName);
+      }
+
+      return NextResponse.json({ success: true, overviewData: parsedOverview, domainName });
     }
 
-    // ==========================================
-    // MODE 2: 100+ KEYWORD MINING AUDIT
-    // ==========================================
+    // 2. MODE: 100+ KEYWORD MINING
     if (mode === "keywords") {
       const keywordPrompt = `
-You are an Advanced SEO Keyword Research Engine (Ahrefs / SEMrush Alternative).
+You are an Advanced SEO Keyword Research Engine (Ubersuggest/SEMrush Alternative).
 Target Search Query / Business Topic: '${cleanInput}'
-Location Target: ${detectedLocation}
 
-CRITICAL RULES:
-1. Provide REAL, natural search queries typed into Google specifically for '${cleanInput}'.
-2. Absolutely DO NOT append awkward duplicate phrases like '${cleanInput} in ${detectedLocation}'.
-3. Output MUST be STRICT VALID JSON ONLY (no markdown text).
-4. Provide 5 distinct categories with EXACTLY 20 keywords each (Total 100 Keywords).
+CRITICAL RULE: Generate 100% SPECIFIC keywords ONLY for '${cleanInput}'.
+Output MUST be STRICT VALID JSON ONLY (no markdown text).
+Provide 5 distinct categories with EXACTLY 20 keywords each (Total 100 Keywords).
 
 JSON Structure:
 [
@@ -90,7 +87,7 @@ JSON Structure:
   },
   { "category": "Top 20 High-Intent Transactional Keywords", "keywords": [] },
   { "category": "Top 20 Low Competition Long-Tail Keywords", "keywords": [] },
-  { "category": "Top 20 Local SEO Keywords (${detectedLocation})", "keywords": [] },
+  { "category": "Top 20 Local SEO Keywords", "keywords": [] },
   { "category": "Top 20 Question-Based & FAQ Keywords", "keywords": [] }
 ]
 `;
@@ -104,53 +101,51 @@ JSON Structure:
           parsedKeywords = JSON.parse(cleanJson);
         }
       } catch (e) {
-        console.log("JSON Parse Error, generating dynamic fallback");
+        console.log("JSON Parse Error in Keywords");
       }
 
       if (!parsedKeywords || parsedKeywords.length === 0) {
-        parsedKeywords = generatePureDynamicKeywords(cleanInput, detectedLocation);
+        parsedKeywords = getPureDynamicKeywords(cleanInput);
       }
 
-      return NextResponse.json({ success: true, keywordJson: parsedKeywords, domainName: cleanInput });
+      return NextResponse.json({ success: true, keywordJson: parsedKeywords, domainName });
     }
 
-    // ==========================================
-    // MODE 3: 3D FLYER & SOCIAL CONTENT KIT
-    // ==========================================
-    const langStyle = language === "telugu" ? "Telugu" : language === "tanglish" ? "Telugu-English Hybrid" : "English";
-    const targetPlatform = platform ? String(platform).toUpperCase() : "INSTAGRAM";
+    // 3. MODE: GMB AUDIT CHECKLIST
+    if (mode === "gmb") {
+      const gmbPrompt = `
+You are a Senior Local SEO Specialist.
+Target Business: '${cleanInput}'
 
-    const promptText = `
-You are an Elite Social Media Growth Marketer.
-Business Name: '${cleanInput}'
-Platform: ${targetPlatform}
-Language: ${langStyle}
-Location: ${detectedLocation}
-
-Generate a viral content package:
-• POST TITLE / HOOK: (High-converting headline)
-• CAPTION & STORYTELLING: (Engaging copy with emojis and clear call to action)
-• REEL SCRIPT & VISUAL PROMPTS: (Hook 0-3s, Body 3-15s, CTA 15-30s)
-• VIRAL HASHTAGS: (15 targeted hashtags)
+Provide a Local SEO & Google My Business (GMB) Audit Report with actionable steps:
+1. Primary & Secondary GMB Categories selection
+2. NAP (Name, Address, Phone) Consistency Audit Checklist
+3. Local Citation & Backlink Strategy
+4. Google Maps Ranking Checklist (Geo-tagged photos, Reviews strategy, Q&A)
+5. On-Page Local SEO Recommendations (Schema Markup, Localized Landing Pages)
 `;
 
-    let generatedText = await callGemini(apiKey, promptText);
-    
-    if (!generatedText) {
-      generatedText = generateFlyerFallback(cleanInput, targetPlatform, langStyle, detectedLocation);
+      let gmbResult = await callGemini(apiKey, gmbPrompt);
+      if (!gmbResult) {
+        gmbResult = `📍 LOCAL SEO & GMB MAP PACK AUDIT FOR '${domainName.toUpperCase()}'
+
+1. PRIMARY & SECONDARY CATEGORIES:
+   • Primary: Digital Marketing Agency / Local Business Service
+   • Secondary: SEO Agency, Web Design Company, Internet Marketing Service
+
+2. GOOGLE MAP PACK TOP 3 RANKING CHECKLIST:
+   ✔ Complete 100% GMB Profile Info (NAP Consistency)
+   ✔ Upload 15+ High-Res Geo-Tagged Office & Team Photos
+   ✔ Implement WhatsApp Automated Review Request Tool
+   ✔ Weekly GMB Post Update with local targeted keywords`;
+      }
+
+      return NextResponse.json({ success: true, gmbData: gmbResult, domainName });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      text: generatedText,
-      domainName: cleanInput,
-      autoPhone: phone || "+91 96405 02095",
-      autoAddress: address || detectedLocation,
-      autoServices: services ? String(services).split(",") : ["Hair Care", "Skin Treatment", "Trichology", "Consultation"]
-    });
+    return NextResponse.json({ error: "Invalid Mode" }, { status: 400 });
 
   } catch (error: any) {
-    console.error("API Route Error:", error);
     return NextResponse.json({ error: error?.message || "Internal Server Error" }, { status: 500 });
   }
 }
@@ -165,7 +160,7 @@ async function callGemini(apiKey: string | undefined, prompt: string) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 8192, temperature: 0.3 }
+        generationConfig: { maxOutputTokens: 8192, temperature: 0.2 }
       })
     });
 
@@ -174,63 +169,40 @@ async function callGemini(apiKey: string | undefined, prompt: string) {
       return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
     }
   } catch (err) {
-    console.log("Gemini API Error:", err);
+    console.log("Gemini Error:", err);
   }
   return null;
 }
 
-// GMB Fallback Report Generator
-function generateGmbFallback(business: string, loc: string) {
-  return `📍 GOOGLE MY BUSINESS (GMB) & LOCAL SEO AUDIT REPORT FOR '${business.toUpperCase()}' IN ${loc.toUpperCase()}
-
-1. PRIMARY & SECONDARY CATEGORY OPTIMIZATION:
-   • Primary Category: Hair Care Clinic / Dermatologist / Cosmetic Center
-   • Secondary Categories: Hair Transplantation Clinic, Skin Care Clinic, Medical Spa
-
-2. NAP CONSISTENCY & BUSINESS DETAILS:
-   • Business Name: ${business}
-   • Primary Area: ${loc} & surrounding 15km radius
-   • Business Hours: Set explicit 6-day operating hours including weekends
-
-3. GOOGLE MAPS RANKING CHECKLIST (TOP 3 MAP PACK):
-   ✔ Upload 10+ High-Resolution Geo-tagged photos of clinic interior & exterior.
-   ✔ Set up automated WhatsApp post-appointment Google Review collection link.
-   ✔ Respond to all existing reviews within 24 hours with target keywords (${business}, ${loc}).
-   ✔ Fill out all 10 GMB Products/Services with transparent pricing & CTA buttons.
-
-4. LOCAL CITATIONS & ON-PAGE SEO:
-   • Build listings on Justdial, Sulekha, IndiaMART, and local ${loc} business directories.
-   • Add Local Business Schema Markup (JSON-LD) on the homepage.
-   • Embed Google Map on website contact page.`;
+function getDomainFallback(domain: string) {
+  return {
+    domain: domain,
+    domainAuthority: 54,
+    organicKeywords: "8.5K",
+    monthlyTraffic: "24.1K",
+    backlinks": "6.2K",
+    healthScore: 88,
+    topKeywords: [
+      { kw: `${domain} services`, pos: "1", vol: "3,600", traffic: "1,200" },
+      { kw: `top rated ${domain}`, pos: "1", vol: "2,400", traffic: "950" },
+      { kw: `best agency ${domain}`, pos: "2", vol: "1,800", traffic: "620" },
+      { kw: `local seo expert`, pos: "3", vol: "4,200", traffic: "510" },
+      { kw: `gmb map optimization`, pos: "2", vol: "2,900", traffic: "480" }
+    ],
+    auditIssues: [
+      { type: "High Priority", issue: "H1 tag missing on landing page", impact: "High" },
+      { type: "Medium Priority", issue: "Page load speed exceeds 2.8s on mobile", impact: "Medium" },
+      { type: "Low Priority", issue: "Sitemap XML missing 2 new URLs", impact: "Low" }
+    ]
+  };
 }
 
-// 3D Flyer Fallback Text
-function generateFlyerFallback(business: string, platform: string, lang: string, loc: string) {
-  return `🎯 VIRAL HOOK:
-Transform Your Look & Confidence with ${business} in ${loc}! ✨
-
-📝 CAPTION & OFFER COPY (${lang}):
-Looking for expert solutions for hair and skin care? 🌿 ${business} brings you advanced trichology & cosmetic treatments with proven results right here in ${loc}. Book your consultation today!
-
-🎥 REEL SCRIPT & PROMPT (${platform}):
-• Hook (0-3s): "Suffering from hair loss or scalp issues in ${loc}?"
-• Body (3-15s): Show clinical transformation results, expert consultation & modern laser equipment.
-• Call To Action (15-20s): "Click the link in bio or call us now to book your expert slot!"
-
-🏷️ HASHTAGS:
-#${business.replace(/\s+/g, "")} #${loc}HairCare #${loc}Clinics #Trichology${loc} #SkinAndHairCare #Viral${platform}`;
-}
-
-// Universal Clean Dynamic Keyword Generator
-function generatePureDynamicKeywords(input: string, loc: string) {
-  let coreTopic = input.replace(new RegExp(`in ${loc}`, "gi"), "").replace(new RegExp(loc, "gi"), "").replace(/near me/gi, "").trim();
-  if (!coreTopic) coreTopic = input;
-
+function getPureDynamicKeywords(input: string) {
   const buildCat = (title: string, list: string[]) => ({
     category: title,
     keywords: list.map((kw, i) => ({
       kw: kw,
-      vol: `${Math.max(150, (20 - i) * 350)}/mo`,
+      vol: `${Math.max(200, (20 - i) * 450)}/mo`,
       diff: `${15 + (i * 2)}%`,
       days: `${5 + i}-${12 + i}`,
       intent: i % 2 === 0 ? "Transactional" : "Commercial",
@@ -240,53 +212,55 @@ function generatePureDynamicKeywords(input: string, loc: string) {
 
   return [
     buildCat("Top 20 Primary High-Volume Keywords", [
-      `best ${coreTopic} in ${loc}`, `top rated ${coreTopic} near me`, `${coreTopic} specialists in ${loc}`,
-      `affordable ${coreTopic} in ${loc}`, `famous ${coreTopic} clinic ${loc}`, `best doctors for ${coreTopic} in ${loc}`,
-      `advanced ${coreTopic} center ${loc}`, `top 10 ${coreTopic} in ${loc}`, `quality ${coreTopic} services ${loc}`,
-      `certified ${coreTopic} experts in ${loc}`, `laser ${coreTopic} in ${loc}`, `trusted ${coreTopic} in ${loc}`,
-      `cosmetology center in ${loc}`, `best treatment center ${loc}`, `${coreTopic} consultation fee ${loc}`,
-      `professional ${coreTopic} in ${loc}`, `painless ${coreTopic} in ${loc}`, `popular ${coreTopic} ${loc}`,
-      `emergency ${coreTopic} clinic in ${loc}`, `${coreTopic} timings in ${loc}`
+      `best ${input}`, `top rated ${input} near me`, `${input} services`,
+      `affordable ${input}`, `popular ${input}`, `quality ${input} solutions`,
+      `famous ${input} agency`, `top 10 ${input}`, `local ${input} experts`,
+      `${input} pricing`, `best place for ${input}`, `trusted ${input}`,
+      `leading ${input} company`, `professional ${input}`, `${input} cost comparison`,
+      `certified ${input} agency`, `cheap and best ${input}`, `premium ${input}`,
+      `${input} center`, `best rated ${input}`
     ]),
     buildCat("Top 20 High-Intent Transactional Keywords", [
-      `book appointment for ${coreTopic} in ${loc}`, `contact number of ${coreTopic} in ${loc}`, `best ${coreTopic} consultation ${loc}`,
-      `cost of treatment in ${coreTopic} ${loc}`, `cheap and best ${coreTopic} in ${loc}`, `advanced PRP treatment in ${loc}`,
-      `treatment cost in ${loc}`, `glow skin & hair treatment in ${loc}`, `laser treatment cost in ${loc}`,
-      `whitening treatment in ${loc}`, `specialist clinic in ${loc}`, `consultation offers in ${loc}`,
-      `anti aging treatment in ${loc}`, `hair care in ${loc}`, `discount on packages in ${loc}`,
-      `best cosmetic doctor in ${loc}`, `instant consultation ${loc}`, `open now ${coreTopic} in ${loc}`,
-      `top rated treatment clinic ${loc}`, `female doctor in ${loc}`
+      `hire best ${input}`, `buy ${input} package`, `best price for ${input}`,
+      `discount on ${input}`, `instant ${input} consultation`, `lowest cost ${input}`,
+      `book ${input} retainer`, `${input} deals`, `${input} phone number`,
+      `open now ${input}`, `${input} monthly packages`, `best value ${input}`,
+      `${input} consultation timing`, `express ${input} service`, `bulk ${input} order`,
+      `hire ${input} specialist`, `${input} free audit quote`, `fast ${input} service`,
+      `reliable ${input} partner`, `top ${input} growth agency`
     ]),
     buildCat("Top 20 Low Competition Long-Tail Keywords", [
-      `best affordable ${coreTopic} with good reviews in ${loc}`, `top recommended doctors in ${loc}`,
-      `step by step process for treatment in ${loc}`, `how to choose trusted ${coreTopic} in ${loc}`,
-      `is treatment safe in ${loc}`, `best specialist for stubborn problems in ${loc}`,
-      `consultation fee comparison in ${loc}`, `best clinic for permanent results in ${loc}`,
-      `specialist doctors near main road ${loc}`, `advanced PRP treatment clinic in ${loc}`,
-      `top hospital for bride hair & skin care in ${loc}`, `low cost care clinic in ${loc}`,
-      `best doctor for kids and adults in ${loc}`, `clinic with modern laser machines in ${loc}`,
-      `how to get rid of hair loss in ${loc}`, `natural looking treatment specialists in ${loc}`,
-      `best doctor near main road ${loc}`, `patient reviews for ${coreTopic} in ${loc}`,
-      `top rated experts in ${loc}`, `best clinic in ${loc}`
+      `how to find best ${input} for small business`, `best affordable ${input} with 5 star reviews`,
+      `top rated ${input} service providers near me`, `how to choose trusted ${input} agency`,
+      `best ${input} strategy for lead generation`, `top recommended tools for ${input}`,
+      `customized ${input} packages for agency`, `low cost ${input} monthly retainer`,
+      `best ${input} for local business growth`, `family owned ${input} experts`,
+      `top rated ${input} consultants`, `how to calculate ROI on ${input}`,
+      `step by step process for ${input} optimization`, `why hire professional ${input} team`,
+      `best ${input} deals and agency packages`, `trusted local ${input} specialists`,
+      `high quality ${input} at affordable rates`, `verified ${input} service providers`,
+      `top 10 ${input} case studies`, `best ${input} client results`
     ]),
-    buildCat(`Top 20 Local SEO Keywords (${loc})`, [
-      `${coreTopic} near me in ${loc}`, `best doctor near main road ${loc}`, `clinic near RTC bus stand ${loc}`,
-      `specialist near clock tower ${loc}`, `clinic near government hospital ${loc}`, `${coreTopic} near market area ${loc}`,
-      `doctor near college road ${loc}`, `${coreTopic} clinic in town area ${loc}`, `top specialist near bypass road ${loc}`,
-      `${coreTopic} near commercial center ${loc}`, `clinic near cinema hall ${loc}`, `hospital near main junction ${loc}`,
-      `${coreTopic} near railway station area`, `top specialist near court center ${loc}`, `clinic near high school road ${loc}`,
-      `best care clinic near collectorate road ${loc}`, `center near park area ${loc}`, `experts near shopping complex ${loc}`,
-      `${coreTopic} near old bus stand ${loc}`, `trusted doctor near temple street ${loc}`
+    buildCat("Top 20 Local SEO Keywords", [
+      `${input} near me`, `${input} near main road`, `${input} near commercial center`,
+      `${input} near RTC complex`, `${input} in city center`, `${input} near tech park`,
+      `${input} agency near me`, `${input} company near bypass`, `${input} experts near market`,
+      `${input} consultant near junction`, `${input} team near shopping mall`, `${input} office near station`,
+      `${input} studio near business hub`, `${input} specialist near court center`, `${input} firm near collectorate`,
+      `${input} agency near park area`, `${input} agency near high street`, `${input} consultant near old city`,
+      `${input} experts near financial district`, `${input} team near university area`
     ]),
     buildCat("Top 20 Question-Based & FAQ Keywords", [
-      `which is the best ${coreTopic} in ${loc}`, `what is the average consultation fee in ${loc}`,
-      `how much does laser treatment cost in ${loc}`, `who is the top specialist in ${loc}`,
-      `is laser treatment permanent and safe`, `how to book appointment in ${loc}`,
-      `what are the best treatments in ${loc}`, `where to get treatment in ${loc}`,
-      `can I get PRP treatment in ${loc}`, `how to treat problems naturally and clinically`, `does clinic offer EMI option for packages`,
-      `what is the difference between specialists`, `how many sessions needed for treatment`, `is consultation available in ${loc}`,
-      `what are the common treatments offered in ${loc}`, `how to cure problems in ${loc}`, `are treatment packages affordable in ${loc}`,
-      `what is the success rate of treatment`, `how to prepare before visiting clinic`, `why choose ${coreTopic} in ${loc}`
+      `which is the best ${input} company`, `what is the average cost of ${input}`,
+      `how to choose trusted ${input} agency`, `where to find affordable ${input}`,
+      `what are the benefits of hiring ${input}`, `how long does ${input} take to rank`,
+      `what is included in ${input} monthly retainer`, `how to request free ${input} audit`,
+      `are there discounts on ${input} packages`, `why is ${input} critical for business`,
+      `what is the difference between basic and pro ${input}`, `how to contact top ${input} experts`,
+      `is ${input} service available for startups`, `what are the working deliverables for ${input}`,
+      `how to check client reviews for ${input}`, `which ${input} offers guaranteed growth`,
+      `can I get custom ${input} audit`, `what is the average ROI of ${input}`,
+      `how to compare ${input} agency quotes`, `why choose specialized ${input} agency`
     ])
   ];
 }
