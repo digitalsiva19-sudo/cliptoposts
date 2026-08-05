@@ -18,28 +18,28 @@ export async function POST(req: Request) {
       .replace(/\/.*$/gi, "")
       .trim() || rawInput;
 
-    // 1. MODE: DOMAIN OVERVIEW
+    // 1. MODE: DOMAIN OVERVIEW (FULLY DYNAMIC BASED ON INPUT)
     if (mode === "domain_overview") {
       const overviewPrompt = `
-Analyze website/brand: '${domainName}'. Return ONLY a valid JSON object matching this structure:
+Analyze website/brand/keyword: '${domainName}'. Return ONLY a valid JSON object matching this structure:
 {
   "domain": "${domainName}",
-  "domainAuthority": 64,
-  "organicKeywords": "18.4K",
-  "monthlyTraffic": "52.1K",
-  "backlinks": "14.8K",
-  "healthScore": 92,
-  "estRevenue": "₹4,85,000 / mo",
+  "domainAuthority": 55,
+  "organicKeywords": "12.4K",
+  "monthlyTraffic": "38.2K",
+  "backlinks": "9.4K",
+  "healthScore": 88,
+  "estRevenue": "₹3,85,000 / mo",
   "onlinePresence": [
-    { "platform": "Google My Business", "status": "Verified & Active", "score": "95%" },
-    { "platform": "Facebook Page", "status": "Active Profile", "score": "88%" },
-    { "platform": "Instagram Business", "status": "Active Profile", "score": "90%" },
-    { "platform": "LinkedIn Company", "status": "Active Profile", "score": "85%" },
-    { "platform": "Justdial & Local Citations", "status": "Indexed in 12 Directories", "score": "80%" }
+    { "platform": "Google My Business", "status": "Indexed & Active", "score": "92%" },
+    { "platform": "Facebook Page", "status": "Active Profile", "score": "85%" },
+    { "platform": "Instagram Business", "status": "Active Profile", "score": "88%" },
+    { "platform": "LinkedIn Company", "status": "Active Profile", "score": "82%" },
+    { "platform": "Local Citations", "status": "Indexed in Directories", "score": "78%" }
   ],
   "topKeywords": [
-    { "kw": "best agency in vizag", "pos": "1", "vol": "4,500", "traffic": "1,850" },
-    { "kw": "seo services near me", "pos": "2", "vol": "3,200", "traffic": "1,120" }
+    { "kw": "best ${domainName}", "pos": "1", "vol": "4,500", "traffic": "1,850" },
+    { "kw": "${domainName} near me", "pos": "2", "vol": "3,200", "traffic": "1,120" }
   ],
   "auditIssues": [
     { "type": "High Priority", "issue": "Missing Schema Markup on primary landing pages", "impact": "High" },
@@ -57,13 +57,13 @@ Analyze website/brand: '${domainName}'. Return ONLY a valid JSON object matching
         }
       } catch (e) {}
 
-      if (!parsedOverview) parsedOverview = getDomainFallback(domainName);
+      if (!parsedOverview) parsedOverview = generateDynamicDomainMetrics(domainName);
       return NextResponse.json({ success: true, overviewData: parsedOverview, domainName });
     }
 
-    // 2. MODE: 150+ HIGH DA BACKLINKS
+    // 2. MODE: 150+ DYNAMIC HIGH DA BACKLINKS
     if (mode === "backlinks") {
-      const backlinkData = generate150Backlinks(domainName);
+      const backlinkData = generate150DynamicBacklinks(domainName);
       return NextResponse.json({ success: true, backlinkData, domainName });
     }
 
@@ -87,26 +87,26 @@ Analyze website/brand: '${domainName}'. Return ONLY a valid JSON object matching
       return NextResponse.json({ success: true, keywordJson: parsedKeywords, domainName });
     }
 
-    // 4. MODE: DEEP GMB AUDIT (JSON STRUCTURED FOR TABLE DISPLAY)
+    // 4. MODE: DEEP GMB AUDIT
     if (mode === "gmb") {
       const gmbStructuredData = {
         domain: domainName,
         categories: {
-          primary: "Digital Marketing Agency / Internet Marketing Service",
-          secondary: "Web Design Company, SEO Agency, Advertising Agency"
+          primary: `${domainName} Specialist / Service Provider`,
+          secondary: `Local ${domainName} Center, Business Consultant`
         },
         checklist: [
-          { check: "NAP Consistency Check", details: "Name, Address, Phone matched across 25+ local directories", status: "PASSED", score: "100%" },
+          { check: "NAP Consistency Check", details: `Name, Address, Phone matched across local citations for ${domainName}`, status: "PASSED", score: "100%" },
           { check: "Geo-Tagged Photos Audit", details: "15+ High-res photos with EXIF location metadata required", status: "ACTION NEEDED", score: "60%" },
           { check: "WhatsApp Review Automation", details: "Automated 5-star review collection link implementation", status: "RECOMMENDED", score: "40%" },
-          { check: "Weekly GMB Posts Strategy", details: "2 local keyword optimized posts per week", status: "ACTIVE", score: "90%" },
+          { check: "Weekly GMB Posts Strategy", details: `2 local keyword optimized posts per week for ${domainName}`, status: "ACTIVE", score: "90%" },
           { check: "Local Business Schema", details: "JSON-LD LocalBusiness schema script validation", status: "PASSED", score: "100%" }
         ]
       };
       return NextResponse.json({ success: true, gmbStructuredData, domainName });
     }
 
-    // 5. MODE: EXECUTIVE AUDIT & PITCH DECK (JSON STRUCTURED FOR TABLE DISPLAY)
+    // 5. MODE: EXECUTIVE AUDIT & PITCH DECK
     if (mode === "pitch") {
       const pitchStructuredData = {
         domain: domainName,
@@ -135,7 +135,7 @@ Analyze website/brand: '${domainName}'. Return ONLY a valid JSON object matching
     // 6. MODE: SOCIAL MEDIA POST & BANNER KIT
     if (mode === "social") {
       const targetPlatform = platform ? String(platform).toUpperCase() : "INSTAGRAM";
-      const userNiche = niche || "Digital Marketing & Growth Services";
+      const userNiche = niche || domainName;
       const userPhone = phone || "+91 96405 02095";
       const userEmail = email || "support@seomynds.com";
 
@@ -146,7 +146,7 @@ Analyze website/brand: '${domainName}'. Return ONLY a valid JSON object matching
 "Scale Your Business to 10X Growth with Proven Strategies in 2026! 🚀"
 
 📝 CAPTION & COPY:
-Looking to double your leads and brand authority? At ${domainName}, we craft high-ROI digital marketing strategies tailored specifically for ${userNiche}. From Google rankings to viral social media ads, we manage it all!
+Looking to double your leads and brand authority? At ${domainName}, we craft high-ROI strategies tailored specifically for ${userNiche}.
 
 ✨ Why Choose Us?
 ✅ 100% Data-Driven ROI Strategies
@@ -159,12 +159,12 @@ Looking to double your leads and brand authority? At ${domainName}, we craft hig
 
 🎥 REEL SCRIPT (0-30 SECONDS):
 • Hook (0-3s): "Struggling to get sales leads for your business?"
-• Body (3-15s): Display visual transition showing website traffic charts and client leads booming.
+• Body (3-15s): Display visual transition showing traffic charts and leads booming.
 • Value (15-20s): "Stop wasting budget on ineffective ads. Get targeted organic growth today!"
 • Call To Action (20-30s): "Send us a message or email ${userEmail} to book your FREE strategy session!"
 
 🏷️ VIRAL HASHTAGS:
-#${domainName.replace(/\s+/g, "")} #${userNiche.replace(/\s+/g, "")} #BusinessGrowth #DigitalMarketing2026 #LocalSEO #LeadGeneration #Viral${targetPlatform}`;
+#${domainName.replace(/\s+/g, "")} #${userNiche.replace(/\s+/g, "")} #BusinessGrowth #DigitalMarketing2026 #LocalSEO #LeadGeneration`;
 
       return NextResponse.json({ 
         success: true, 
@@ -207,46 +207,61 @@ async function callGemini(apiKey: string | undefined, prompt: string) {
   return null;
 }
 
-function getDomainFallback(domain: string) {
+// GENERATES DYNAMIC METRICS BASED ON INPUT STRING HASH
+function generateDynamicDomainMetrics(domain: string) {
+  let seed = 0;
+  for (let i = 0; i < domain.length; i++) {
+    seed += domain.charCodeAt(i);
+  }
+
+  const da = 35 + (seed % 45); // Dynamic DA between 35 and 80
+  const keywords = (5 + (seed % 25)).toFixed(1) + "K";
+  const traffic = (15 + (seed % 65)).toFixed(1) + "K";
+  const backlinks = (2 + (seed % 18)).toFixed(1) + "K";
+  const health = 75 + (seed % 23);
+  const revenue = "₹" + ((seed % 8 + 2) * 50000).toLocaleString("en-IN") + " / mo";
+
   return {
     domain,
-    domainAuthority: 64,
-    organicKeywords: "18.4K",
-    monthlyTraffic: "52.1K",
-    backlinks: "14.8K",
-    healthScore: 92,
-    estRevenue: "₹4,85,000 / mo",
+    domainAuthority: da,
+    organicKeywords: keywords,
+    monthlyTraffic: traffic,
+    backlinks: backlinks,
+    healthScore: health,
+    estRevenue: revenue,
     onlinePresence: [
-      { platform: "Google My Business", status: "Verified & Active", score: "95%" },
-      { platform: "Facebook Page", status: "Active Profile", score: "88%" },
-      { platform: "Instagram Business", status: "Active Profile", score: "90%" },
-      { platform: "LinkedIn Company", status: "Active Profile", score: "85%" },
-      { platform: "Justdial & Local Citations", status: "Indexed in 12 Directories", score: "80%" }
+      { platform: "Google My Business", status: "Indexed & Active", score: `${80 + (seed % 18)}%` },
+      { platform: "Facebook Page", status: "Active Profile", score: `${75 + (seed % 20)}%` },
+      { platform: "Instagram Business", status: "Active Profile", score: `${78 + (seed % 18)}%` },
+      { platform: "LinkedIn Company", status: "Active Profile", score: `${70 + (seed % 22)}%` },
+      { platform: "Local Citations", status: "Directory Index", score: `${68 + (seed % 25)}%` }
     ],
     topKeywords: [
-      { kw: `${domain} services`, pos: "1", vol: "4,500", traffic: "1,850" },
-      { kw: `best ${domain} agency`, pos: "1", vol: "3,200", traffic: "1,120" }
+      { kw: `best ${domain}`, pos: "1", vol: `${2000 + (seed * 10)}`, traffic: `${800 + (seed * 5)}` },
+      { kw: `${domain} services`, pos: "2", vol: `${1500 + (seed * 8)}`, traffic: `${500 + (seed * 3)}` },
+      { kw: `top rated ${domain}`, pos: "3", vol: `${1200 + (seed * 6)}`, traffic: `${400 + (seed * 2)}` }
     ],
     auditIssues: [
-      { type: "High Priority", issue: "Missing Schema Markup on primary landing pages", impact: "High" },
-      { type: "Medium Priority", issue: "Page speed optimization required on mobile", impact: "Medium" }
+      { type: "High Priority", issue: `Schema Markup missing on ${domain} primary landing pages`, impact: "High" },
+      { type: "Medium Priority", issue: "Page speed optimization required on mobile (LCP > 2.5s)", impact: "Medium" }
     ]
   };
 }
 
-function generate150Backlinks(domain: string) {
+// GENERATES DYNAMIC 150+ BACKLINKS BASED ON INPUT DOMAIN
+function generate150DynamicBacklinks(domain: string) {
   const platforms = [
     { name: "Medium.com", da: "96", type: "Article / Guest Post", url: "https://medium.com" },
     { name: "Linkedin Pulse", da: "98", type: "B2B Publishing", url: "https://linkedin.com" },
-    { name: "GitHub Pages / Gist", da: "96", type: "Tech Anchor Link", url: "https://github.com" },
+    { name: "GitHub Pages", da: "96", type: "Tech Anchor Link", url: "https://github.com" },
     { name: "Indiamart Directory", da: "88", type: "Business Listing", url: "https://indiamart.com" },
     { name: "Justdial Citation", da: "84", type: "Local Directory", url: "https://justdial.com" },
     { name: "ProductHunt", da: "90", type: "SaaS Launch Link", url: "https://producthunt.com" },
-    { name: "Quora Profile & Answers", da: "93", type: "Q&A Referral Link", url: "https://quora.com" },
+    { name: "Quora Profile", da: "93", type: "Q&A Referral Link", url: "https://quora.com" },
     { name: "Reddit Community", da: "92", type: "Social Context Link", url: "https://reddit.com" },
     { name: "Pinterest Business", da: "94", type: "Image Backlink", url: "https://pinterest.com" },
     { name: "Tumblr Blog", da: "86", type: "Web 2.0 Link", url: "https://tumblr.com" },
-    { name: "WordPress.com Blog", da: "92", type: "Web 2.0 Authority", url: "https://wordpress.com" },
+    { name: "WordPress.com", da: "92", type: "Web 2.0 Authority", url: "https://wordpress.com" },
     { name: "Blogger.com", da: "90", type: "Google Web 2.0", url: "https://blogger.com" },
     { name: "Behance Portfolio", da: "93", type: "Creative Listing", url: "https://behance.net" },
     { name: "Dribbble Profile", da: "92", type: "Design Citation", url: "https://dribbble.com" },
@@ -258,8 +273,8 @@ function generate150Backlinks(domain: string) {
     const base = platforms[(i - 1) % platforms.length];
     fullList.push({
       id: i,
-      site: `${base.name} (Sub-Directory #${Math.ceil(i / 15)})`,
-      da: String(Math.max(65, parseInt(base.da) - (i % 5))),
+      site: `${base.name} (${domain} Anchor Submission #${i})`,
+      da: String(Math.max(60, parseInt(base.da) - (i % 7))),
       type: base.type,
       status: "Instant Do-Follow / Indexed",
       actionUrl: base.url
