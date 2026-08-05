@@ -82,10 +82,10 @@ export default function HomePage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // PayU Integration Handler
+  // Dynamic PayU Form Submission
   const handlePayUPayment = async (amount: number, selectedPlan: string) => {
     if (!user) {
-      alert("Please Login / Register first before upgrading to Pro!");
+      alert("Please Login / Register first before upgrading!");
       window.location.href = "/login";
       return;
     }
@@ -99,7 +99,7 @@ export default function HomePage() {
         body: JSON.stringify({
           amount,
           planType: selectedPlan,
-          firstname: user.email?.split("@")[0] || "Customer",
+          firstname: user.email ? user.email.split("@")[0] : "Customer",
           email: user.email,
           phone: "9640502095"
         })
@@ -108,22 +108,23 @@ export default function HomePage() {
       const data = await res.json();
 
       if (!data.success || !data.payuData) {
-        alert("Error launching PayU Gateway: " + (data.error || "Missing API Credentials"));
+        alert("PayU Gateway Config Error: " + (data.error || "Missing API Credentials"));
         setPaying(false);
         return;
       }
 
-      // Create dynamic hidden form and submit to PayU Gateway
       const form = document.createElement("form");
       form.method = "POST";
       form.action = data.payuData.action;
 
-      Object.keys(data.payuData).forEach((key) => {
+      const payuObj: Record<string, string> = data.payuData;
+
+      Object.keys(payuObj).forEach((key) => {
         if (key !== "action") {
           const input = document.createElement("input");
           input.type = "hidden";
           input.name = key;
-          input.value = data.payuData[key];
+          input.value = payuObj[key];
           form.appendChild(input);
         }
       });
@@ -133,7 +134,7 @@ export default function HomePage() {
 
     } catch (err: any) {
       console.error(err);
-      alert("PayU Payment Error: " + err.message);
+      alert("PayU Payment Exception: " + err.message);
       setPaying(false);
     }
   };
@@ -465,7 +466,7 @@ export default function HomePage() {
           </div>
         </form>
 
-        {/* PRICING SECTION WITH REAL PAYU BUTTONS */}
+        {/* PRICING SECTION */}
         <section className="mt-12 bg-slate-900 border border-slate-800 p-6 rounded-2xl text-left space-y-6 shadow-xl">
           <div className="text-center space-y-1">
             <h3 className="text-xl font-extrabold text-white">💎 Choose Your ClipToPosts Growth Plan</h3>
@@ -506,7 +507,7 @@ export default function HomePage() {
                 disabled={paying || planType.includes("pro")}
                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-lg transition"
               >
-                {paying ? "Redirecting to PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹499 via PayU"}
+                {paying ? "Opening PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹499 via PayU"}
               </button>
             </div>
 
@@ -527,7 +528,7 @@ export default function HomePage() {
                 disabled={paying || planType.includes("pro")}
                 className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 rounded-lg transition"
               >
-                {paying ? "Redirecting to PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹2,499 via PayU"}
+                {paying ? "Opening PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹2,499 via PayU"}
               </button>
             </div>
 
@@ -548,7 +549,7 @@ export default function HomePage() {
                 disabled={paying || planType.includes("pro")}
                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs py-2 rounded-lg transition shadow-lg"
               >
-                {paying ? "Redirecting to PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹4,499 via PayU"}
+                {paying ? "Opening PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹4,499 via PayU"}
               </button>
             </div>
           </div>
