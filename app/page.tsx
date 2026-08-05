@@ -18,11 +18,11 @@ export default function HomePage() {
   const [overviewData, setOverviewData] = useState<any | null>(null);
   const [backlinkData, setBacklinkData] = useState<any[] | null>(null);
   const [keywordJson, setKeywordJson] = useState<any[] | null>(null);
-  const [gmbReport, setGmbReport] = useState<string | null>(null);
-  const [pitchData, setPitchData] = useState<string | null>(null);
+  const [gmbStructuredData, setGmbStructuredData] = useState<any | null>(null);
+  const [pitchStructuredData, setPitchStructuredData] = useState<any | null>(null);
   const [socialData, setSocialData] = useState<string | null>(null);
 
-  const [bannerInfo, setBannerInfo] = useState<{ headline: string; subheadline: string; phone: string; email: string } | null>(null);
+  const [bannerInfo, setBannerInfo] = useState<{ headline: string; subheadline: string; phone: string; email: string; services: string[] } | null>(null);
 
   const [domainName, setDomainName] = useState<string>("");
   const [copied, setCopied] = useState(false);
@@ -153,15 +153,16 @@ export default function HomePage() {
         if (mode === "domain_overview") setOverviewData(data.overviewData);
         if (mode === "backlinks") setBacklinkData(data.backlinkData);
         if (mode === "keywords") setKeywordJson(data.keywordJson);
-        if (mode === "gmb") setGmbReport(data.gmbData);
-        if (mode === "pitch") setPitchData(data.pitchData);
+        if (mode === "gmb") setGmbStructuredData(data.gmbStructuredData);
+        if (mode === "pitch") setPitchStructuredData(data.pitchStructuredData);
         if (mode === "social") {
           setSocialData(data.socialData);
           setBannerInfo({
-            headline: data.bannerHeadline || `Grow ${domainName}`,
-            subheadline: data.bannerSubheadline || `Top Rated Services & High Lead Conversion`,
+            headline: data.bannerHeadline || `Double Your Sales & Leads`,
+            subheadline: data.bannerSubheadline || `High ROI Growth Strategies`,
             phone: data.bannerPhone || "+91 96405 02095",
-            email: data.bannerEmail || "support@seomynds.com"
+            email: data.bannerEmail || "support@seomynds.com",
+            services: data.bannerServices || ["Google Rank #1", "Social Ads", "GMB Map Pack", "Lead Funnels"]
           });
         }
 
@@ -188,7 +189,7 @@ export default function HomePage() {
 
         <div className="flex items-center gap-3">
           <a href="mailto:support@seomynds.com" className="hidden sm:inline-block text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-xl transition">
-            ✉️ Contact Mail Support
+            ✉️ Support Email
           </a>
           {user ? (
             <>
@@ -211,13 +212,13 @@ export default function HomePage() {
       {/* Main Container */}
       <main className="max-w-6xl mx-auto w-full text-center my-6 space-y-6">
         <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
-          All-In-One Enterprise SEO & Social Automation Suite
+          All-In-One Enterprise SEO & Social Suite
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Online Presence Audit, 150+ High-DA Do-Follow Backlinks, 100+ Keywords & Custom Social Posts Generator!
+          Online Presence Audit, 150+ High-DA Do-Follow Backlinks, 100+ Keywords & Custom Social Graphic Banners!
         </p>
 
-        {/* Input Form */}
+        {/* Form Inputs */}
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-left shadow-2xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -275,7 +276,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 6 COLORFUL ACTION BUTTONS */}
+          {/* 6 ACTION BUTTONS */}
           <div className="grid grid-cols-2 md:grid-cols-6 gap-2 pt-2">
             <button
               onClick={() => handleRunAnalysis("domain_overview")}
@@ -327,7 +328,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* DISPLAY 1: OVERVIEW & ONLINE PRESENCE AUDIT */}
+        {/* DISPLAY 1: OVERVIEW */}
         {overviewData && (
           <div className="bg-slate-900 border border-indigo-500/40 p-6 rounded-2xl text-left space-y-6 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -458,90 +459,215 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* DISPLAY 4: GMB MAPS */}
-        {gmbReport && (
-          <div className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl text-left space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-amber-400">📍 Deep Local GMB Map Pack Audit ({domainName})</h3>
-              <button onClick={() => handleCopyText(gmbReport)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-slate-700">
-                {copied ? "Copied! ✅" : "📋 Copy Audit"}
+        {/* DISPLAY 4: STRUCTURED GMB MAPS AUDIT TABLE */}
+        {gmbStructuredData && (
+          <div className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl text-left space-y-5 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-amber-400 uppercase">📍 Local GMB Map Pack Audit: {gmbStructuredData.domain}</h3>
+              <button onClick={() => handleCopyText(JSON.stringify(gmbStructuredData, null, 2))} className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-slate-700">
+                {copied ? "Copied! ✅" : "📋 Copy Data"}
               </button>
             </div>
-            <div className="text-slate-200 text-xs leading-relaxed bg-slate-950 p-5 rounded-xl border border-slate-800 whitespace-pre-line font-mono">
-              {gmbReport}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span className="text-[10px] font-bold text-amber-400 block uppercase">Primary Recommended Category</span>
+                <span className="text-xs font-extrabold text-white mt-1 block">{gmbStructuredData.categories?.primary}</span>
+              </div>
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span className="text-[10px] font-bold text-indigo-400 block uppercase">Secondary Categories</span>
+                <span className="text-xs font-semibold text-slate-300 mt-1 block">{gmbStructuredData.categories?.secondary}</span>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-amber-950 text-amber-200 border-b border-amber-800">
+                    <th className="p-2.5 border border-slate-800">Checklist Item</th>
+                    <th className="p-2.5 border border-slate-800">Audit Finding & Recommendation</th>
+                    <th className="p-2.5 border border-slate-800">Status</th>
+                    <th className="p-2.5 border border-slate-800">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gmbStructuredData.checklist?.map((item: any, idx: number) => (
+                    <tr key={idx} className="hover:bg-slate-950/80 border-b border-slate-800/50 text-slate-200">
+                      <td className="p-2.5 border border-slate-800/40 font-bold text-white">{item.check}</td>
+                      <td className="p-2.5 border border-slate-800/40 text-slate-300">{item.details}</td>
+                      <td className="p-2.5 border border-slate-800/40">
+                        <span className={`text-[10px] px-2.5 py-1 rounded font-bold uppercase ${item.status === "PASSED" ? "bg-emerald-950 text-emerald-300 border border-emerald-800" : item.status === "ACTIVE" ? "bg-indigo-950 text-indigo-300 border border-indigo-800" : "bg-amber-950 text-amber-300 border border-amber-800"}`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="p-2.5 border border-slate-800/40 font-mono font-bold text-amber-400">{item.score}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {/* DISPLAY 5: EXECUTIVE AUDIT & PITCH DECK */}
-        {pitchData && (
-          <div className="bg-slate-900 border border-pink-500/50 p-6 rounded-2xl text-left space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-pink-400">📄 Executive Website SEO Audit & Proposal: {domainName}</h3>
-              <button onClick={() => handleCopyText(pitchData)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-slate-700">
-                {copied ? "Copied! ✅" : "📋 Copy Audit"}
-              </button>
+        {/* DISPLAY 5: STRUCTURED EXECUTIVE AUDIT & ROADMAP TABLE */}
+        {pitchStructuredData && (
+          <div className="bg-slate-900 border border-pink-500/50 p-6 rounded-2xl text-left space-y-6 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-pink-400 uppercase">📄 Executive Website SEO Audit & Roadmap: {pitchStructuredData.domain}</h3>
             </div>
-            <div className="text-slate-200 text-xs leading-relaxed bg-slate-950 p-5 rounded-xl border border-slate-800 whitespace-pre-line font-sans">
-              {pitchData}
+
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <span className="text-[10px] font-bold text-pink-400 block uppercase mb-1">Executive Summary</span>
+              <p className="text-xs text-slate-300 leading-relaxed">{pitchStructuredData.summary}</p>
+            </div>
+
+            {/* Technical Findings Table */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">⚠️ Technical Website Audit Checklist</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-pink-950 text-pink-200 border-b border-pink-800">
+                      <th className="p-2.5 border border-slate-800">Audit Item</th>
+                      <th className="p-2.5 border border-slate-800">Technical Issue Description</th>
+                      <th className="p-2.5 border border-slate-800">Priority</th>
+                      <th className="p-2.5 border border-slate-800">Business Impact</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pitchStructuredData.findings?.map((f: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-slate-950/80 border-b border-slate-800/50 text-slate-200">
+                        <td className="p-2.5 border border-slate-800 font-bold text-white">{f.item}</td>
+                        <td className="p-2.5 border border-slate-800 text-slate-300">{f.issue}</td>
+                        <td className="p-2.5 border border-slate-800">
+                          <span className={`text-[10px] px-2.5 py-1 rounded font-bold uppercase ${f.priority === "HIGH" ? "bg-red-950 text-red-300 border border-red-800" : f.priority === "PASSED" ? "bg-emerald-950 text-emerald-300 border border-emerald-800" : "bg-amber-950 text-amber-300 border border-amber-800"}`}>
+                            {f.priority}
+                          </span>
+                        </td>
+                        <td className="p-2.5 border border-slate-800 font-semibold text-purple-300">{f.impact}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 6 Month Strategic Roadmap Table */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">🚀 6-Month Strategic SEO Action Roadmap</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-indigo-950 text-indigo-200 border-b border-indigo-800">
+                      <th className="p-2.5 border border-slate-800">Timeline</th>
+                      <th className="p-2.5 border border-slate-800">Strategic Focus</th>
+                      <th className="p-2.5 border border-slate-800">Key Deliverables</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pitchStructuredData.roadmap?.map((r: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-slate-950/80 border-b border-slate-800/50 text-slate-200">
+                        <td className="p-2.5 border border-slate-800 font-bold text-amber-400 font-mono">{r.month}</td>
+                        <td className="p-2.5 border border-slate-800 font-bold text-white">{r.focus}</td>
+                        <td className="p-2.5 border border-slate-800 text-slate-300">{r.keyDeliverable}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-        {/* DISPLAY 6: SOCIAL MEDIA KIT & DYNAMIC GRAPHIC BANNER CARD */}
+        {/* DISPLAY 6: SOCIAL MEDIA KIT & HIGH-END POSTER GRAPHIC BANNER */}
         {socialData && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
             
-            {/* GRAPHIC BANNER IMAGE CARD (Visual Render) */}
+            {/* HIGH END PRO POSTER BANNER */}
             <div className="lg:col-span-5 bg-slate-900 border border-violet-500/40 p-5 rounded-2xl space-y-4 flex flex-col justify-between shadow-2xl">
               <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 className="text-xs font-bold text-fuchsia-400">📸 Generated Social Banner Asset</h3>
+                <h3 className="text-xs font-bold text-fuchsia-400">📸 Generated Pro Social Poster Asset</h3>
                 <span className="text-[10px] bg-violet-950 text-violet-300 border border-violet-800 px-2 py-0.5 rounded font-mono">1080x1080 HD</span>
               </div>
 
-              {/* DYNAMIC HIGH-RES BANNER CARD */}
-              <div id="social-banner-card" className="w-full aspect-square rounded-2xl p-6 bg-gradient-to-br from-indigo-950 via-slate-950 to-purple-950 border border-violet-500/50 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10">
-                  <div className="flex items-center gap-2">
+              {/* RICH PRO GRAPHIC POSTER CARD */}
+              <div id="social-banner-card" className="w-full aspect-square rounded-2xl p-6 bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 border-2 border-indigo-500/60 shadow-2xl flex flex-col justify-between relative overflow-hidden">
+                
+                {/* Background Decorative Rings */}
+                <div className="absolute -top-12 -right-12 w-40 h-40 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+                {/* Poster Header */}
+                <div className="flex items-center justify-between border-b border-white/15 pb-3 relative z-10">
+                  <div className="flex items-center gap-2.5">
                     {logoFile ? (
-                      <img src={logoFile} alt="Logo" className="w-8 h-8 rounded-full object-cover border border-amber-400" />
+                      <img src={logoFile} alt="Logo" className="w-9 h-9 rounded-xl object-cover border-2 border-amber-400 shadow-lg" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center font-black text-xs">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center font-black text-sm shadow-lg">
                         {domainName.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span className="font-black text-sm uppercase text-white tracking-wider truncate max-w-[140px]">{domainName}</span>
+                    <div>
+                      <span className="font-black text-sm uppercase text-white tracking-wider block truncate max-w-[130px]">{domainName}</span>
+                      <span className="text-[9px] text-amber-400 font-bold tracking-widest uppercase block">OFFICIAL AGENCY</span>
+                    </div>
                   </div>
-                  <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-[9px] px-2.5 py-1 rounded-md uppercase">PRO BRAND</span>
+                  <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-[9px] px-3 py-1 rounded-lg uppercase shadow-lg">★ PRO GROW</span>
                 </div>
 
-                <div className="space-y-2 relative z-10 my-auto">
-                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block">🔥 SPECIAL PROMOTION</span>
-                  <h3 className="text-xl font-black text-white leading-tight drop-shadow-md">
-                    {bannerInfo?.headline || `GROW YOUR ${domainName.toUpperCase()} BRAND`}
+                {/* Central Main Headline */}
+                <div className="my-auto space-y-2 relative z-10">
+                  <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest bg-indigo-950/80 px-2.5 py-1 rounded-md border border-indigo-800 inline-block">
+                    🔥 EXCLUSIVE STRATEGY OFFER
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-black text-white leading-tight drop-shadow-md">
+                    {bannerInfo?.headline || `DOUBLE YOUR SALES & LEADS`}
                   </h3>
                   <p className="text-xs text-slate-300 leading-snug">
-                    {bannerInfo?.subheadline || `Get High Conversion Results & Dominate Google Search Rankings`}
+                    {bannerInfo?.subheadline || `Dominate Google Search & Scale Business Revenue in 2026`}
                   </p>
                 </div>
 
-                <div className="bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/10 space-y-1 relative z-10">
-                  <div className="flex items-center justify-between text-[10px] font-semibold text-slate-200">
-                    <span>📞 {bannerInfo?.phone || "+91 96405 02095"}</span>
-                    <span>✉️ {bannerInfo?.email || "support@seomynds.com"}</span>
+                {/* Services Grid Badges */}
+                <div className="bg-slate-900/90 backdrop-blur-md p-3 rounded-xl border border-white/10 space-y-2 relative z-10">
+                  <div className="text-[9px] font-bold text-amber-400 uppercase tracking-wider border-b border-white/10 pb-1">
+                    OUR CORE CAPABILITIES:
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px] text-slate-200 font-bold">
+                    {bannerInfo?.services?.map((srv, sIdx) => (
+                      <div key={sIdx} className="flex items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800 truncate">
+                        <span className="text-amber-400">●</span> {srv}
+                      </div>
+                    ))}
                   </div>
                 </div>
+
+                {/* Footer Call to Action */}
+                <div className="border-t border-white/15 pt-3 flex items-center justify-between text-[10px] relative z-10">
+                  <div>
+                    <span className="block text-slate-400 text-[8px]">CALL US:</span>
+                    <span className="font-bold text-amber-300">{bannerInfo?.phone || "+91 96405 02095"}</span>
+                  </div>
+                  <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-1 rounded-lg font-black text-[9px] shadow-lg uppercase">
+                    REGISTER NOW
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-slate-400 text-[8px]">EMAIL US:</span>
+                    <span className="font-bold text-white truncate max-w-[100px] block">{bannerInfo?.email || "support@seomynds.com"}</span>
+                  </div>
+                </div>
+
               </div>
 
               <button
-                onClick={() => alert("Capture or Screenshot this 1080x1080 Banner Card to post directly on Instagram/WhatsApp!")}
+                onClick={() => alert("Screenshot or save this 1080x1080 Poster Card to share on Instagram or WhatsApp!")}
                 className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl border border-slate-700 transition"
               >
-                📸 Save Graphic Banner Card
+                📸 Save Graphic Poster Card
               </button>
             </div>
 
-            {/* TEXT COPY, CAPTION & REEL SCRIPT */}
+            {/* TEXT COPY & REEL SCRIPT */}
             <div className="lg:col-span-7 bg-slate-900 border border-violet-500/40 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-2xl">
               <div>
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
