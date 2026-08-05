@@ -22,6 +22,8 @@ export default function HomePage() {
   const [pitchData, setPitchData] = useState<string | null>(null);
   const [socialData, setSocialData] = useState<string | null>(null);
 
+  const [bannerInfo, setBannerInfo] = useState<{ headline: string; subheadline: string; phone: string; email: string } | null>(null);
+
   const [domainName, setDomainName] = useState<string>("");
   const [copied, setCopied] = useState(false);
 
@@ -153,7 +155,15 @@ export default function HomePage() {
         if (mode === "keywords") setKeywordJson(data.keywordJson);
         if (mode === "gmb") setGmbReport(data.gmbData);
         if (mode === "pitch") setPitchData(data.pitchData);
-        if (mode === "social") setSocialData(data.socialData);
+        if (mode === "social") {
+          setSocialData(data.socialData);
+          setBannerInfo({
+            headline: data.bannerHeadline || `Grow ${domainName}`,
+            subheadline: data.bannerSubheadline || `Top Rated Services & High Lead Conversion`,
+            phone: data.bannerPhone || "+91 96405 02095",
+            email: data.bannerEmail || "support@seomynds.com"
+          });
+        }
 
         await deductCreditOnSuccess();
       } else {
@@ -346,7 +356,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Online Platforms Presence Grid */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">🌐 Online Business Presence Status</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -479,21 +488,75 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* DISPLAY 6: CUSTOM SOCIAL MEDIA POST KIT */}
+        {/* DISPLAY 6: SOCIAL MEDIA KIT & DYNAMIC GRAPHIC BANNER CARD */}
         {socialData && (
-          <div className="bg-slate-900 border border-violet-500/50 p-6 rounded-2xl text-left space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-violet-400 flex items-center gap-2">
-                {logoFile && <img src={logoFile} alt="Brand Logo" className="w-6 h-6 rounded-full object-cover border border-violet-400" />}
-                <span>🎨 Social Media Content Kit & Reel Script ({domainName})</span>
-              </h3>
-              <button onClick={() => handleCopyText(socialData)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-slate-700">
-                {copied ? "Copied! ✅" : "📋 Copy Content Kit"}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
+            
+            {/* GRAPHIC BANNER IMAGE CARD (Visual Render) */}
+            <div className="lg:col-span-5 bg-slate-900 border border-violet-500/40 p-5 rounded-2xl space-y-4 flex flex-col justify-between shadow-2xl">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 className="text-xs font-bold text-fuchsia-400">📸 Generated Social Banner Asset</h3>
+                <span className="text-[10px] bg-violet-950 text-violet-300 border border-violet-800 px-2 py-0.5 rounded font-mono">1080x1080 HD</span>
+              </div>
+
+              {/* DYNAMIC HIGH-RES BANNER CARD */}
+              <div id="social-banner-card" className="w-full aspect-square rounded-2xl p-6 bg-gradient-to-br from-indigo-950 via-slate-950 to-purple-950 border border-violet-500/50 shadow-2xl flex flex-col justify-between relative overflow-hidden">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3 relative z-10">
+                  <div className="flex items-center gap-2">
+                    {logoFile ? (
+                      <img src={logoFile} alt="Logo" className="w-8 h-8 rounded-full object-cover border border-amber-400" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center font-black text-xs">
+                        {domainName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="font-black text-sm uppercase text-white tracking-wider truncate max-w-[140px]">{domainName}</span>
+                  </div>
+                  <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-[9px] px-2.5 py-1 rounded-md uppercase">PRO BRAND</span>
+                </div>
+
+                <div className="space-y-2 relative z-10 my-auto">
+                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block">🔥 SPECIAL PROMOTION</span>
+                  <h3 className="text-xl font-black text-white leading-tight drop-shadow-md">
+                    {bannerInfo?.headline || `GROW YOUR ${domainName.toUpperCase()} BRAND`}
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-snug">
+                    {bannerInfo?.subheadline || `Get High Conversion Results & Dominate Google Search Rankings`}
+                  </p>
+                </div>
+
+                <div className="bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/10 space-y-1 relative z-10">
+                  <div className="flex items-center justify-between text-[10px] font-semibold text-slate-200">
+                    <span>📞 {bannerInfo?.phone || "+91 96405 02095"}</span>
+                    <span>✉️ {bannerInfo?.email || "support@seomynds.com"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => alert("Capture or Screenshot this 1080x1080 Banner Card to post directly on Instagram/WhatsApp!")}
+                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 rounded-xl border border-slate-700 transition"
+              >
+                📸 Save Graphic Banner Card
               </button>
             </div>
-            <div className="text-slate-200 text-xs leading-relaxed bg-slate-950 p-5 rounded-xl border border-slate-800 whitespace-pre-line font-sans">
-              {socialData}
+
+            {/* TEXT COPY, CAPTION & REEL SCRIPT */}
+            <div className="lg:col-span-7 bg-slate-900 border border-violet-500/40 p-5 rounded-2xl space-y-3 flex flex-col justify-between shadow-2xl">
+              <div>
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <h3 className="text-xs font-bold text-violet-400">📝 Reel Scripts, Captions & Copy Kit</h3>
+                  <button onClick={() => handleCopyText(socialData)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold px-3 py-1 rounded-md border border-slate-700">
+                    {copied ? "Copied! ✅" : "📋 Copy Text"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="text-slate-200 text-xs leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-800 max-h-[420px] overflow-y-auto">
+                {socialData}
+              </div>
             </div>
+
           </div>
         )}
 
