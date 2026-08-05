@@ -7,11 +7,13 @@ import { supabase } from "./lib/supabase";
 export default function HomePage() {
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "keywords" | "gmb">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "backlinks" | "keywords" | "gmb" | "pitch">("overview");
 
   const [overviewData, setOverviewData] = useState<any | null>(null);
+  const [backlinkData, setBacklinkData] = useState<any[] | null>(null);
   const [keywordJson, setKeywordJson] = useState<any[] | null>(null);
   const [gmbReport, setGmbReport] = useState<string | null>(null);
+  const [pitchData, setPitchData] = useState<string | null>(null);
 
   const [domainName, setDomainName] = useState<string>("");
   const [copied, setCopied] = useState(false);
@@ -104,7 +106,7 @@ export default function HomePage() {
     document.body.removeChild(link);
   };
 
-  const handleRunAnalysis = async (mode: "domain_overview" | "keywords" | "gmb") => {
+  const handleRunAnalysis = async (mode: "domain_overview" | "backlinks" | "keywords" | "gmb" | "pitch") => {
     if (!inputText) {
       alert("Please enter a Domain Name or Keyword!");
       return;
@@ -119,7 +121,7 @@ export default function HomePage() {
     if (!checkCreditLimit()) return;
 
     setLoading(true);
-    setActiveTab(mode === "domain_overview" ? "overview" : mode === "keywords" ? "keywords" : "gmb");
+    setActiveTab(mode);
 
     try {
       const response = await fetch("/api/generate", {
@@ -133,8 +135,10 @@ export default function HomePage() {
       if (data.success) {
         setDomainName(data.domainName || inputText);
         if (mode === "domain_overview") setOverviewData(data.overviewData);
+        if (mode === "backlinks") setBacklinkData(data.backlinkData);
         if (mode === "keywords") setKeywordJson(data.keywordJson);
         if (mode === "gmb") setGmbReport(data.gmbData);
+        if (mode === "pitch") setPitchData(data.pitchData);
 
         await deductCreditOnSuccess();
       } else {
@@ -154,7 +158,7 @@ export default function HomePage() {
       {/* Header */}
       <header className="max-w-6xl mx-auto w-full flex items-center justify-between py-4 border-b border-slate-800">
         <h1 className="text-2xl font-black bg-gradient-to-r from-indigo-400 via-pink-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
-          SEOMYNDS <span className="text-xs bg-indigo-900/80 text-indigo-300 border border-indigo-700 px-2 py-0.5 rounded-md font-mono">UBER-SUITE</span>
+          SEOMYNDS <span className="text-xs bg-indigo-900/80 text-indigo-300 border border-indigo-700 px-2.5 py-1 rounded-lg font-mono">ULTIMATE SEO SUITE</span>
         </h1>
 
         <div className="flex items-center gap-3">
@@ -163,13 +167,13 @@ export default function HomePage() {
               <span className={`text-xs px-3 py-1.5 rounded-xl font-bold border ${planType === "free" ? "bg-amber-950 text-amber-300 border-amber-800" : "bg-emerald-950 text-emerald-300 border-emerald-800"}`}>
                 ⚡ {planType === "free" ? `Credits: ${credits}/3` : `PRO UNLIMITED`}
               </span>
-              <Link href="/dashboard" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
+              <Link href="/dashboard" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg">
                 Dashboard
               </Link>
               <button onClick={handleLogout} className="text-xs text-red-400 font-semibold">Logout</button>
             </>
           ) : (
-            <Link href="/login" className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5 py-2 rounded-xl transition">
+            <Link href="/login" className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5 py-2 rounded-xl transition shadow-lg">
               Login / Register
             </Link>
           )}
@@ -177,12 +181,12 @@ export default function HomePage() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-5xl mx-auto w-full text-center my-6 space-y-6">
+      <main className="max-w-6xl mx-auto w-full text-center my-6 space-y-6">
         <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight">
-          All-In-One SEO & Keyword Intelligence Dashboard
+          Enterprise SEO, Backlink & Intelligence Engine
         </h2>
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-          Analyze Website Traffic, Domain Authority, 100+ Keyword Intent Mining & Local GMB Maps!
+          Outrank Competitors with Live Backlink Opportunities, Revenue Estimator, 100+ Keyword Mining & 1-Click Client Proposals!
         </p>
 
         {/* Input Form */}
@@ -199,40 +203,57 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* 5 COLORFUL ACTION BUTTONS */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
             <button
               onClick={() => handleRunAnalysis("domain_overview")}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 text-[11px] shadow-lg"
             >
-              {loading && activeTab === "overview" ? "Analyzing Domain..." : "🌐 Domain Overview & Site Audit"}
+              {loading && activeTab === "overview" ? "Analyzing..." : "🌐 Overview & ROI"}
+            </button>
+
+            <button
+              onClick={() => handleRunAnalysis("backlinks")}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 text-[11px] shadow-lg"
+            >
+              {loading && activeTab === "backlinks" ? "Finding..." : "🔗 High DA Backlinks"}
             </button>
 
             <button
               onClick={() => handleRunAnalysis("keywords")}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl"
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 text-[11px] shadow-lg"
             >
-              {loading && activeTab === "keywords" ? "Mining 100+ Keywords..." : "🔍 100+ Keyword Intelligence"}
+              {loading && activeTab === "keywords" ? "Mining..." : "🔍 100+ Keywords"}
             </button>
 
             <button
               onClick={() => handleRunAnalysis("gmb")}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-3.5 rounded-xl transition disabled:opacity-50 text-xs shadow-xl"
+              className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 text-[11px] shadow-lg"
             >
-              {loading && activeTab === "gmb" ? "Checking GMB Maps..." : "📍 Local GMB Map Pack Audit"}
+              {loading && activeTab === "gmb" ? "Auditing..." : "📍 Local GMB Maps"}
+            </button>
+
+            <button
+              onClick={() => handleRunAnalysis("pitch")}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 text-[11px] shadow-lg col-span-2 md:col-span-1"
+            >
+              {loading && activeTab === "pitch" ? "Generating..." : "📄 Client Pitch Deck"}
             </button>
           </div>
         </div>
 
-        {/* OVERVIEW DISPLAY */}
+        {/* DISPLAY 1: OVERVIEW & REVENUE CALCULATOR */}
         {overviewData && (
           <div className="bg-slate-900 border border-indigo-500/40 p-6 rounded-2xl text-left space-y-6 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-indigo-400 uppercase">📊 Domain Overview: {domainName}</h3>
-              <span className="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-3 py-1 rounded-lg font-mono">
-                Health Score: {overviewData.healthScore}/100
+              <h3 className="text-base font-bold text-indigo-400 uppercase">📊 Domain Overview & Revenue Impact: {domainName}</h3>
+              <span className="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1 rounded-lg font-bold">
+                💰 Est. Monthly Revenue: {overviewData.estRevenue || "₹3,50,000"}
               </span>
             </div>
 
@@ -256,14 +277,14 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">🔥 Top Ranking Organic Keywords</h4>
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">🔥 Top Organic Keywords</h4>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-indigo-950 text-indigo-200 border-b border-indigo-800">
                       <th className="p-2 border border-slate-800">Keyword</th>
-                      <th className="p-2 border border-slate-800">Google Position</th>
-                      <th className="p-2 border border-slate-800">Search Volume</th>
+                      <th className="p-2 border border-slate-800">Position</th>
+                      <th className="p-2 border border-slate-800">Volume</th>
                       <th className="p-2 border border-slate-800">Est. Visits</th>
                     </tr>
                   </thead>
@@ -283,7 +304,42 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* KEYWORDS RESULT DISPLAY */}
+        {/* DISPLAY 2: HIGH DA BACKLINKS */}
+        {backlinkData && (
+          <div className="bg-slate-900 border border-blue-500/40 p-6 rounded-2xl text-left space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-blue-400">🔗 High-DA Do-Follow Backlink Opportunities for: {domainName}</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-blue-950 text-blue-200 border-b border-blue-800">
+                    <th className="p-2.5 border border-slate-800">Target Platform</th>
+                    <th className="p-2.5 border border-slate-800">Domain Authority (DA)</th>
+                    <th className="p-2.5 border border-slate-800">Link Type</th>
+                    <th className="p-2.5 border border-slate-800">Indexing Status</th>
+                    <th className="p-2.5 border border-slate-800">Action Link</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {backlinkData.map((b: any, idx: number) => (
+                    <tr key={idx} className="hover:bg-slate-950/80 border-b border-slate-800/50 text-slate-200">
+                      <td className="p-2.5 border border-slate-800 font-bold text-white">{b.site}</td>
+                      <td className="p-2.5 border border-slate-800 text-emerald-400 font-mono font-bold">DA {b.da}</td>
+                      <td className="p-2.5 border border-slate-800 text-slate-300">{b.type}</td>
+                      <td className="p-2.5 border border-slate-800"><span className="bg-emerald-950 text-emerald-300 text-[10px] px-2 py-0.5 rounded border border-emerald-800">{b.status}</span></td>
+                      <td className="p-2.5 border border-slate-800">
+                        <a href={b.actionUrl} target="_blank" rel="noreferrer" className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-3 py-1 rounded-md font-bold transition">Get Backlink ↗</a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* DISPLAY 3: KEYWORDS */}
         {keywordJson && (
           <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl text-left space-y-6 shadow-2xl">
             <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
@@ -329,7 +385,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* GMB DISPLAY */}
+        {/* DISPLAY 4: GMB MAPS */}
         {gmbReport && (
           <div className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl text-left space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -344,11 +400,26 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* DISPLAY 5: CLIENT PITCH DECK PROPOSAL */}
+        {pitchData && (
+          <div className="bg-slate-900 border border-pink-500/50 p-6 rounded-2xl text-left space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-pink-400">📄 1-Click Executive Client Pitch & Proposal: {domainName}</h3>
+              <button onClick={() => handleCopyText(pitchData)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-slate-700">
+                {copied ? "Copied! ✅" : "📋 Copy Proposal"}
+              </button>
+            </div>
+            <div className="text-slate-200 text-xs leading-relaxed bg-slate-950 p-5 rounded-xl border border-slate-800 whitespace-pre-line font-sans">
+              {pitchData}
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* Footer */}
       <footer className="text-center text-xs text-slate-600 py-4 border-t border-slate-900">
-        © SEOMYNDS Enterprise SEO & Keyword Intelligence Suite. All Rights Reserved.
+        © SEOMYNDS Ultimate Enterprise SEO Suite. All Rights Reserved.
       </footer>
     </div>
   );
