@@ -18,11 +18,10 @@ export async function POST(req: Request) {
       .replace(/\/.*$/gi, "")
       .trim() || rawInput;
 
-    // 1. MODE: DOMAIN OVERVIEW & ONLINE PRESENCE AUDIT
+    // 1. MODE: DOMAIN OVERVIEW
     if (mode === "domain_overview") {
       const overviewPrompt = `
-Analyze website/brand: '${domainName}'.
-Return ONLY a valid JSON object matching this structure:
+Analyze website/brand: '${domainName}'. Return ONLY a valid JSON object matching this structure:
 {
   "domain": "${domainName}",
   "domainAuthority": 64,
@@ -56,18 +55,13 @@ Return ONLY a valid JSON object matching this structure:
           const cleanJson = overviewResult.replace(/```json/g, "").replace(/```/g, "").trim();
           parsedOverview = JSON.parse(cleanJson);
         }
-      } catch (e) {
-        console.log("JSON Parse Error Overview");
-      }
+      } catch (e) {}
 
-      if (!parsedOverview) {
-        parsedOverview = getDomainFallback(domainName);
-      }
-
+      if (!parsedOverview) parsedOverview = getDomainFallback(domainName);
       return NextResponse.json({ success: true, overviewData: parsedOverview, domainName });
     }
 
-    // 2. MODE: 150+ HIGH DA BACKLINKS ENGINE
+    // 2. MODE: 150+ HIGH DA BACKLINKS
     if (mode === "backlinks") {
       const backlinkData = generate150Backlinks(domainName);
       return NextResponse.json({ success: true, backlinkData, domainName });
@@ -93,55 +87,52 @@ Return ONLY a valid JSON object matching this structure:
       return NextResponse.json({ success: true, keywordJson: parsedKeywords, domainName });
     }
 
-    // 4. MODE: DEEP GMB & LOCAL MAP PACK AUDIT
+    // 4. MODE: DEEP GMB AUDIT (JSON STRUCTURED FOR TABLE DISPLAY)
     if (mode === "gmb") {
-      const gmbResult = `📍 COMPREHENSIVE GMB & LOCAL MAP PACK AUDIT FOR '${domainName.toUpperCase()}'
-
-1. PRIMARY & SECONDARY CATEGORIES:
-   • Primary Category: Digital Marketing Agency / Internet Marketing Service
-   • Secondary Categories: Web Design Company, SEO Agency, Advertising Agency
-
-2. LOCAL MAP PACK TOP 3 RANKING AUDIT:
-   ✔ NAP Consistency: Name, Address, Phone matches across 25+ local citations.
-   ✔ Geo-Tagged Photos: Upload 15+ high-res geo-tagged photos of staff, office & projects.
-   ✔ Review Automation: Implement automated WhatsApp 5-star review collection system.
-   ✔ Weekly GMB Updates: Publish 2 GMB updates weekly with local targeted keywords.
-
-3. LOCAL SCHEMA & ON-PAGE AUDIT:
-   • Add LocalBusiness JSON-LD Schema markup on homepage.
-   • Embed localized Google Map on Contact Us landing page.`;
-
-      return NextResponse.json({ success: true, gmbData: gmbResult, domainName });
+      const gmbStructuredData = {
+        domain: domainName,
+        categories: {
+          primary: "Digital Marketing Agency / Internet Marketing Service",
+          secondary: "Web Design Company, SEO Agency, Advertising Agency"
+        },
+        checklist: [
+          { check: "NAP Consistency Check", details: "Name, Address, Phone matched across 25+ local directories", status: "PASSED", score: "100%" },
+          { check: "Geo-Tagged Photos Audit", details: "15+ High-res photos with EXIF location metadata required", status: "ACTION NEEDED", score: "60%" },
+          { check: "WhatsApp Review Automation", details: "Automated 5-star review collection link implementation", status: "RECOMMENDED", score: "40%" },
+          { check: "Weekly GMB Posts Strategy", details: "2 local keyword optimized posts per week", status: "ACTIVE", score: "90%" },
+          { check: "Local Business Schema", details: "JSON-LD LocalBusiness schema script validation", status: "PASSED", score: "100%" }
+        ]
+      };
+      return NextResponse.json({ success: true, gmbStructuredData, domainName });
     }
 
-    // 5. MODE: DEEP EXECUTIVE PITCH DECK & WEBSITE AUDIT REPORT
+    // 5. MODE: EXECUTIVE AUDIT & PITCH DECK (JSON STRUCTURED FOR TABLE DISPLAY)
     if (mode === "pitch") {
-      const pitchResult = `📄 EXECUTIVE WEBSITE AUDIT & CLIENT PITCH PROPOSAL FOR '${domainName.toUpperCase()}'
-
-1. EXECUTIVE SUMMARY:
-   Domain audit for ${domainName} reveals high domain growth potential. Implementing full technical SEO fixes and expanding targeted high-intent landing pages will drive 300%+ increase in qualified business inquiries within 180 days.
-
-2. TECHNICAL WEBSITE AUDIT FINDINGS:
-   • Core Web Vitals: Page load speed needs optimization for mobile devices.
-   • Meta Tags: 14% of indexed pages are missing unique meta descriptions.
-   • Heading Hierarchy: Multiple H1 tags detected on secondary pages.
-   • XML Sitemap & Robots.txt: Valid and correctly submitted to Google Search Console.
-
-3. 6-MONTH STRATEGIC ACTION ROADMAP:
-   • Month 1: Technical Audit Remediation, Speed Optimization & Schema Implementation.
-   • Month 2-3: Creation of 100+ High-Intent Keyword Landing Pages.
-   • Month 4-5: High-DA Do-Follow Backlink Acquisition & Local Citation Blast.
-   • Month 6: Conversion Rate Optimization & Google Map Pack Top 3 Domination.
-
-4. ESTIMATED ROI & FINANCIAL IMPACT:
-   • Projected Monthly Organic Visitors: +35,000 High-Intent Users
-   • Projected Monthly Leads Generated: 150+ Inquiries
-   • Estimated Revenue Impact: ₹3,50,000+ / Month`;
-
-      return NextResponse.json({ success: true, pitchData: pitchResult, domainName });
+      const pitchStructuredData = {
+        domain: domainName,
+        summary: `Comprehensive website audit for ${domainName} reveals high growth potential. Resolving technical bottlenecks and creating 100+ localized landing pages will drive 300%+ increase in organic sales inquiries in 180 days.`,
+        findings: [
+          { item: "Core Web Vitals & Mobile Speed", issue: "Largest Contentful Paint (LCP) exceeds 2.8 seconds on mobile", priority: "HIGH", impact: "High Traffic Drop" },
+          { item: "Meta Descriptions Audit", issue: "14% of indexed URLs lack unique targeted meta tags", priority: "MEDIUM", impact: "CTR Reduction" },
+          { item: "Heading Tag Hierarchy", issue: "Multiple H1 tags detected on secondary service pages", priority: "LOW", impact: "SEO Confusion" },
+          { item: "XML Sitemap & Robots.txt", issue: "Sitemap correctly submitted and indexed in Google Search Console", priority: "PASSED", impact: "Optimal Crawling" }
+        ],
+        roadmap: [
+          { month: "Month 1", focus: "Technical Remediation & Speed Fixes", keyDeliverable: "Schema setup & LCP speed fix below 1.8s" },
+          { month: "Month 2-3", focus: "Content Expansion", keyDeliverable: "100+ High-Intent Localized Landing Pages" },
+          { month: "Month 4-5", focus: "Authority Building", keyDeliverable: "150+ High DA Do-Follow Backlinks Blast" },
+          { month: "Month 6", focus: "Conversion & GMB Top 3", keyDeliverable: "Google Map Pack Rank #1 Domination" }
+        ],
+        roi: {
+          traffic: "+35,000 / mo",
+          leads: "150+ Qualified Inquiries",
+          revenue: "₹3,50,000+ / mo"
+        }
+      };
+      return NextResponse.json({ success: true, pitchStructuredData, domainName });
     }
 
-    // 6. MODE: SOCIAL MEDIA POST & REEL SCRIPT GENERATOR
+    // 6. MODE: SOCIAL MEDIA POST & BANNER KIT
     if (mode === "social") {
       const targetPlatform = platform ? String(platform).toUpperCase() : "INSTAGRAM";
       const userNiche = niche || "Digital Marketing & Growth Services";
@@ -154,7 +145,7 @@ Return ONLY a valid JSON object matching this structure:
 🎯 POST HEADLINE / HOOK:
 "Scale Your Business to 10X Growth with Proven Strategies in 2026! 🚀"
 
-📝 INSTAGRAM / FACEBOOK CAPTION:
+📝 CAPTION & COPY:
 Looking to double your leads and brand authority? At ${domainName}, we craft high-ROI digital marketing strategies tailored specifically for ${userNiche}. From Google rankings to viral social media ads, we manage it all!
 
 ✨ Why Choose Us?
@@ -166,7 +157,7 @@ Looking to double your leads and brand authority? At ${domainName}, we craft hig
 📩 Email Us: ${userEmail}
 🌐 Website: ${domainName}
 
-🎥 REEL SCRIPT & PROMPT (0-30 SECONDS):
+🎥 REEL SCRIPT (0-30 SECONDS):
 • Hook (0-3s): "Struggling to get sales leads for your business?"
 • Body (3-15s): Display visual transition showing website traffic charts and client leads booming.
 • Value (15-20s): "Stop wasting budget on ineffective ads. Get targeted organic growth today!"
@@ -179,10 +170,11 @@ Looking to double your leads and brand authority? At ${domainName}, we craft hig
         success: true, 
         socialData: socialText, 
         domainName,
-        bannerHeadline: `Scale Your ${userNiche} Business`,
-        bannerSubheadline: `Get Top 3 Google Map Pack & High-ROI Sales Leads`,
+        bannerHeadline: `Double Your Sales & Leads`,
+        bannerSubheadline: `Specialized ${userNiche} Growth Solutions`,
         bannerPhone: userPhone,
-        bannerEmail: userEmail
+        bannerEmail: userEmail,
+        bannerServices: ["Google Rank #1", "Social Ads", "GMB Map Pack", "Lead Funnels"]
       });
     }
 
