@@ -146,7 +146,7 @@ export default function HomePage() {
         body: JSON.stringify({ 
           inputUrl: inputText, 
           mode, 
-          niche: backlinkCategory, // Passing custom typed niche/category seamlessly
+          niche: backlinkCategory, 
           phone, 
           email, 
           platform 
@@ -228,7 +228,6 @@ export default function HomePage() {
         {/* Form Inputs */}
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-left shadow-2xl">
           
-          {/* Domain Name & Custom Niche Type Input Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-[11px] font-bold text-slate-300 mb-1 block">Business / Domain Name *</label>
@@ -385,16 +384,20 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
                 <span className="text-[11px] font-bold text-slate-300 uppercase block border-b border-slate-800 pb-2">
-                  ⚡ Technical On-Page Issues Discovered
+                  ⚡ Technical On-Page Issues Discovered & Fix Guide
                 </span>
                 {overviewData.auditIssues?.map((issue: any, idx: number) => (
-                  <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-slate-900">
-                    <span className="text-slate-300">{issue.issue}</span>
-                    <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase ${issue.impact === "High" ? "bg-red-950 text-red-300 border border-red-800" : "bg-amber-950 text-amber-300 border border-amber-800"}`}>
-                      {issue.type}
-                    </span>
+                  <div key={idx} className="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-white">{issue.issue}</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase ${issue.impact === "High" ? "bg-red-950 text-red-300 border border-red-800" : "bg-amber-950 text-amber-300 border border-amber-800"}`}>
+                        {issue.type}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 italic">{issue.why}</p>
+                    <p className="text-[11px] text-emerald-400 font-semibold">✅ {issue.solution}</p>
                   </div>
                 ))}
               </div>
