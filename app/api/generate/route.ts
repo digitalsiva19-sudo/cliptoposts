@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     // 3. MODE: 100+ KEYWORD MINING
     // ==========================================
     if (mode === "keywords") {
-      const parsedKeywords = getPureDynamicKeywords(domainName);
+      const parsedKeywords = getPureDynamicKeywords(domainName, niche);
       return NextResponse.json({ success: true, keywordJson: parsedKeywords, domainName });
     }
 
@@ -213,7 +213,7 @@ async function fetchFallbackGenuineSiteData(domain: string) {
   };
 }
 
-// 100+ DYNAMIC CATEGORY-BASED RELEVANT BACKLINKS GENERATOR
+// DYNAMIC RELEVANT BACKLINKS GENERATOR (105+ BACKLINKS)
 function getVerifiedBacklinksList(domain: string, nicheInput?: string) {
   const queryText = `${domain} ${nicheInput || ""}`.toLowerCase();
   
@@ -262,7 +262,6 @@ function getVerifiedBacklinksList(domain: string, nicheInput?: string) {
   }
 
   const list = [];
-  // Generating exactly 105 High-DA relevant backlinks dynamically
   for (let i = 1; i <= 105; i++) {
     const base = platforms[(i - 1) % platforms.length];
     list.push({
@@ -277,13 +276,32 @@ function getVerifiedBacklinksList(domain: string, nicheInput?: string) {
   return list;
 }
 
-function getPureDynamicKeywords(input: string) {
+// PURE CLEAN DYNAMIC KEYWORDS GENERator (NO DOMAIN NAME IN KEYWORDS)
+function getPureDynamicKeywords(domain: string, nicheInput?: string) {
+  const cleanBase = domain
+    .replace(/https?:\/\//gi, "")
+    .replace(/www\./gi, "")
+    .split('.')[0]
+    .replace(/[-_]/g, " ")
+    .trim();
+
+  const queryText = `${cleanBase} ${nicheInput || ""}`.toLowerCase();
+
+  const isDental = /dentist|dental|tooth|teeth|clinic/i.test(queryText);
+  const isJob = /job|career|emploi|sarkari|hire|work/i.test(queryText);
+  const isKids = /kid|story|child|toy|school|edu/i.test(queryText);
+
+  let keywordTerm = cleanBase;
+  if (isDental) keywordTerm = "dental clinic";
+  else if (isJob) keywordTerm = "job portal";
+  else if (isKids) keywordTerm = "kids stories";
+
   const buildCat = (title: string, list: string[]) => ({
     category: title,
     keywords: list.map((kw, i) => ({
       kw,
-      vol: `${Math.max(100, (20 - i) * 150)}/mo`,
-      diff: `${15 + (i * 2)}%`,
+      vol: `${Math.max(120, (20 - i) * 180)}/mo`,
+      diff: `${14 + (i * 2)}%`,
       days: `${5 + i}-${12 + i}`,
       intent: i % 2 === 0 ? "Transactional" : "Commercial",
       impact: "High"
@@ -292,55 +310,55 @@ function getPureDynamicKeywords(input: string) {
 
   return [
     buildCat("Top 20 Primary High-Volume Keywords", [
-      `best ${input}`, `top rated ${input} near me`, `${input} services`,
-      `affordable ${input}`, `popular ${input}`, `quality ${input} solutions`,
-      `famous ${input} agency`, `top 10 ${input}`, `local ${input} experts`,
-      `${input} pricing`, `best place for ${input}`, `trusted ${input}`,
-      `leading ${input} company`, `professional ${input}`, `${input} cost comparison`,
-      `certified ${input} agency`, `cheap and best ${input}`, `premium ${input}`,
-      `${input} center`, `best rated ${input}`
+      `best ${keywordTerm}`, `top rated ${keywordTerm} near me`, `${keywordTerm} services`,
+      `affordable ${keywordTerm}`, `popular ${keywordTerm}`, `quality ${keywordTerm} solutions`,
+      `famous ${keywordTerm} agency`, `top 10 ${keywordTerm}`, `local ${keywordTerm} experts`,
+      `${keywordTerm} pricing`, `best place for ${keywordTerm}`, `trusted ${keywordTerm}`,
+      `leading ${keywordTerm} company`, `professional ${keywordTerm}`, `${keywordTerm} cost comparison`,
+      `certified ${keywordTerm} agency`, `cheap and best ${keywordTerm}`, `premium ${keywordTerm}`,
+      `${keywordTerm} center`, `best rated ${keywordTerm}`
     ]),
     buildCat("Top 20 High-Intent Transactional Keywords", [
-      `hire best ${input}`, `buy ${input} package`, `best price for ${input}`,
-      `discount on ${input}`, `instant ${input} consultation`, `lowest cost ${input}`,
-      `book ${input} retainer`, `${input} deals`, `${input} phone number`,
-      `open now ${input}`, `${input} monthly packages`, `best value ${input}`,
-      `${input} consultation timing`, `express ${input} service`, `bulk ${input} order`,
-      `hire ${input} specialist`, `${input} free audit quote`, `fast ${input} service`,
-      `reliable ${input} partner`, `top ${input} growth agency`
+      `hire best ${keywordTerm}`, `buy ${keywordTerm} package`, `best price for ${keywordTerm}`,
+      `discount on ${keywordTerm}`, `instant ${keywordTerm} consultation`, `lowest cost ${keywordTerm}`,
+      `book ${keywordTerm} retainer`, `${keywordTerm} deals`, `${keywordTerm} phone number`,
+      `open now ${keywordTerm}`, `${keywordTerm} monthly packages`, `best value ${keywordTerm}`,
+      `${keywordTerm} consultation timing`, `express ${keywordTerm} service`, `bulk ${keywordTerm} order`,
+      `hire ${keywordTerm} specialist`, `${keywordTerm} free audit quote`, `fast ${keywordTerm} service`,
+      `reliable ${keywordTerm} partner`, `top ${keywordTerm} growth agency`
     ]),
     buildCat("Top 20 Low Competition Long-Tail Keywords", [
-      `how to find best ${input} for small business`, `best affordable ${input} with 5 star reviews`,
-      `top rated ${input} service providers near me`, `how to choose trusted ${input} agency`,
-      `best ${input} strategy for lead generation`, `top recommended tools for ${input}`,
-      `customized ${input} packages for agency`, `low cost ${input} monthly retainer`,
-      `best ${input} for local business growth`, `family owned ${input} experts`,
-      `top rated ${input} consultants`, `how to calculate ROI on ${input}`,
-      `step by step process for ${input} optimization`, `why hire professional ${input} team`,
-      `best ${input} deals and agency packages`, `trusted local ${input} specialists`,
-      `high quality ${input} at affordable rates`, `verified ${input} service providers`,
-      `top 10 ${input} case studies`, `best ${input} client results`
+      `how to find best ${keywordTerm} for small business`, `best affordable ${keywordTerm} with 5 star reviews`,
+      `top rated ${keywordTerm} service providers near me`, `how to choose trusted ${keywordTerm} agency`,
+      `best ${keywordTerm} strategy for lead generation`, `top recommended tools for ${keywordTerm}`,
+      `customized ${keywordTerm} packages for agency`, `low cost ${keywordTerm} monthly retainer`,
+      `best ${keywordTerm} for local business growth`, `family owned ${keywordTerm} experts`,
+      `top rated ${keywordTerm} consultants`, `how to calculate ROI on ${keywordTerm}`,
+      `step by step process for ${keywordTerm} optimization`, `why hire professional ${keywordTerm} team`,
+      `best ${keywordTerm} deals and agency packages`, `trusted local ${keywordTerm} specialists`,
+      `high quality ${keywordTerm} at affordable rates`, `verified ${keywordTerm} service providers`,
+      `top 10 ${keywordTerm} case studies`, `best ${keywordTerm} client results`
     ]),
     buildCat("Top 20 Local SEO Keywords", [
-      `${input} near me`, `${input} near main road`, `${input} near commercial center`,
-      `${input} near RTC complex`, `${input} in city center`, `${input} near tech park`,
-      `${input} agency near me`, `${input} company near bypass`, `${input} experts near market`,
-      `${input} consultant near junction`, `${input} team near shopping mall`, `${input} office near station`,
-      `${input} studio near business hub`, `${input} specialist near court center`, `${input} firm near collectorate`,
-      `${input} agency near park area`, `${input} agency near high street`, `${input} consultant near old city`,
-      `${input} experts near financial district`, `${input} team near university area`
+      `${keywordTerm} near me`, `${keywordTerm} near main road`, `${keywordTerm} near commercial center`,
+      `${keywordTerm} near RTC complex`, `${keywordTerm} in city center`, `${keywordTerm} near tech park`,
+      `${keywordTerm} agency near me`, `${keywordTerm} company near bypass`, `${keywordTerm} experts near market`,
+      `${keywordTerm} consultant near junction`, `${keywordTerm} team near shopping mall`, `${keywordTerm} office near station`,
+      `${keywordTerm} studio near business hub`, `${keywordTerm} specialist near court center`, `${keywordTerm} firm near collectorate`,
+      `${keywordTerm} agency near park area`, `${keywordTerm} agency near high street`, `${keywordTerm} consultant near old city`,
+      `${keywordTerm} experts near financial district`, `${keywordTerm} team near university area`
     ]),
     buildCat("Top 20 Question-Based & FAQ Keywords", [
-      `which is the best ${input} company`, `what is the average cost of ${input}`,
-      `how to choose trusted ${input} agency`, `where to find affordable ${input}`,
-      `what are the benefits of hiring ${input}`, `how long does ${input} take to rank`,
-      `what is included in ${input} monthly retainer`, `how to request free ${input} audit`,
-      `are there discounts on ${input} packages`, `why is ${input} critical for business`,
-      `what is the difference between basic and pro ${input}`, `how to contact top ${input} experts`,
-      `is ${input} service available for startups`, `what are the working deliverables for ${input}`,
-      `how to check client reviews for ${input}`, `which ${input} offers guaranteed growth`,
-      `can I get custom ${input} audit`, `what is the average ROI of ${input}`,
-      `how to compare ${input} agency quotes`, `why choose specialized ${input} agency`
+      `which is the best ${keywordTerm} company`, `what is the average cost of ${keywordTerm}`,
+      `how to choose trusted ${keywordTerm} agency`, `where to find affordable ${keywordTerm}`,
+      `what are the benefits of hiring ${keywordTerm}`, `how long does ${keywordTerm} take to rank`,
+      `what is included in ${keywordTerm} monthly retainer`, `how to request free ${keywordTerm} audit`,
+      `are there discounts on ${keywordTerm} packages`, `why is ${keywordTerm} critical for business`,
+      `what is the difference between basic and pro ${keywordTerm}`, `how to contact top ${keywordTerm} experts`,
+      `is ${keywordTerm} service available for startups`, `what are the working deliverables for ${keywordTerm}`,
+      `how to check client reviews for ${keywordTerm}`, `which ${keywordTerm} offers guaranteed growth`,
+      `can I get custom ${keywordTerm} audit`, `what is the average ROI of ${keywordTerm}`,
+      `how to compare ${keywordTerm} agency quotes`, `why choose specialized ${keywordTerm} agency`
     ])
   ];
 }
