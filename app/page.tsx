@@ -335,9 +335,8 @@ export default function HomePage() {
           3 Dedicated AI Tools: Social 3D Flyers, 100+ SEO Keyword Audits & Local GMB Map Pack Checklists!
         </p>
 
-        {/* Input Form */}
+        {/* Form */}
         <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-left shadow-xl">
-          
           <div>
             <label className="text-[11px] font-bold text-slate-300 mb-1.5 block">Enter Business Name, Keyword, or Website URL *</label>
             <input
@@ -503,7 +502,7 @@ export default function HomePage() {
                 <span>📍 Local SEO & Google My Business (GMB) Map Optimization Report</span>
               </h3>
               <div className="flex items-center gap-2">
-                <button onClick={() => handleDownloadPDF()} className="bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-amber-400">
+                <button onClick={handleDownloadPDF} className="bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-amber-400">
                   📄 Download GMB PDF Report
                 </button>
                 <button onClick={() => handleCopyText(gmbReport)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition">
