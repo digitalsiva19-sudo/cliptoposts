@@ -3,31 +3,71 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { inputUrl, mode } = body;
+    const { inputUrl, platform, phone, address, services, mode, language } = body;
 
     if (!inputUrl) {
-      return NextResponse.json({ error: "Keyword is required" }, { status: 400 });
+      return NextResponse.json({ error: "Business Name or Website URL is required" }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    let cleanInput = String(inputUrl).trim();
+    let rawInput = String(inputUrl).trim();
 
-    // 1. Smart Location & Niche Separator
-    const inputLower = cleanInput.toLowerCase();
-    let detectedLocation = "Amalapuram";
+    // Smart URL Cleaner (Converts 'https://www.vcaretrichology.com/' -> 'VCare Trichology')
+    let cleanInput = rawInput
+      .replace(/https?:\/\//gi, "")
+      .replace(/www\./gi, "")
+      .replace(/\/.*$/gi, "")
+      .replace(/\.(com|in|org|net|co|co\.in)/gi, "")
+      .replace(/[-_]/g, " ")
+      .trim();
+
+    if (!cleanInput) cleanInput = rawInput;
+
+    // Capitalize business name
+    cleanInput = cleanInput.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+    // Smart Location Detection
+    const inputLower = rawInput.toLowerCase();
+    let detectedLocation = "Vizag";
     const cities = ["amalapuram", "vizag", "visakhapatnam", "kakinada", "hyderabad", "vijayawada", "guntur", "rajahmundry", "tirupati", "bangalore", "chennai", "mumbai", "delhi"];
     
     for (const city of cities) {
       if (inputLower.includes(city)) {
-        if (city === "visakhapatnam") {
-          detectedLocation = "Vizag";
-        } else {
-          detectedLocation = city.charAt(0).toUpperCase() + city.slice(1);
-        }
+        detectedLocation = city === "visakhapatnam" ? "Vizag" : city.charAt(0).toUpperCase() + city.slice(1);
         break;
       }
     }
 
+    // ==========================================
+    // MODE 1: LOCAL SEO & GMB CHECKLIST
+    // ==========================================
+    if (mode === "gmb") {
+      const gmbPrompt = `
+You are a Senior Local SEO & Google My Business (GMB) Specialist.
+Target Business: '${cleanInput}'
+Target Location: ${detectedLocation}
+
+Provide a comprehensive, professional Local SEO & GMB Audit Report with actionable steps:
+1. Primary & Secondary GMB Categories selection
+2. NAP (Name, Address, Phone) Consistency Audit Checklist
+3. Local Citation & Backlink Strategy in ${detectedLocation}
+4. Google Maps Ranking Checklist (Geo-tagged photos, Reviews strategy, Q&A)
+5. On-Page Local SEO Recommendations (Schema Markup, Localized Landing Pages)
+
+Keep it highly structured, easy to read, and executive-ready.
+`;
+
+      let gmbResult = await callGemini(apiKey, gmbPrompt);
+      if (!gmbResult) {
+        gmbResult = generateGmbFallback(cleanInput, detectedLocation);
+      }
+
+      return NextResponse.json({ success: true, gmbData: gmbResult, domainName: cleanInput });
+    }
+
+    // ==========================================
+    // MODE 2: 100+ KEYWORD MINING AUDIT
+    // ==========================================
     if (mode === "keywords") {
       const keywordPrompt = `
 You are an Advanced SEO Keyword Research Engine (Ahrefs / SEMrush Alternative).
@@ -67,7 +107,6 @@ JSON Structure:
         console.log("JSON Parse Error, generating dynamic fallback");
       }
 
-      // Dynamic Intelligent Fallback
       if (!parsedKeywords || parsedKeywords.length === 0) {
         parsedKeywords = generatePureDynamicKeywords(cleanInput, detectedLocation);
       }
@@ -75,9 +114,43 @@ JSON Structure:
       return NextResponse.json({ success: true, keywordJson: parsedKeywords, domainName: cleanInput });
     }
 
-    return NextResponse.json({ success: true });
+    // ==========================================
+    // MODE 3: 3D FLYER & SOCIAL CONTENT KIT
+    // ==========================================
+    const langStyle = language === "telugu" ? "Telugu" : language === "tanglish" ? "Telugu-English Hybrid" : "English";
+    const targetPlatform = platform ? String(platform).toUpperCase() : "INSTAGRAM";
+
+    const promptText = `
+You are an Elite Social Media Growth Marketer.
+Business Name: '${cleanInput}'
+Platform: ${targetPlatform}
+Language: ${langStyle}
+Location: ${detectedLocation}
+
+Generate a viral content package:
+• POST TITLE / HOOK: (High-converting headline)
+• CAPTION & STORYTELLING: (Engaging copy with emojis and clear call to action)
+• REEL SCRIPT & VISUAL PROMPTS: (Hook 0-3s, Body 3-15s, CTA 15-30s)
+• VIRAL HASHTAGS: (15 targeted hashtags)
+`;
+
+    let generatedText = await callGemini(apiKey, promptText);
+    
+    if (!generatedText) {
+      generatedText = generateFlyerFallback(cleanInput, targetPlatform, langStyle, detectedLocation);
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      text: generatedText,
+      domainName: cleanInput,
+      autoPhone: phone || "+91 96405 02095",
+      autoAddress: address || detectedLocation,
+      autoServices: services ? String(services).split(",") : ["Hair Care", "Skin Treatment", "Trichology", "Consultation"]
+    });
 
   } catch (error: any) {
+    console.error("API Route Error:", error);
     return NextResponse.json({ error: error?.message || "Internal Server Error" }, { status: 500 });
   }
 }
@@ -92,7 +165,7 @@ async function callGemini(apiKey: string | undefined, prompt: string) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 8192, temperature: 0.2 }
+        generationConfig: { maxOutputTokens: 8192, temperature: 0.3 }
       })
     });
 
@@ -106,18 +179,52 @@ async function callGemini(apiKey: string | undefined, prompt: string) {
   return null;
 }
 
-// 100% Intelligent Clean Dynamic Fallback (No Juice/Medical Hardcoded Templates)
+// GMB Fallback Report Generator
+function generateGmbFallback(business: string, loc: string) {
+  return `📍 GOOGLE MY BUSINESS (GMB) & LOCAL SEO AUDIT REPORT FOR '${business.toUpperCase()}' IN ${loc.toUpperCase()}
+
+1. PRIMARY & SECONDARY CATEGORY OPTIMIZATION:
+   • Primary Category: Hair Care Clinic / Dermatologist / Cosmetic Center
+   • Secondary Categories: Hair Transplantation Clinic, Skin Care Clinic, Medical Spa
+
+2. NAP CONSISTENCY & BUSINESS DETAILS:
+   • Business Name: ${business}
+   • Primary Area: ${loc} & surrounding 15km radius
+   • Business Hours: Set explicit 6-day operating hours including weekends
+
+3. GOOGLE MAPS RANKING CHECKLIST (TOP 3 MAP PACK):
+   ✔ Upload 10+ High-Resolution Geo-tagged photos of clinic interior & exterior.
+   ✔ Set up automated WhatsApp post-appointment Google Review collection link.
+   ✔ Respond to all existing reviews within 24 hours with target keywords (${business}, ${loc}).
+   ✔ Fill out all 10 GMB Products/Services with transparent pricing & CTA buttons.
+
+4. LOCAL CITATIONS & ON-PAGE SEO:
+   • Build listings on Justdial, Sulekha, IndiaMART, and local ${loc} business directories.
+   • Add Local Business Schema Markup (JSON-LD) on the homepage.
+   • Embed Google Map on website contact page.`;
+}
+
+// 3D Flyer Fallback Text
+function generateFlyerFallback(business: string, platform: string, lang: string, loc: string) {
+  return `🎯 VIRAL HOOK:
+Transform Your Look & Confidence with ${business} in ${loc}! ✨
+
+📝 CAPTION & OFFER COPY (${lang}):
+Looking for expert solutions for hair and skin care? 🌿 ${business} brings you advanced trichology & cosmetic treatments with proven results right here in ${loc}. Book your consultation today!
+
+🎥 REEL SCRIPT & PROMPT (${platform}):
+• Hook (0-3s): "Suffering from hair loss or scalp issues in ${loc}?"
+• Body (3-15s): Show clinical transformation results, expert consultation & modern laser equipment.
+• Call To Action (15-20s): "Click the link in bio or call us now to book your expert slot!"
+
+🏷️ HASHTAGS:
+#${business.replace(/\s+/g, "")} #${loc}HairCare #${loc}Clinics #Trichology${loc} #SkinAndHairCare #Viral${platform}`;
+}
+
+// Universal Clean Dynamic Keyword Generator
 function generatePureDynamicKeywords(input: string, loc: string) {
-  // Clean topic name by removing location words and 'in'
-  let coreTopic = input
-    .replace(new RegExp(`in ${loc}`, "gi"), "")
-    .replace(new RegExp(loc, "gi"), "")
-    .replace(/near me/gi, "")
-    .trim();
-
+  let coreTopic = input.replace(new RegExp(`in ${loc}`, "gi"), "").replace(new RegExp(loc, "gi"), "").replace(/near me/gi, "").trim();
   if (!coreTopic) coreTopic = input;
-
-  const isClinicOrDoctor = /skin|dental|clinic|hospital|doctor|treatment|derma|hair/i.test(input);
 
   const buildCat = (title: string, list: string[]) => ({
     category: title,
@@ -131,112 +238,55 @@ function generatePureDynamicKeywords(input: string, loc: string) {
     }))
   });
 
-  if (isClinicOrDoctor) {
-    return [
-      buildCat("Top 20 Primary High-Volume Keywords", [
-        `best ${coreTopic} in ${loc}`, `top rated ${coreTopic} near me`, `dermatologist in ${loc}`,
-        `famous ${coreTopic} specialist ${loc}`, `affordable ${coreTopic} in ${loc}`, `best skin doctor in ${loc}`,
-        `advanced ${coreTopic} center ${loc}`, `top 10 ${coreTopic} in ${loc}`, `quality skin care clinic ${loc}`,
-        `leading dermatologists in ${loc}`, `laser ${coreTopic} in ${loc}`, `trusted ${coreTopic} in ${loc}`,
-        `cosmetology clinic in ${loc}`, `best skin treatment center ${loc}`, `${coreTopic} consultation fee ${loc}`,
-        `certified skin specialists in ${loc}`, `painless ${coreTopic} in ${loc}`, `popular ${coreTopic} ${loc}`,
-        `emergency skin hospital in ${loc}`, `${coreTopic} timing in ${loc}`
-      ]),
-      buildCat("Top 20 High-Intent Transactional Keywords", [
-        `book appointment for ${coreTopic} in ${loc}`, `contact number of ${coreTopic} in ${loc}`, `best skin doctor consultation ${loc}`,
-        `cost of laser treatment in ${coreTopic} ${loc}`, `cheap and best ${coreTopic} in ${loc}`, `acne treatment cost in ${loc}`,
-        `pimple scar removal clinic in ${loc}`, `glow skin treatment in ${loc}`, `chemical peel cost in ${loc}`,
-        `skin whitening treatment in ${loc}`, `tattoo removal clinic in ${loc}`, `botox and fillers in ${loc}`,
-        `anti aging treatment in ${loc}`, `hair and ${coreTopic} in ${loc}`, `discount on skin packages ${loc}`,
-        `best cosmetic dermatologist in ${loc}`, `instant skin consultation ${loc}`, `open now ${coreTopic} in ${loc}`,
-        `top rated laser skin clinic ${loc}`, `female skin doctor in ${loc}`
-      ]),
-      buildCat("Top 20 Low Competition Long-Tail Keywords", [
-        `best affordable ${coreTopic} with good reviews in ${loc}`, `top recommended skin doctors for acne in ${loc}`,
-        `step by step process for laser treatment in ${loc}`, `how to choose trusted ${coreTopic} in ${loc}`,
-        `is laser skin treatment safe in ${loc}`, `best dermatologist for stubborn dark spots in ${loc}`,
-        `dermatologist consultation fee comparison in ${loc}`, `best clinic for permanent hair reduction in ${loc}`,
-        `skin allergy specialist doctors in ${loc}`, `advanced PRP facial treatment clinic in ${loc}`,
-        `top cosmetology hospital for bride skin care in ${loc}`, `low cost skin care clinic in ${loc}`,
-        `best skin doctor for kids and adults in ${loc}`, `dermatology clinic with modern laser machines in ${loc}`,
-        `how to get rid of pigmentation in ${loc}`, `natural looking skin treatment specialists in ${loc}`,
-        `best dermatologist near main road ${loc}`, `patient reviews for ${coreTopic} in ${loc}`,
-        `top rated skin care experts in ${loc}`, `best clinic for eczema and psoriasis in ${loc}`
-      ]),
-      buildCat(`Top 20 Local SEO Keywords (${loc})`, [
-        `${coreTopic} near me in ${loc}`, `best skin doctor near main road ${loc}`, `skin care clinic near RTC bus stand ${loc}`,
-        `dermatologist near clock tower ${loc}`, `skin clinic near government hospital ${loc}`, `${coreTopic} near market area ${loc}`,
-        `skin doctor near college road ${loc}`, `${coreTopic} clinic in town area ${loc}`, `top skin specialist near bypass road ${loc}`,
-        `${coreTopic} near commercial center ${loc}`, `dermatologist clinic near cinema hall ${loc}`, `skin hospital near main junction ${loc}`,
-        `${coreTopic} near railway station area`, `top dermatologist near court center ${loc}`, `skin clinic near high school road ${loc}`,
-        `best skin care clinic near collectorate road ${loc}`, `dermatology center near park area ${loc}`, `skin care experts near shopping complex ${loc}`,
-        `${coreTopic} near old bus stand ${loc}`, `trusted skin doctor near temple street ${loc}`
-      ]),
-      buildCat("Top 20 Question-Based & FAQ Keywords", [
-        `which is the best ${coreTopic} in ${loc}`, `what is the average consultation fee for skin doctor in ${loc}`,
-        `how much does laser skin treatment cost in ${loc}`, `who is the top dermatologist in ${loc}`,
-        `is skin laser treatment permanent and safe`, `how to book appointment for skin doctor in ${loc}`,
-        `what are the best treatments for acne scars in ${loc}`, `where to get chemical peel treatment in ${loc}`,
-        `can I get PRP skin treatment in ${loc}`, `how to treat pigmentation naturally and clinically`, `does skin clinic offer EMI option for laser packages`,
-        `what is the difference between cosmetologist and dermatologist`, `how many sessions needed for laser hair removal`, `is tattoo removal available in ${loc} skin clinic`,
-        `what are the common skin treatments offered in ${loc}`, `how to cure hair loss and dandruff in ${loc}`, `are skin treatment packages affordable in ${loc}`,
-        `what is the success rate of skin laser treatment`, `how to prepare before visiting a skin doctor`, `why is my skin dull and how to treat it in ${loc}`
-      ])
-    ];
-  }
-
-  // General Business Categories (Non-Medical)
   return [
     buildCat("Top 20 Primary High-Volume Keywords", [
-      `best ${coreTopic} in ${loc}`, `top rated ${coreTopic} near me`, `${coreTopic} services in ${loc}`,
-      `affordable ${coreTopic} in ${loc}`, `popular ${coreTopic} in ${loc}`, `quality ${coreTopic} in ${loc}`,
-      `famous ${coreTopic} in ${loc}`, `top 10 ${coreTopic} in ${loc}`, `local ${coreTopic} in ${loc}`,
-      `${coreTopic} cost in ${loc}`, `best place for ${coreTopic} in ${loc}`, `trusted ${coreTopic} in ${loc}`,
-      `leading ${coreTopic} in ${loc}`, `professional ${coreTopic} in ${loc}`, `${coreTopic} price list in ${loc}`,
-      `certified ${coreTopic} in ${loc}`, `cheap and best ${coreTopic} in ${loc}`, `premium ${coreTopic} in ${loc}`,
-      `${coreTopic} center in ${loc}`, `best rated ${coreTopic} in ${loc}`
+      `best ${coreTopic} in ${loc}`, `top rated ${coreTopic} near me`, `${coreTopic} specialists in ${loc}`,
+      `affordable ${coreTopic} in ${loc}`, `famous ${coreTopic} clinic ${loc}`, `best doctors for ${coreTopic} in ${loc}`,
+      `advanced ${coreTopic} center ${loc}`, `top 10 ${coreTopic} in ${loc}`, `quality ${coreTopic} services ${loc}`,
+      `certified ${coreTopic} experts in ${loc}`, `laser ${coreTopic} in ${loc}`, `trusted ${coreTopic} in ${loc}`,
+      `cosmetology center in ${loc}`, `best treatment center ${loc}`, `${coreTopic} consultation fee ${loc}`,
+      `professional ${coreTopic} in ${loc}`, `painless ${coreTopic} in ${loc}`, `popular ${coreTopic} ${loc}`,
+      `emergency ${coreTopic} clinic in ${loc}`, `${coreTopic} timings in ${loc}`
     ]),
     buildCat("Top 20 High-Intent Transactional Keywords", [
-      `buy ${coreTopic} near me in ${loc}`, `order ${coreTopic} in ${loc}`, `best price for ${coreTopic} in ${loc}`,
-      `discount on ${coreTopic} in ${loc}`, `instant ${coreTopic} service ${loc}`, `lowest cost ${coreTopic} in ${loc}`,
-      `book ${coreTopic} in ${loc}`, `${coreTopic} deals in ${loc}`, `${coreTopic} contact number ${loc}`,
-      `open now ${coreTopic} in ${loc}`, `${coreTopic} packages in ${loc}`, `best value ${coreTopic} in ${loc}`,
-      `${coreTopic} timing in ${loc}`, `express ${coreTopic} in ${loc}`, `bulk order ${coreTopic} in ${loc}`,
-      `hire ${coreTopic} in ${loc}`, `${coreTopic} quote in ${loc}`, `fast ${coreTopic} service in ${loc}`,
-      `reliable ${coreTopic} provider in ${loc}`, `top ${coreTopic} agency in ${loc}`
+      `book appointment for ${coreTopic} in ${loc}`, `contact number of ${coreTopic} in ${loc}`, `best ${coreTopic} consultation ${loc}`,
+      `cost of treatment in ${coreTopic} ${loc}`, `cheap and best ${coreTopic} in ${loc}`, `advanced PRP treatment in ${loc}`,
+      `treatment cost in ${loc}`, `glow skin & hair treatment in ${loc}`, `laser treatment cost in ${loc}`,
+      `whitening treatment in ${loc}`, `specialist clinic in ${loc}`, `consultation offers in ${loc}`,
+      `anti aging treatment in ${loc}`, `hair care in ${loc}`, `discount on packages in ${loc}`,
+      `best cosmetic doctor in ${loc}`, `instant consultation ${loc}`, `open now ${coreTopic} in ${loc}`,
+      `top rated treatment clinic ${loc}`, `female doctor in ${loc}`
     ]),
     buildCat("Top 20 Low Competition Long-Tail Keywords", [
-      `where to get best ${coreTopic} in ${loc}`, `best affordable ${coreTopic} with good reviews in ${loc}`,
-      `top rated ${coreTopic} service providers in ${loc}`, `how to find trusted ${coreTopic} near my location`,
-      `best ${coreTopic} options in ${loc}`, `top recommended places for ${coreTopic} in ${loc}`,
-      `customized ${coreTopic} solutions in ${loc}`, `low cost ${coreTopic} packages in ${loc}`,
-      `best ${coreTopic} for small business in ${loc}`, `family friendly ${coreTopic} in ${loc}`,
-      `top rated ${coreTopic} experts in ${loc}`, `how to choose best ${coreTopic} in ${loc}`,
-      `step by step process for ${coreTopic} in ${loc}`, `why choose professional ${coreTopic} in ${loc}`,
-      `best ${coreTopic} deals and discounts in ${loc}`, `trusted local ${coreTopic} specialists in ${loc}`,
-      `high quality ${coreTopic} at affordable rates in ${loc}`, `verified ${coreTopic} providers in ${loc}`,
-      `top 10 ${coreTopic} reviews in ${loc}`, `best ${coreTopic} experience in ${loc}`
+      `best affordable ${coreTopic} with good reviews in ${loc}`, `top recommended doctors in ${loc}`,
+      `step by step process for treatment in ${loc}`, `how to choose trusted ${coreTopic} in ${loc}`,
+      `is treatment safe in ${loc}`, `best specialist for stubborn problems in ${loc}`,
+      `consultation fee comparison in ${loc}`, `best clinic for permanent results in ${loc}`,
+      `specialist doctors near main road ${loc}`, `advanced PRP treatment clinic in ${loc}`,
+      `top hospital for bride hair & skin care in ${loc}`, `low cost care clinic in ${loc}`,
+      `best doctor for kids and adults in ${loc}`, `clinic with modern laser machines in ${loc}`,
+      `how to get rid of hair loss in ${loc}`, `natural looking treatment specialists in ${loc}`,
+      `best doctor near main road ${loc}`, `patient reviews for ${coreTopic} in ${loc}`,
+      `top rated experts in ${loc}`, `best clinic in ${loc}`
     ]),
     buildCat(`Top 20 Local SEO Keywords (${loc})`, [
-      `${coreTopic} near me in ${loc}`, `${coreTopic} near main road ${loc}`, `${coreTopic} near RTC bus stand ${loc}`,
-      `${coreTopic} near clock tower ${loc}`, `${coreTopic} near market area ${loc}`, `${coreTopic} near college road ${loc}`,
-      `${coreTopic} in town area ${loc}`, `${coreTopic} near bypass road ${loc}`, `${coreTopic} near commercial center ${loc}`,
-      `${coreTopic} near cinema hall ${loc}`, `${coreTopic} near main junction ${loc}`, `${coreTopic} near railway station area`,
-      `${coreTopic} near court center ${loc}`, `${coreTopic} near high school road ${loc}`, `${coreTopic} near collectorate road ${loc}`,
-      `${coreTopic} near park area ${loc}`, `${coreTopic} near shopping complex ${loc}`, `${coreTopic} near old bus stand ${loc}`,
-      `${coreTopic} near temple street ${loc}`, `${coreTopic} agency in ${loc}`
+      `${coreTopic} near me in ${loc}`, `best doctor near main road ${loc}`, `clinic near RTC bus stand ${loc}`,
+      `specialist near clock tower ${loc}`, `clinic near government hospital ${loc}`, `${coreTopic} near market area ${loc}`,
+      `doctor near college road ${loc}`, `${coreTopic} clinic in town area ${loc}`, `top specialist near bypass road ${loc}`,
+      `${coreTopic} near commercial center ${loc}`, `clinic near cinema hall ${loc}`, `hospital near main junction ${loc}`,
+      `${coreTopic} near railway station area`, `top specialist near court center ${loc}`, `clinic near high school road ${loc}`,
+      `best care clinic near collectorate road ${loc}`, `center near park area ${loc}`, `experts near shopping complex ${loc}`,
+      `${coreTopic} near old bus stand ${loc}`, `trusted doctor near temple street ${loc}`
     ]),
     buildCat("Top 20 Question-Based & FAQ Keywords", [
-      `which is the best ${coreTopic} in ${loc}`, `what is the average cost of ${coreTopic} in ${loc}`,
-      `how to choose trusted ${coreTopic} in ${loc}`, `where to find affordable ${coreTopic} in ${loc}`,
-      `what are the benefits of choosing local ${coreTopic}`, `how long does ${coreTopic} service take in ${loc}`,
-      `what is included in ${coreTopic} package`, `how to book ${coreTopic} online in ${loc}`,
-      `are there discounts on ${coreTopic} in ${loc}`, `why is ${coreTopic} popular in ${loc}`,
-      `what is the difference between basic and premium ${coreTopic}`, `how to contact top ${coreTopic} in ${loc}`,
-      `is ${coreTopic} service available on weekends in ${loc}`, `what are the working hours for ${coreTopic} in ${loc}`,
-      `how to check reviews for ${coreTopic} in ${loc}`, `which ${coreTopic} offers fast response in ${loc}`,
-      `can I get custom ${coreTopic} in ${loc}`, `what is the success rate of ${coreTopic} in ${loc}`,
-      `how to compare ${coreTopic} prices in ${loc}`, `why choose local ${coreTopic} experts in ${loc}`
+      `which is the best ${coreTopic} in ${loc}`, `what is the average consultation fee in ${loc}`,
+      `how much does laser treatment cost in ${loc}`, `who is the top specialist in ${loc}`,
+      `is laser treatment permanent and safe`, `how to book appointment in ${loc}`,
+      `what are the best treatments in ${loc}`, `where to get treatment in ${loc}`,
+      `can I get PRP treatment in ${loc}`, `how to treat problems naturally and clinically`, `does clinic offer EMI option for packages`,
+      `what is the difference between specialists`, `how many sessions needed for treatment`, `is consultation available in ${loc}`,
+      `what are the common treatments offered in ${loc}`, `how to cure problems in ${loc}`, `are treatment packages affordable in ${loc}`,
+      `what is the success rate of treatment`, `how to prepare before visiting clinic`, `why choose ${coreTopic} in ${loc}`
     ])
   ];
 }
