@@ -57,7 +57,7 @@ export default function HomePage() {
 
   const checkCreditLimit = () => {
     if (planType === "free" && credits !== null && credits <= 0) {
-      alert("⚠️ You have exhausted your 3 Free Credits! Please upgrade to a Pro Plan below.");
+      alert("⚠️ You have exhausted your 3 Free Credits! Please upgrade to a Pro Plan.");
       return false;
     }
     return true;
@@ -226,40 +226,35 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* UBERSUGGEST DASHBOARD CARD: OVERVIEW */}
+        {/* OVERVIEW DISPLAY */}
         {overviewData && (
           <div className="bg-slate-900 border border-indigo-500/40 p-6 rounded-2xl text-left space-y-6 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <h3 className="text-base font-bold text-indigo-400 uppercase">📊 Domain Overview: {domainName}</h3>
               <span className="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-3 py-1 rounded-lg font-mono">
-                Site Health Score: {overviewData.healthScore}/100
+                Health Score: {overviewData.healthScore}/100
               </span>
             </div>
 
-            {/* Top Metric Cards (Ubersuggest Grid) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
                 <div className="text-[11px] text-slate-400 font-semibold">Domain Authority</div>
                 <div className="text-2xl font-black text-white mt-1">{overviewData.domainAuthority}</div>
               </div>
-
               <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
                 <div className="text-[11px] text-slate-400 font-semibold">Organic Keywords</div>
                 <div className="text-2xl font-black text-emerald-400 mt-1">{overviewData.organicKeywords}</div>
               </div>
-
               <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
                 <div className="text-[11px] text-slate-400 font-semibold">Est. Monthly Traffic</div>
                 <div className="text-2xl font-black text-purple-400 mt-1">{overviewData.monthlyTraffic}</div>
               </div>
-
               <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
                 <div className="text-[11px] text-slate-400 font-semibold">Total Backlinks</div>
                 <div className="text-2xl font-black text-amber-400 mt-1">{overviewData.backlinks}</div>
               </div>
             </div>
 
-            {/* Top Ranked Keywords Table */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">🔥 Top Ranking Organic Keywords</h4>
               <div className="overflow-x-auto">
@@ -269,7 +264,7 @@ export default function HomePage() {
                       <th className="p-2 border border-slate-800">Keyword</th>
                       <th className="p-2 border border-slate-800">Google Position</th>
                       <th className="p-2 border border-slate-800">Search Volume</th>
-                      <th className="p-2 border border-slate-800">Est. Monthly Visits</th>
+                      <th className="p-2 border border-slate-800">Est. Visits</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -285,25 +280,10 @@ export default function HomePage() {
                 </table>
               </div>
             </div>
-
-            {/* Technical Site Audit Issues */}
-            <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">⚠️ Technical SEO Audit Issues</h4>
-              <div className="space-y-2">
-                {overviewData.auditIssues?.map((issue: any, idx: number) => (
-                  <div key={idx} className="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between text-xs">
-                    <span className="text-slate-300">{issue.issue}</span>
-                    <span className={`text-[10px] px-2.5 py-1 rounded-md font-bold uppercase ${issue.impact === "High" ? "bg-red-950 text-red-300 border border-red-800" : "bg-amber-950 text-amber-300 border border-amber-800"}`}>
-                      {issue.type}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
-        {/* KEYWORDS RESULT DISPLAY WITH CSV EXPORT */}
+        {/* KEYWORDS RESULT DISPLAY */}
         {keywordJson && (
           <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl text-left space-y-6 shadow-2xl">
             <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
