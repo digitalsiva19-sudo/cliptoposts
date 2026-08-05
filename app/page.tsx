@@ -27,7 +27,6 @@ export default function HomePage() {
   const [autoAddress, setAutoAddress] = useState<string>("");
   const [autoServices, setAutoServices] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
-  const [paying, setPaying] = useState(false);
 
   const [user, setUser] = useState<any>(null);
   const [planType, setPlanType] = useState<string>("free");
@@ -82,61 +81,37 @@ export default function HomePage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Dynamic PayU Form Submission
-  const handlePayUPayment = async (amount: number, selectedPlan: string) => {
-    if (!user) {
-      alert("Please Login / Register first before upgrading!");
-      window.location.href = "/login";
+  // 📊 FUNCTION TO EXPORT KEYWORD DATA TO CSV / EXCEL
+  const handleExportCSV = () => {
+    if (!keywordJson || keywordJson.length === 0) {
+      alert("No keyword data available to export!");
       return;
     }
 
-    setPaying(true);
+    let csvContent = "Category,S.No,Search Keyword,Monthly Volume,SEO Difficulty,Est Ranking Days,Search Intent,Revenue Impact\n";
 
-    try {
-      const res = await fetch("/api/payu", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount,
-          planType: selectedPlan,
-          firstname: user.email ? user.email.split("@")[0] : "Customer",
-          email: user.email,
-          phone: "9640502095"
-        })
+    keywordJson.forEach((catItem: any) => {
+      const categoryName = `"${(catItem.category || "").replace(/"/g, '""')}"`;
+      catItem.keywords?.forEach((k: any, idx: number) => {
+        const kw = `"${(k.kw || "").replace(/"/g, '""')}"`;
+        const vol = `"${(k.vol || "").replace(/"/g, '""')}"`;
+        const diff = `"${(k.diff || "").replace(/"/g, '""')}"`;
+        const days = `"${(k.days || "").replace(/"/g, '""')}"`;
+        const intent = `"${(k.intent || "").replace(/"/g, '""')}"`;
+        const impact = `"${(k.impact || "").replace(/"/g, '""')}"`;
+
+        csvContent += `${categoryName},${idx + 1},${kw},${vol},${diff},${days},${intent},${impact}\n`;
       });
+    });
 
-      const data = await res.json();
-
-      if (!data.success || !data.payuData) {
-        alert("PayU Gateway Config Error: " + (data.error || "Missing API Credentials"));
-        setPaying(false);
-        return;
-      }
-
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = data.payuData.action;
-
-      const payuObj: Record<string, string> = data.payuData;
-
-      Object.keys(payuObj).forEach((key) => {
-        if (key !== "action") {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = payuObj[key];
-          form.appendChild(input);
-        }
-      });
-
-      document.body.appendChild(form);
-      form.submit();
-
-    } catch (err: any) {
-      console.error(err);
-      alert("PayU Payment Exception: " + err.message);
-      setPaying(false);
-    }
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${domainName.replace(/\s+/g, "_")}_100_Keywords_Report.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleDownloadPDF = () => {
@@ -393,7 +368,7 @@ export default function HomePage() {
           3 Dedicated AI Tools: Social 3D Flyers, 100+ SEO Keyword Audits & Local GMB Map Pack Checklists!
         </p>
 
-        {/* Input Form */}
+        {/* Form */}
         <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-left shadow-xl">
           <div>
             <label className="text-[11px] font-bold text-slate-300 mb-1.5 block">Enter Business Name, Keyword, or Website URL *</label>
@@ -466,95 +441,6 @@ export default function HomePage() {
           </div>
         </form>
 
-        {/* PRICING SECTION */}
-        <section className="mt-12 bg-slate-900 border border-slate-800 p-6 rounded-2xl text-left space-y-6 shadow-xl">
-          <div className="text-center space-y-1">
-            <h3 className="text-xl font-extrabold text-white">💎 Choose Your ClipToPosts Growth Plan</h3>
-            <p className="text-xs text-slate-400">Pay via PhonePe, Google Pay, PayTM, Cards, Netbanking & UPI via Secure PayU Gateway</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl space-y-3 flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded-md uppercase">Free Trial</span>
-                <h4 className="text-lg font-bold text-white mt-2">Starter Test</h4>
-                <div className="text-2xl font-black text-white my-1">₹0 <span className="text-xs text-slate-500 font-normal">/ forever</span></div>
-                <ul className="text-xs text-slate-400 space-y-1.5 mt-3">
-                  <li>✓ 3 Free Credits</li>
-                  <li>✓ Standard Social Posts</li>
-                  <li>✓ Basic Keyword List</li>
-                </ul>
-              </div>
-              <button disabled className="w-full bg-slate-800 text-slate-400 text-xs font-bold py-2 rounded-lg cursor-not-allowed">
-                {planType === "free" ? "Current Plan" : "Free Plan"}
-              </button>
-            </div>
-
-            <div className="bg-slate-950 border border-indigo-600 p-5 rounded-xl space-y-3 flex flex-col justify-between relative shadow-lg">
-              <div>
-                <span className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-700 font-bold px-2 py-0.5 rounded-md uppercase">Popular</span>
-                <h4 className="text-lg font-bold text-white mt-2">Pro Monthly</h4>
-                <div className="text-2xl font-black text-indigo-400 my-1">₹499 <span className="text-xs text-slate-400 font-normal">/ month</span></div>
-                <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
-                  <li>✓ Unlimited AI Generations</li>
-                  <li>✓ 100+ Keyword Mining Reports</li>
-                  <li>✓ Whitelabel PDF Client Audits</li>
-                  <li>✓ Local GMB Map Checklists</li>
-                </ul>
-              </div>
-              <button 
-                onClick={() => handlePayUPayment(499, "pro_monthly")}
-                disabled={paying || planType.includes("pro")}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-lg transition"
-              >
-                {paying ? "Opening PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹499 via PayU"}
-              </button>
-            </div>
-
-            <div className="bg-slate-950 border border-purple-600 p-5 rounded-xl space-y-3 flex flex-col justify-between relative shadow-lg">
-              <div>
-                <span className="text-[10px] bg-purple-950 text-purple-300 border border-purple-700 font-bold px-2 py-0.5 rounded-md uppercase">Save 16%</span>
-                <h4 className="text-lg font-bold text-white mt-2">Pro 6-Months</h4>
-                <div className="text-2xl font-black text-purple-400 my-1">₹2,499 <span className="text-xs text-slate-400 font-normal">/ 6 mos</span></div>
-                <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
-                  <li>✓ Everything in Monthly</li>
-                  <li>✓ Priority API Speed</li>
-                  <li>✓ CSV & Excel Data Export</li>
-                  <li>✓ Agency Client Pitch Deck</li>
-                </ul>
-              </div>
-              <button 
-                onClick={() => handlePayUPayment(2499, "pro_6months")}
-                disabled={paying || planType.includes("pro")}
-                className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 rounded-lg transition"
-              >
-                {paying ? "Opening PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹2,499 via PayU"}
-              </button>
-            </div>
-
-            <div className="bg-slate-950 border border-amber-500 p-5 rounded-xl space-y-3 flex flex-col justify-between relative shadow-lg">
-              <div>
-                <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-700 font-bold px-2 py-0.5 rounded-md uppercase">Best Value (Save 25%)</span>
-                <h4 className="text-lg font-bold text-white mt-2">Pro Annual</h4>
-                <div className="text-2xl font-black text-amber-400 my-1">₹4,499 <span className="text-xs text-slate-400 font-normal">/ year</span></div>
-                <ul className="text-xs text-slate-300 space-y-1.5 mt-3">
-                  <li>✓ Full Enterprise Suite Access</li>
-                  <li>✓ Unlimited Whitelabel Client PDFs</li>
-                  <li>✓ Dedicated Agency Growth Manager</li>
-                  <li>✓ Lifetime Feature Updates</li>
-                </ul>
-              </div>
-              <button 
-                onClick={() => handlePayUPayment(4499, "pro_annual")}
-                disabled={paying || planType.includes("pro")}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs py-2 rounded-lg transition shadow-lg"
-              >
-                {paying ? "Opening PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹4,499 via PayU"}
-              </button>
-            </div>
-          </div>
-        </section>
-
         {/* SECTION A: GMB REPORT BOX */}
         {gmbReport && (
           <div className="bg-slate-900 border border-amber-500/50 p-6 rounded-2xl text-left space-y-4 shadow-2xl animate-fade-in">
@@ -577,19 +463,31 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* SECTION B: STRUCTURED JSON 100+ KEYWORDS DISPLAY */}
+        {/* SECTION B: STRUCTURED JSON 100+ KEYWORDS DISPLAY WITH CSV EXPORT */}
         {keywordJson && (
           <div className="bg-slate-900 border border-emerald-500/40 p-6 rounded-2xl text-left space-y-6 shadow-2xl animate-fade-in">
             <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
               <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
                 <span>🔍 Whitelabel Client SEO Audit & Keyword Intelligence Report (100+ Mined Keywords)</span>
               </h3>
-              <div className="flex items-center gap-2">
-                <button onClick={handleDownloadPDF} className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-indigo-400">
-                  📄 Download Professional Client PDF
+              <div className="flex items-center gap-2 flex-wrap">
+                <button 
+                  onClick={handleExportCSV} 
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-emerald-400 flex items-center gap-1"
+                >
+                  📊 Export Excel / CSV
                 </button>
-                <button onClick={() => handleCopyText(JSON.stringify(keywordJson, null, 2))} className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition">
-                  {copied ? "Copied! ✅" : "📋 Copy Raw JSON"}
+                <button 
+                  onClick={handleDownloadPDF} 
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-lg transition shadow border border-indigo-400 flex items-center gap-1"
+                >
+                  📄 Download PDF
+                </button>
+                <button 
+                  onClick={() => handleCopyText(JSON.stringify(keywordJson, null, 2))} 
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition"
+                >
+                  {copied ? "Copied! ✅" : "📋 Copy JSON"}
                 </button>
               </div>
             </div>
@@ -703,7 +601,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="text-center text-xs text-slate-600 py-4 border-t border-slate-900">
-        © ClipToPosts Enterprise AI Growth Suite. PayU Gateway Integrated.
+        © ClipToPosts Enterprise AI Growth Suite. CSV & Excel Export Integrated.
       </footer>
     </div>
   );
