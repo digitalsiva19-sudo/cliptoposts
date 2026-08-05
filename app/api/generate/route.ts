@@ -10,22 +10,19 @@ export async function POST(req: Request) {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    let cleanInput = String(inputUrl).trim();
+    const rawInput = String(inputUrl).trim();
 
-    // Clean Domain Name (e.g., https://seomynds.com -> seomynds.com)
-    let domainName = cleanInput
+    const domainName = rawInput
       .replace(/https?:\/\//gi, "")
       .replace(/www\./gi, "")
       .replace(/\/.*$/gi, "")
-      .trim();
+      .trim() || rawInput;
 
-    // 1. MODE: DOMAIN OVERVIEW & SITE AUDIT
+    // 1. DOMAIN OVERVIEW MODE
     if (mode === "domain_overview") {
       const overviewPrompt = `
-You are a World-Class SEO Audit Engine (Ubersuggest & Ahrefs Alternative).
-Analyze the website domain or brand: '${domainName}'
-
-Return a STRICT JSON response only (no markdown, no extra text) with calculated estimates:
+You are an Advanced SEO Audit Engine. Analyze domain: '${domainName}'
+Return ONLY a valid JSON object matching this structure:
 {
   "domain": "${domainName}",
   "domainAuthority": 58,
@@ -34,21 +31,14 @@ Return a STRICT JSON response only (no markdown, no extra text) with calculated 
   "backlinks": "12.4K",
   "healthScore": 86,
   "topKeywords": [
-    { "kw": "digital marketing agency vizag", "pos": "1", "vol": "4,500", "traffic": "1,850" },
-    { "kw": "best seo services in vizag", "pos": "2", "vol": "3,200", "traffic": "1,120" },
-    { "kw": "local review automation software", "pos": "1", "vol": "2,800", "traffic": "980" },
-    { "kw": "web design company vizag", "pos": "3", "vol": "3,900", "traffic": "840" },
-    { "kw": "gmb map ranking services", "pos": "2", "vol": "2,100", "traffic": "710" }
+    { "kw": "best agency", "pos": "1", "vol": "4,500", "traffic": "1,850" }
   ],
   "auditIssues": [
-    { "type": "High Priority", "issue": "Missing Meta Descriptions on 4 pages", "impact": "High" },
-    { "type": "Medium Priority", "issue": "Image ALT tags missing on 12 assets", "impact": "Medium" },
-    { "type": "Low Priority", "issue": "Schema markup validation warnings", "impact": "Low" }
+    { "type": "High Priority", "issue": "Missing Meta Descriptions", "impact": "High" }
   ]
-}
-`;
+}`;
 
-      let overviewResult = await callGemini(apiKey, overviewPrompt);
+      const overviewResult = await callGemini(apiKey, overviewPrompt);
       let parsedOverview = null;
 
       try {
@@ -57,7 +47,7 @@ Return a STRICT JSON response only (no markdown, no extra text) with calculated 
           parsedOverview = JSON.parse(cleanJson);
         }
       } catch (e) {
-        console.log("JSON Parse Error in Domain Overview");
+        console.log("JSON Parse Error Overview");
       }
 
       if (!parsedOverview) {
@@ -67,32 +57,21 @@ Return a STRICT JSON response only (no markdown, no extra text) with calculated 
       return NextResponse.json({ success: true, overviewData: parsedOverview, domainName });
     }
 
-    // 2. MODE: 100+ KEYWORD MINING
+    // 2. KEYWORD MINING MODE
     if (mode === "keywords") {
       const keywordPrompt = `
-You are an Advanced SEO Keyword Research Engine (Ubersuggest/SEMrush Alternative).
-Target Search Query / Business Topic: '${cleanInput}'
-
-CRITICAL RULE: Generate 100% SPECIFIC keywords ONLY for '${cleanInput}'.
-Output MUST be STRICT VALID JSON ONLY (no markdown text).
-Provide 5 distinct categories with EXACTLY 20 keywords each (Total 100 Keywords).
-
-JSON Structure:
+You are an Advanced SEO Keyword Research Engine. Target topic: '${domainName}'
+Return ONLY strict valid JSON containing 5 categories with 20 keywords each:
 [
   {
     "category": "Top 20 Primary High-Volume Keywords",
     "keywords": [
-      { "kw": "sample keyword 1", "vol": "12,500/mo", "diff": "22%", "days": "10-20", "intent": "Transactional", "impact": "High" }
+      { "kw": "sample kw 1", "vol": "12,500/mo", "diff": "22%", "days": "10-20", "intent": "Transactional", "impact": "High" }
     ]
-  },
-  { "category": "Top 20 High-Intent Transactional Keywords", "keywords": [] },
-  { "category": "Top 20 Low Competition Long-Tail Keywords", "keywords": [] },
-  { "category": "Top 20 Local SEO Keywords", "keywords": [] },
-  { "category": "Top 20 Question-Based & FAQ Keywords", "keywords": [] }
-]
-`;
+  }
+]`;
 
-      let kwResultText = await callGemini(apiKey, keywordPrompt);
+      const kwResultText = await callGemini(apiKey, keywordPrompt);
       let parsedKeywords = null;
 
       try {
@@ -101,43 +80,28 @@ JSON Structure:
           parsedKeywords = JSON.parse(cleanJson);
         }
       } catch (e) {
-        console.log("JSON Parse Error in Keywords");
+        console.log("JSON Parse Error Keywords");
       }
 
-      if (!parsedKeywords || parsedKeywords.length === 0) {
-        parsedKeywords = getPureDynamicKeywords(cleanInput);
+      if (!parsedKeywords || !Array.isArray(parsedKeywords)) {
+        parsedKeywords = getPureDynamicKeywords(domainName);
       }
 
       return NextResponse.json({ success: true, keywordJson: parsedKeywords, domainName });
     }
 
-    // 3. MODE: GMB AUDIT CHECKLIST
+    // 3. LOCAL GMB AUDIT MODE
     if (mode === "gmb") {
-      const gmbPrompt = `
-You are a Senior Local SEO Specialist.
-Target Business: '${cleanInput}'
-
-Provide a Local SEO & Google My Business (GMB) Audit Report with actionable steps:
-1. Primary & Secondary GMB Categories selection
-2. NAP (Name, Address, Phone) Consistency Audit Checklist
-3. Local Citation & Backlink Strategy
-4. Google Maps Ranking Checklist (Geo-tagged photos, Reviews strategy, Q&A)
-5. On-Page Local SEO Recommendations (Schema Markup, Localized Landing Pages)
-`;
-
+      const gmbPrompt = `Provide a local SEO and GMB ranking audit checklist for '${domainName}'.`;
       let gmbResult = await callGemini(apiKey, gmbPrompt);
+      
       if (!gmbResult) {
         gmbResult = `📍 LOCAL SEO & GMB MAP PACK AUDIT FOR '${domainName.toUpperCase()}'
-
-1. PRIMARY & SECONDARY CATEGORIES:
-   • Primary: Digital Marketing Agency / Local Business Service
-   • Secondary: SEO Agency, Web Design Company, Internet Marketing Service
-
-2. GOOGLE MAP PACK TOP 3 RANKING CHECKLIST:
-   ✔ Complete 100% GMB Profile Info (NAP Consistency)
-   ✔ Upload 15+ High-Res Geo-Tagged Office & Team Photos
-   ✔ Implement WhatsApp Automated Review Request Tool
-   ✔ Weekly GMB Post Update with local targeted keywords`;
+1. PRIMARY CATEGORY: Digital Marketing & Business Services
+2. GMB CHECKLIST:
+   ✔ Complete 100% NAP Consistency
+   ✔ Geo-tagged photo uploads
+   ✔ WhatsApp review automation link setup`;
       }
 
       return NextResponse.json({ success: true, gmbData: gmbResult, domainName });
@@ -176,23 +140,20 @@ async function callGemini(apiKey: string | undefined, prompt: string) {
 
 function getDomainFallback(domain: string) {
   return {
-    domain: domain,
+    domain,
     domainAuthority: 54,
     organicKeywords: "8.5K",
     monthlyTraffic: "24.1K",
-    backlinks": "6.2K",
+    backlinks: "6.2K",
     healthScore: 88,
     topKeywords: [
       { kw: `${domain} services`, pos: "1", vol: "3,600", traffic: "1,200" },
       { kw: `top rated ${domain}`, pos: "1", vol: "2,400", traffic: "950" },
-      { kw: `best agency ${domain}`, pos: "2", vol: "1,800", traffic: "620" },
-      { kw: `local seo expert`, pos: "3", vol: "4,200", traffic: "510" },
-      { kw: `gmb map optimization`, pos: "2", vol: "2,900", traffic: "480" }
+      { kw: `best agency ${domain}`, pos: "2", vol: "1,800", traffic: "620" }
     ],
     auditIssues: [
-      { type: "High Priority", issue: "H1 tag missing on landing page", impact: "High" },
-      { type: "Medium Priority", issue: "Page load speed exceeds 2.8s on mobile", impact: "Medium" },
-      { type: "Low Priority", issue: "Sitemap XML missing 2 new URLs", impact: "Low" }
+      { type: "High Priority", issue: "Missing Meta Descriptions", impact: "High" },
+      { type: "Medium Priority", issue: "Mobile page speed optimization required", impact: "Medium" }
     ]
   };
 }
@@ -201,7 +162,7 @@ function getPureDynamicKeywords(input: string) {
   const buildCat = (title: string, list: string[]) => ({
     category: title,
     keywords: list.map((kw, i) => ({
-      kw: kw,
+      kw,
       vol: `${Math.max(200, (20 - i) * 450)}/mo`,
       diff: `${15 + (i * 2)}%`,
       days: `${5 + i}-${12 + i}`,
