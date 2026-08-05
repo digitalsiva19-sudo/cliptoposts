@@ -27,6 +27,7 @@ export default function HomePage() {
   const [autoAddress, setAutoAddress] = useState<string>("");
   const [autoServices, setAutoServices] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
+  const [paying, setPaying] = useState(false);
 
   const [user, setUser] = useState<any>(null);
   const [planType, setPlanType] = useState<string>("free");
@@ -79,6 +80,62 @@ export default function HomePage() {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
+  };
+
+  // PayU Integration Handler
+  const handlePayUPayment = async (amount: number, selectedPlan: string) => {
+    if (!user) {
+      alert("Please Login / Register first before upgrading to Pro!");
+      window.location.href = "/login";
+      return;
+    }
+
+    setPaying(true);
+
+    try {
+      const res = await fetch("/api/payu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount,
+          planType: selectedPlan,
+          firstname: user.email?.split("@")[0] || "Customer",
+          email: user.email,
+          phone: "9640502095"
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success || !data.payuData) {
+        alert("Error launching PayU Gateway: " + (data.error || "Missing API Credentials"));
+        setPaying(false);
+        return;
+      }
+
+      // Create dynamic hidden form and submit to PayU Gateway
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = data.payuData.action;
+
+      Object.keys(data.payuData).forEach((key) => {
+        if (key !== "action") {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = data.payuData[key];
+          form.appendChild(input);
+        }
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+
+    } catch (err: any) {
+      console.error(err);
+      alert("PayU Payment Error: " + err.message);
+      setPaying(false);
+    }
   };
 
   const handleDownloadPDF = () => {
@@ -335,7 +392,7 @@ export default function HomePage() {
           3 Dedicated AI Tools: Social 3D Flyers, 100+ SEO Keyword Audits & Local GMB Map Pack Checklists!
         </p>
 
-        {/* Form */}
+        {/* Input Form */}
         <form onSubmit={handleGenerate} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 text-left shadow-xl">
           <div>
             <label className="text-[11px] font-bold text-slate-300 mb-1.5 block">Enter Business Name, Keyword, or Website URL *</label>
@@ -408,11 +465,11 @@ export default function HomePage() {
           </div>
         </form>
 
-        {/* PRICING SECTION */}
+        {/* PRICING SECTION WITH REAL PAYU BUTTONS */}
         <section className="mt-12 bg-slate-900 border border-slate-800 p-6 rounded-2xl text-left space-y-6 shadow-xl">
           <div className="text-center space-y-1">
             <h3 className="text-xl font-extrabold text-white">💎 Choose Your ClipToPosts Growth Plan</h3>
-            <p className="text-xs text-slate-400">Unlock unlimited AI generations, Whitelabel Client PDF Reports & 3D Visual Flyers</p>
+            <p className="text-xs text-slate-400">Pay via PhonePe, Google Pay, PayTM, Cards, Netbanking & UPI via Secure PayU Gateway</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -445,10 +502,11 @@ export default function HomePage() {
                 </ul>
               </div>
               <button 
-                onClick={() => alert("Redirecting to Gateway for ₹499 Subscription...")}
+                onClick={() => handlePayUPayment(499, "pro_monthly")}
+                disabled={paying || planType.includes("pro")}
                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 rounded-lg transition"
               >
-                Upgrade Monthly
+                {paying ? "Redirecting to PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹499 via PayU"}
               </button>
             </div>
 
@@ -465,10 +523,11 @@ export default function HomePage() {
                 </ul>
               </div>
               <button 
-                onClick={() => alert("Redirecting to Gateway for ₹2,499 Subscription...")}
+                onClick={() => handlePayUPayment(2499, "pro_6months")}
+                disabled={paying || planType.includes("pro")}
                 className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 rounded-lg transition"
               >
-                Upgrade 6-Months
+                {paying ? "Redirecting to PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹2,499 via PayU"}
               </button>
             </div>
 
@@ -485,10 +544,11 @@ export default function HomePage() {
                 </ul>
               </div>
               <button 
-                onClick={() => alert("Redirecting to Gateway for ₹4,499 Subscription...")}
+                onClick={() => handlePayUPayment(4499, "pro_annual")}
+                disabled={paying || planType.includes("pro")}
                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs py-2 rounded-lg transition shadow-lg"
               >
-                Upgrade Yearly
+                {paying ? "Redirecting to PayU..." : planType.includes("pro") ? "Current Active Plan" : "Pay ₹4,499 via PayU"}
               </button>
             </div>
           </div>
@@ -642,7 +702,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="text-center text-xs text-slate-600 py-4 border-t border-slate-900">
-        © ClipToPosts. Enterprise AI Growth Suite.
+        © ClipToPosts Enterprise AI Growth Suite. PayU Gateway Integrated.
       </footer>
     </div>
   );
